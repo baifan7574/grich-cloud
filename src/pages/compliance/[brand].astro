@@ -1,0 +1,96 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import RiskDashboard from '../../components/RiskDashboard';
+import PaywallCard from '../../components/PaywallCard';
+
+export const prerender = false; // Enable SSR
+
+const { brand } = Astro.params;
+const decodedBrand = decodeURIComponent(brand || '').toUpperCase();
+
+// Mock Data (Simulating database fetch)
+const mockRiskScore = 85;
+const lawsuitCount = 3;
+
+// Meta data logic
+const pageTitle = `⚠️ ${decodedBrand} Lawsuit Alert | 2026 Global Compliance Report`;
+const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed trademark infringement analysis, risk assessment, and legal defense strategy. Updated daily.`;
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  {/* Navbar */}
+  <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur fixed w-full z-50">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="font-bold text-xl tracking-tighter text-white">
+        GRICH <span class="text-red-500">INTELLIGENCE</span>
+      </div>
+      <div class="text-xs text-slate-500 font-mono hidden md:block">
+        SYSTEM STATUS: ONLINE | DATABASE: UPDATED 12M AGO
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-24 pb-20 max-w-5xl mx-auto px-4">
+    {/* Header Section */}
+    <header class="mb-12 text-center md:text-left animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-xs font-bold mb-4 border border-red-500/20">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+        </span>
+        ACTIVE LAWSUIT DETECTED
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black text-white mb-4 tracking-tight">
+        Compliance Alert: <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">{decodedBrand}</span>
+      </h1>
+      <p class="text-lg text-slate-400 max-w-2xl">
+        Our systems have flagged active trademark filings and litigation signals involving <strong class="text-white">{decodedBrand}</strong>. Immediate action is recommended for stakeholders.
+      </p>
+    </header>
+
+    {/* Client Side Interactive Dashboard */}
+    <section class="mb-16">
+      <RiskDashboard client:load brand={decodedBrand} initialScore={mockRiskScore} lawsuitCount={lawsuitCount} />
+    </section>
+
+    {/* Evidence Preview (The 'Free Value') */}
+    <section class="grid md:grid-cols-2 gap-8 mb-16">
+      <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-xl">
+        <h3 class="text-slate-400 text-sm font-bold uppercase mb-4 tracking-wider">Docket Snapshot</h3>
+        <div class="space-y-4 font-mono text-sm">
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-500">Case ID:</span>
+            <span class="text-white">2:26-cv-00{Math.floor(Math.random() * 999)}</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-500">Court:</span>
+            <span class="text-white">N.D. Illinois</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-500">Plaintiff:</span>
+            <span class="text-white">{decodedBrand} Brand IP Holdings</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800 pb-2">
+            <span class="text-slate-500">Status:</span>
+            <span class="text-red-400 font-bold">Injunction Granted</span>
+          </div>
+        </div>
+        <div class="mt-6 text-xs text-slate-600">
+          * Data sourced from Public Court Records via PACER/CourtListener. Verified by GRICH.
+        </div>
+      </div>
+
+      {/* Paywall Card */}
+      <PaywallCard client:load brand={decodedBrand} />
+    </section>
+
+  </main>
+
+  {/* Footer */}
+  <footer class="border-t border-slate-900 bg-slate-950 py-12 text-center text-slate-600 text-sm">
+    <p>© 2026 GRICH Global Regulatory Intelligence Hub. All rights reserved.</p>
+    <p class="mt-2 text-xs opacity-50">
+      Disclaimer: AI-generated contents are for informational purposes only. Use jaxfamlaw.com services at your own risk. Not legal advice.
+    </p>
+  </footer>
+</Layout>

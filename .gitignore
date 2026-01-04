@@ -1,0 +1,14 @@
+# dependencies
+node_modules/
+.npm
+
+# build output
+dist/
+.astro/
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
