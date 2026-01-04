@@ -1,24 +1,19 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import RiskDashboard from '../../components/RiskDashboard';
-import PaywallCard from '../../components/PaywallCard';
 
-export const prerender = false; // Enable SSR
+export const prerender = false;
 
 const { brand } = Astro.params;
 const decodedBrand = decodeURIComponent(brand || '').toUpperCase();
 
-// Mock Data (Simulating database fetch)
 const mockRiskScore = 85;
 const lawsuitCount = 3;
 
-// Meta data logic
 const pageTitle = `⚠️ ${decodedBrand} Lawsuit Alert | 2026 Global Compliance Report`;
 const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed trademark infringement analysis, risk assessment, and legal defense strategy. Updated daily.`;
 ---
 
 <Layout title={pageTitle} description={pageDescription}>
-  {/* Navbar */}
   <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur fixed w-full z-50">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <div class="font-bold text-xl tracking-tighter text-white">
@@ -30,9 +25,8 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
     </div>
   </nav>
 
-  <main class="pt-24 pb-20 max-w-5xl mx-auto px-4">
-    {/* Header Section */}
-    <header class="mb-12 text-center md:text-left animate-in fade-in slide-in-from-bottom-4 duration-1000">
+  <main class="pt-24 pb-20 max-w-5xl mx-auto px-4 min-h-screen bg-slate-950 text-slate-200">
+    <header class="mb-12 text-center md:text-left">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-xs font-bold mb-4 border border-red-500/20">
         <span class="relative flex h-2 w-2">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -48,12 +42,53 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
       </p>
     </header>
 
-    {/* Client Side Interactive Dashboard */}
+    <!-- Risk Dashboard -->
     <section class="mb-16">
-      <RiskDashboard client:only="react" brand={decodedBrand} initialScore={mockRiskScore} lawsuitCount={lawsuitCount} />
+      <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden" id="risk-dashboard">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+          <div class="col-span-1 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 pb-8 md:pb-0 md:pr-8">
+            <div class="relative h-40 w-40 flex items-center justify-center">
+              <svg class="h-full w-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle class="text-slate-800" stroke-width="8" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
+                <circle id="progress-circle" class="text-red-500 transition-all duration-1000" stroke-width="8" stroke-dasharray="0 251.2" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
+              </svg>
+              <div class="absolute flex flex-col items-center">
+                <span id="score-value" class="text-5xl font-black text-red-500 leading-none">0</span>
+                <span class="text-xs text-slate-500 uppercase font-bold mt-1">Risk Index</span>
+              </div>
+            </div>
+            <div class="mt-4 px-4 py-1 rounded-full bg-slate-800 font-bold tracking-wider text-sm text-red-500">
+              EXTREME RISK
+            </div>
+          </div>
+
+          <div class="col-span-1 md:col-span-2 flex flex-col justify-center space-y-6">
+            <div>
+              <h2 class="text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">
+                Intelligence Summary for {decodedBrand}
+              </h2>
+              <p class="text-slate-200 leading-relaxed text-sm md:text-base">
+                Active surveillance has detected <span class="text-white font-bold bg-red-500/20 px-1 rounded">{lawsuitCount} confirmed lawsuit signals</span> associated with this keyword. 
+                The risk level indicates a high probability of Temporary Restraining Order (TRO) execution and subsequent payment gateway freezes (Stripe/PayPal) within 48-72 hours.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                <h4 class="text-slate-500 text-xs font-bold uppercase mb-1">Detected Jurisdiction</h4>
+                <p class="text-white font-mono">N.D. Illinois (SAD Scheme)</p>
+              </div>
+              <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                <h4 class="text-slate-500 text-xs font-bold uppercase mb-1">Likely Plaintiff</h4>
+                <p class="text-white font-mono">{decodedBrand} IP Enforcement</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    {/* Evidence Preview (The 'Free Value') */}
+    <!-- Evidence + Paywall -->
     <section class="grid md:grid-cols-2 gap-8 mb-16">
       <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-xl">
         <h3 class="text-slate-400 text-sm font-bold uppercase mb-4 tracking-wider">Docket Snapshot</h3>
@@ -80,17 +115,96 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
         </div>
       </div>
 
-      {/* Paywall Card */}
-      <PaywallCard client:only="react" brand={decodedBrand} />
+      <!-- Paywall Card -->
+      <div class="relative group overflow-hidden rounded-xl border border-red-500/30 bg-slate-900/50 p-8 backdrop-blur transition-all hover:border-red-500/50">
+        <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-orange-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
+
+        <div class="relative z-10 flex flex-col h-full justify-between">
+          <div>
+            <div class="flex items-center gap-3 mb-6 text-red-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span class="text-sm font-bold tracking-widest uppercase">Restricted Intelligence</span>
+            </div>
+
+            <h3 class="text-2xl font-bold text-white mb-4">
+              Unlock Full {decodedBrand} Defense Strategy
+            </h3>
+
+            <ul class="space-y-3 mb-8 text-slate-400">
+              <li class="flex items-start gap-3">
+                <span class="text-red-500 mt-1">✓</span>
+                <span>Complete Plaintiff & Attorney Profile</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-red-500 mt-1">✓</span>
+                <span>Historical Settlement Rejection Data</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-red-500 mt-1">✓</span>
+                <span>AI-Generated Response Letter Template</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mt-4">
+            <div class="flex items-baseline gap-2 mb-4">
+              <span class="text-3xl font-black text-white">$9.90</span>
+              <span class="text-sm text-slate-500 line-through">$49.00</span>
+              <span class="text-xs font-bold text-green-400 ml-2 animate-pulse">80% OFF</span>
+            </div>
+
+            <button id="unlock-btn" class="w-full py-4 px-6 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold rounded-lg shadow-lg shadow-red-900/20 transform transition-all active:scale-95 flex items-center justify-center gap-2 group-hover:shadow-red-500/20">
+              <span>GET FULL REPORT</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </button>
+            <p class="text-center text-xs text-slate-600 mt-3">
+              Secure SSL Payment • 100% Money Back Guarantee
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
 
-  {/* Footer */}
   <footer class="border-t border-slate-900 bg-slate-950 py-12 text-center text-slate-600 text-sm">
     <p>© 2026 GRICH Global Regulatory Intelligence Hub. All rights reserved.</p>
     <p class="mt-2 text-xs opacity-50">
       Disclaimer: AI-generated contents are for informational purposes only. Use jaxfamlaw.com services at your own risk. Not legal advice.
     </p>
   </footer>
+
+  <script define:vars={{ initialScore: mockRiskScore }}>
+    // Animate risk score
+    const scoreValue = document.getElementById('score-value');
+    const progressCircle = document.getElementById('progress-circle');
+    
+    let current = 0;
+    const duration = 1500;
+    const steps = 60;
+    const interval = duration / steps;
+    const stepValue = initialScore / steps;
+
+    const timer = setInterval(() => {
+      current += stepValue;
+      if (current >= initialScore) {
+        current = initialScore;
+        clearInterval(timer);
+      }
+      const displayScore = Math.floor(current);
+      scoreValue.textContent = displayScore;
+      progressCircle.setAttribute('stroke-dasharray', `${displayScore * 2.51} 251.2`);
+    }, interval);
+
+    // Unlock button
+    document.getElementById('unlock-btn').addEventListener('click', () => {
+      alert('Payment gateway integration pending (LemonSqueezy/Stripe)');
+    });
+  </script>
 </Layout>
