@@ -50,7 +50,7 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
 
     {/* Client Side Interactive Dashboard */}
     <section class="mb-16">
-      <RiskDashboard client:load brand={decodedBrand} initialScore={mockRiskScore} lawsuitCount={lawsuitCount} />
+      <RiskDashboard client:only="react" brand={decodedBrand} initialScore={mockRiskScore} lawsuitCount={lawsuitCount} />
     </section>
 
     {/* Evidence Preview (The 'Free Value') */}
@@ -81,7 +81,7 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
       </div>
 
       {/* Paywall Card */}
-      <PaywallCard client:load brand={decodedBrand} />
+      <PaywallCard client:only="react" brand={decodedBrand} />
     </section>
 
   </main>
