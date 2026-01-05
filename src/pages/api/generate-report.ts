@@ -1,6 +1,6 @@
 
 import type { APIRoute } from 'astro';
-import { supabase } from '../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // System prompt for the AI "Legal Analyst"
 const SYSTEM_PROMPT = `
@@ -33,19 +33,31 @@ Tone: Professional, Urgent, Authoritative (No "AI" language).
 export const GET: APIRoute = async ({ request, locals }) => {
     const url = new URL(request.url);
     const brand = url.searchParams.get('brand');
+
+    // Robustly get Env Vars in Cloudflare Runtime
     // @ts-ignore
     const runtimeEnv = locals?.runtime?.env || {};
+
+    // 1. Get Keys
     const DEEPSEEK_API_KEY = import.meta.env.DEEPSEEK_API_KEY || runtimeEnv.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY;
+    const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL || runtimeEnv.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || process.env.PUBLIC_SUPABASE_ANON_KEY;
 
     if (!brand) {
         return new Response(JSON.stringify({ error: 'Brand is required' }), { status: 400 });
     }
 
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.error('Missing Supabase Config');
+        return new Response(JSON.stringify({ error: 'Server Config Error (DB)' }), { status: 500 });
+    }
+
+    // 2. Initialize Supabase Logic ONLY inside the handler (Lazy Load)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const decodedBrand = decodeURIComponent(brand).toUpperCase();
 
-    // 1. Check Cache (Database)
-    // We check if a report was created in the last 24 hours
-    // For simplicity, we just check if ANY report exists for now (Permanent Cache for MVP)
+    // 3. Check Cache (Database)
     const { data: cachedReport } = await supabase
         .from('compliance_reports')
         .select('report_content')
@@ -59,7 +71,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         });
     }
 
-    // 2. Check if we even have lawsuit data for this brand
+    // 4. Check if we even have lawsuit data for this brand
     const { data: lawsuitData } = await supabase
         .from('lawsuits')
         .select('*')
