@@ -31,68 +31,89 @@ Tone: Professional, Urgent, Authoritative (No "AI" language).
 `;
 
 export const GET: APIRoute = async ({ request, locals }) => {
-    const url = new URL(request.url);
-    const brand = url.searchParams.get('brand');
-
-    // Robustly get Env Vars in Cloudflare Runtime
-    // @ts-ignore
-    const runtimeEnv = locals?.runtime?.env || {};
-
-    // 1. Get Keys
-    const DEEPSEEK_API_KEY = import.meta.env.DEEPSEEK_API_KEY || runtimeEnv.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY;
-    const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL || runtimeEnv.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
-    const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || process.env.PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!brand) {
-        return new Response(JSON.stringify({ error: 'Brand is required' }), { status: 400 });
-    }
-
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error('Missing Supabase Config');
-        return new Response(JSON.stringify({ error: 'Server Config Error (DB)' }), { status: 500 });
-    }
-
-    // 2. Initialize Supabase Logic ONLY inside the handler (Lazy Load)
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const decodedBrand = decodeURIComponent(brand).toUpperCase();
-
-    // 3. Check Cache (Database)
-    const { data: cachedReport } = await supabase
-        .from('compliance_reports')
-        .select('report_content')
-        .eq('brand_name', decodedBrand)
-        .single();
-
-    if (cachedReport) {
-        return new Response(JSON.stringify(cachedReport.report_content), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
-    // 4. Check if we even have lawsuit data for this brand
-    const { data: lawsuitData } = await supabase
-        .from('lawsuits')
-        .select('*')
-        .ilike('brand_name', decodedBrand)
-        .limit(1);
-
-    if (!lawsuitData || lawsuitData.length === 0) {
-        return new Response(JSON.stringify({
-            error: 'No lawsuit data found. Intelligence gathering pending.'
-        }), { status: 404 });
-    }
-
-    // 3. Call DeepSeek API (The Brain)
-    if (!DEEPSEEK_API_KEY) {
-        return new Response(JSON.stringify({ error: 'System configuration error (Missing Key)' }), { status: 500 });
-    }
-
     try {
+        const url = new URL(request.url);
+        const brand = url.searchParams.get('brand');
+
+        // Robustly get Env Vars in Cloudflare Runtime
+        // @ts-ignore
+        const runtimeEnv = locals?.runtime?.env || {};
+
+        // 1. Get Keys (Avoid process.env in Cloudflare to prevent ReferenceError)
+        // Order: Cloudflare Runtime > Build Time > Empty
+        const DEEPSEEK_API_KEY = runtimeEnv.DEEPSEEK_API_KEY || import.meta.env.DEEPSEEK_API_KEY;
+        const SUPABASE_URL = runtimeEnv.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL;
+        const SUPABASE_KEY = runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+        // DEBUG INFO (Return this to frontend to diagnose)
+        // Redact keys for security, just show presence
+        const debugInfo = {
+            hasDeepSeek: !!DEEPSEEK_API_KEY,
+            deepSeekPrefix: DEEPSEEK_API_KEY ? DEEPSEEK_API_KEY.substring(0, 3) : 'N/A',
+            hasSupabaseUrl: !!SUPABASE_URL,
+            hasSupabaseKey: !!SUPABASE_KEY,
+            brand: brand
+        };
+
+        if (!brand) {
+            return new Response(JSON.stringify({ error: 'Brand is required', debug: debugInfo }), { status: 400 });
+        }
+
+        if (!SUPABASE_URL || !SUPABASE_KEY) {
+            console.error('Missing Supabase Config');
+            return new Response(JSON.stringify({ error: 'Server Config Error (DB)', debug: debugInfo }), { status: 500 });
+        }
+
+        // 2. Initialize Supabase Logic ONLY inside the handler (Lazy Load)
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const decodedBrand = decodeURIComponent(brand).toUpperCase();
+
+        // 3. Check Cache (Database)
+        const { data: cachedReport, error: cacheError } = await supabase
+            .from('compliance_reports')
+            .select('report_content')
+            .eq('brand_name', decodedBrand)
+            .single();
+
+        if (cacheError && cacheError.code !== 'PGRST116') { // PGRST116 is "Row not found"
+            console.warn("Cache Lookup Error:", cacheError);
+        }
+
+        if (cachedReport) {
+            return new Response(JSON.stringify(cachedReport.report_content), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // 4. Check if we even have lawsuit data for this brand
+        const { data: lawsuitData, error: lawsuitError } = await supabase
+            .from('lawsuits')
+            .select('*')
+            .ilike('brand_name', decodedBrand)
+            .limit(1);
+
+        if (lawsuitError) {
+            return new Response(JSON.stringify({ error: 'DB Read Error', details: lawsuitError, debug: debugInfo }), { status: 500 });
+        }
+
+        if (!lawsuitData || lawsuitData.length === 0) {
+            return new Response(JSON.stringify({
+                error: 'No lawsuit data found. Intelligence gathering pending.',
+                debug: debugInfo
+            }), { status: 404 });
+        }
+
+        // 5. Call DeepSeek API (The Brain)
+        if (!DEEPSEEK_API_KEY) {
+            return new Response(JSON.stringify({ error: 'System configuration error (Missing DeepSeek Key)', debug: debugInfo }), { status: 500 });
+        }
+
+        // ... (DeepSeek Call logic remains similar but wrapped in this try block)
         const prompt = SYSTEM_PROMPT
             .replace('{brand}', decodedBrand)
-            .replace('{count}', 'Multiple') // Simplified for now
+            .replace('{count}', 'Multiple')
             .replace('{court}', lawsuitData[0].court || 'N.D. Illinois');
 
         const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -115,14 +136,19 @@ export const GET: APIRoute = async ({ request, locals }) => {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('DeepSeek Error:', errorText);
-            return new Response(JSON.stringify({ error: 'Intelligence generation failed' }), { status: 502 });
+            return new Response(JSON.stringify({ error: 'Intelligence generation failed', upstream: errorText, debug: debugInfo }), { status: 502 });
         }
 
         const aiData = await response.json();
         const content = aiData.choices[0].message.content;
-        const parsedContent = JSON.parse(content); // Validate JSON
+        let parsedContent;
+        try {
+            parsedContent = JSON.parse(content);
+        } catch (e) {
+            return new Response(JSON.stringify({ error: 'Invalid JSON from AI', raw: content, debug: debugInfo }), { status: 500 });
+        }
 
-        // 4. Save to Database (Cache)
+        // 6. Save to Database (Cache)
         const { error: dbError } = await supabase
             .from('compliance_reports')
             .insert({
@@ -132,7 +158,6 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
         if (dbError) {
             console.error('DB Insert Error:', dbError);
-            // We continue even if cache fails, just return the data
         }
 
         return new Response(JSON.stringify(parsedContent), {
@@ -140,8 +165,13 @@ export const GET: APIRoute = async ({ request, locals }) => {
             headers: { 'Content-Type': 'application/json' }
         });
 
-    } catch (error) {
-        console.error('API Error:', error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+    } catch (globalError: any) {
+        // GLOBAL CATCH: Ensure we never return 502 without explanation
+        return new Response(JSON.stringify({
+            error: 'CRITICAL FUNCTION CRASH',
+            message: globalError.message,
+            stack: globalError.stack,
+            type: typeof globalError
+        }), { status: 200 }); // Return 200 so we can read the error body
     }
 };
