@@ -30,10 +30,12 @@ Output JSON Format (Strict):
 Tone: Professional, Urgent, Authoritative (No "AI" language).
 `;
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
     const url = new URL(request.url);
     const brand = url.searchParams.get('brand');
-    const DEEPSEEK_API_KEY = import.meta.env.DEEPSEEK_API_KEY;
+    // @ts-ignore
+    const runtimeEnv = locals?.runtime?.env || {};
+    const DEEPSEEK_API_KEY = import.meta.env.DEEPSEEK_API_KEY || runtimeEnv.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY;
 
     if (!brand) {
         return new Response(JSON.stringify({ error: 'Brand is required' }), { status: 400 });
