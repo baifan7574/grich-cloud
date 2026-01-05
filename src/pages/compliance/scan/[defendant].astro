@@ -1,6 +1,7 @@
 ---
 layout: '../../layouts/Layout.astro';
 import { createClient } from '@supabase/supabase-js';
+import PayPalButton from '../../components/PayPalButton.astro';
 
 const { defendant } = Astro.params;
 const decodedDefendant = decodeURIComponent(defendant || '');
@@ -93,14 +94,11 @@ const mockRiskScore = 99;
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex flex-col md:flex-row gap-4 justify-center">
-        <a href="#" class="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-lg transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2">
-            <span>Download My Case Files</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        </a>
-        <a href="#" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border border-white/10">
-            Contact Defense Attorney
-        </a>
+    <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+        <!-- Pay $29.90 to Download -->
+        <div class="w-full max-w-xs">
+            <PayPalButton amount="29.90" integrationId="sniper_defendant" />
+        </div>
     </div>
 
   </main>
@@ -155,4 +153,13 @@ const mockRiskScore = 99;
 
     // Delay slightly for effect
     setTimeout(fetchReport, 800);
+
+    // Payment Success Handler
+    document.addEventListener('payment-success', (e) => {
+        const payerName = e.detail.payer.name.given_name;
+        // In Branch B (Sniper), we unlock the downloaded files (GBC SharePoint Link)
+        alert(`ACCESS GRANTED. User: ${payerName}\n\nUnlocking Schedule A Document...`);
+        // Simulating the "Vault Open"
+        window.location.href = "https://gbcnet-my.sharepoint.com/:f:/g/personal/jramos_gbc_law/EtrdoDFXs0lHkeBPfq7E1DUBP2Uuc3E2OFA7kTx6cqiWVQ?e=lNLTrF";
+    });
 </script>
