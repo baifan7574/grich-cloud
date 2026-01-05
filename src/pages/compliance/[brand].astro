@@ -1,13 +1,21 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { supabase } from '../../lib/supabase';
 
 export const prerender = false;
 
 const { brand } = Astro.params;
 const decodedBrand = decodeURIComponent(brand || '').toUpperCase();
 
-const mockRiskScore = 85;
-const lawsuitCount = 3;
+// Fetch real data from Supabase
+const { data: lawsuits, error } = await supabase
+  .from('lawsuits')
+  .select('*')
+  .ilike('brand_name', decodedBrand);
+
+// Use real data if available, otherwise fallback to mock
+const mockRiskScore = lawsuits && lawsuits.length > 0 ? lawsuits[0].risk_score : 85;
+const lawsuitCount = lawsuits ? lawsuits.length : 3;
 
 const pageTitle = `⚠️ ${decodedBrand} Lawsuit Alert | 2026 Global Compliance Report`;
 const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed trademark infringement analysis, risk assessment, and legal defense strategy. Updated daily.`;
