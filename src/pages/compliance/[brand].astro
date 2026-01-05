@@ -188,7 +188,7 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
     </p>
   </footer>
 
-  <script define:vars={{ initialScore: mockRiskScore }}>
+  <script define:vars={{ initialScore: mockRiskScore, decodedBrand }}>
     // Animate risk score
     const scoreValue = document.getElementById('score-value');
     const progressCircle = document.getElementById('progress-circle');
@@ -216,7 +216,7 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
     });
 
     // --- PHASE 3: THE BRAIN INTEGRATION ---
-    const brandName = "{decodedBrand}"; 
+    const brandName = decodedBrand; // Received from define:vars
     
     // Select DOM elements to update
     const summaryEl = document.querySelector('p.text-slate-200');
