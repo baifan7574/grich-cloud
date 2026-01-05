@@ -32,10 +32,15 @@
   - 推送到 GitHub (commit: `d04c6a2`)
   - Cloudflare Pages 自动部署
 
-### 5. 关键教训
-- **文件组织**: 明确了每个项目文件夹对应一个独立网站，避免跨项目混淆
-- **API 兼容性**: Supabase Python SDK 与新版 Key 格式不兼容，改用 REST API 解决
-- **数据真实性**: 用户正确指出 Mock 数据问题，推动了 CourtListener 集成
+### 6. 数据源战略升级 (Justia Sniper) ✅
+- **策略转型**: 从单纯依赖 CourtListener API 转为 "Serper + Justia Dockets" 组合拳
+  - 解决了 API 403 限流和 Sealed 案件无法获取的问题
+- **脚本开发**: `GRICH/scripts/seed_engine_serper.py`
+  - 集成 Serper.dev API (Google Search)
+  - 实现 "Justia Dockets" 定向搜索 (`"Brand" trademark lawsuit Justia`)
+  - **双保险解析**: DeepSeek AI 智能提取 + 正则表达式兜底 (实测即使 AI 余额不足也能精准抓取)
+- **品牌库扩容**: 生成 1000 个高风险品牌列表 (`GRICH/sql/brands_1000.json`)
+- **实战验证**: 成功抓取 Nike (`2:2025cv02325`), Adidas (`0:2023cv62188`), Puma (`2:2023cv00116`)
 
 ---
 
@@ -46,48 +51,45 @@
 2. 自定义域名 `jaxfamlaw.com` 已绑定
 3. Supabase 数据库表结构已建立
 4. 前端已连接数据库（可读取真实数据）
-5. 获得 CourtListener API Token
+5. **多源数据采集系统打通** (Serper + Justia + Regex)
+6. **1000+ 品牌数据库准备就绪**
 
 ### ⏳ 进行中
-1. **CourtListener 数据抓取**: 
-   - Token 已获取: `7f4374db0b69b37c02779dd59ed9c3b0fb90883d`
-   - 脚本已编写但未完成最终测试
-   - 需要添加 Token 到脚本并验证数据抓取
+1. **全量数据抓取**: 
+   - 脚本已就绪，已验证 Top 3 品牌
+   - 准备启动 1000 品牌全量运行
+2. **自动化部署**:
+   - 需要配置 GitHub Actions 实现每日自动抓取
 
 ### ❌ 未开始
 1. 添加"数据源徽章"（Verified Source badges）
 2. 集成支付系统（Stripe/LemonSqueezy）
-3. 批量生成 pSEO 页面（基于品牌列表）
+3. 批量生成 pSEO 页面（Sitemap 自动化）
 
 ---
 
 ## 下一步行动计划
 
 ### 立即任务（本窗口或下一窗口）
-1. **完成 CourtListener 集成**:
+1. **全量运行数据抓取**:
    ```bash
-   # 更新脚本添加 Token
-   # 运行 seed_engine_courtlistener.py
-   # 验证真实数据写入数据库
+   # 运行 seed_engine_serper.py (limit=1000)
+   # 填充数据库，预计耗时 ~50分钟 (3秒延迟/个)
    ```
 
-2. **验证端到端流程**:
-   - 访问 `https://jaxfamlaw.com/compliance/Nike`
-   - 确认显示真实风险分数（来自 CourtListener）
-   - 测试其他品牌（Adidas, LVMH 等）
+2. **配置自动化巡航**:
+   - 创建 `.github/workflows/daily-sync.yml`
+   - 配置 GitHub Secrets (SERPER_API_KEY, SUPABASE_KEY)
+   - 确保每天自动更新数据
 
 ### 后续任务（Phase 2 剩余工作）
-1. **数据源可信度增强**:
-   - 在页面底部添加 "Data sourced from US District Court records" 徽章
-   - 添加免责声明（避免法律风险）
+1. **商业化闭环**:
+   - 既然数据有了，重点转向支付接入和 PDF 报告生成
+   - 确保用户付费后能看到 AI 生成的深度分析
 
-2. **商业化准备**:
-   - 集成 LemonSqueezy 支付链接
-   - 配置支付成功后的 PDF 报告生成（使用 DeepSeek API）
-
-3. **规模化**:
-   - 定时任务：每日自动运行 `seed_engine_courtlistener.py`
-   - Sitemap 生成：基于数据库中的品牌自动生成 XML
+2. **SEO 霸屏**:
+   - 生成包含 1000 个 URL 的 sitemap.xml
+   - 提交 Google Search Console
 
 ---
 
@@ -95,21 +97,22 @@
 
 ### 关键文件位置
 - **项目根目录**: `d:\quicktoolshub\雷达监控。\GRICH\grich-astro`
-- **环境变量**: `grich-astro/.env` (包含 Supabase + CourtListener 凭证)
-- **数据种子脚本**: `GRICH/scripts/seed_engine_courtlistener.py`
-- **品牌列表**: `GRICH/sql/initial_keywords.json`
-- **动态页面**: `grich-astro/src/pages/compliance/[brand].astro`
+- **环境变量**: `grich-astro/.env`
+- **新版采集引擎**: `GRICH/scripts/seed_engine_serper.py` (主力)
+- **旧版采集引擎**: `GRICH/scripts/seed_engine_courtlistener.py` (备用)
+- **品牌列表**: `GRICH/sql/brands_1000.json`
 
 ### API 凭证
 - Supabase URL: `https://rdlmumybuwveaaeceohj.supabase.co`
-- Supabase Key: `sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj`
-- CourtListener Token: `7f4374db0b69b37c02779dd59ed9c3b0fb90883d`
-- DeepSeek API Key: `sk-zsfyaqkoqahmfltyduxwdaltkndxztjkwugxkikuzzgllvko`
+- Supabase Key: `sb_publishable_...` (已配置)
+- Serper API Key: `7aac...a92` (已配置)
+- DeepSeek API Key: `sk-b202...c89` (已配置，带 fallback)
+- CourtListener Token: `7f43...83d` (备用)
 
 ### 部署信息
 - **生产环境**: https://jaxfamlaw.com
 - **GitHub 仓库**: https://github.com/baifan7574/grich-cloud
-- **最新提交**: `d04c6a2` (feat: connect frontend to Supabase for real-time data)
+
 
 ---
 

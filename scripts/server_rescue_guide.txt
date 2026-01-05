@@ -1,0 +1,33 @@
+# 🆘 AWS 服务器救援指南
+
+您的服务器当前拒绝外部 SSH 连接 (错误: `kex_exchange_identification: Connection closed`)。
+这通常是因为内存 (512MB) 被开机自启动的服务瞬间占满，导致 SSH 服务崩溃。
+
+我们需要您通过 **AWS Lightsail 网页控制台** 手动 "杀掉" 那些抢占资源的服务。
+
+## 第一步：进入网页控制台
+1. 打开 AWS Lightsail 网站。
+2. 点击您的实例 (`Americ` / `44.233.82.120`)。
+3. 点击橙色的 **"使用 SSH 连接" (Connect using SSH)** 按钮。
+   - *如果不弹窗或连接失败，请尝试先 "停止" 实例，等待 1 分钟，再 "启动" 实例，然后重试。*
+
+## 第二步：执行救援命令
+一旦您连接成功（看到黑底白字的命令行），请**立即**复制粘贴以下命令并回车：
+
+```bash
+sudo systemctl stop nginx apache2 mysql snap.certbot.renew
+sudo killall nginx node pm2
+sudo systemctl disable nginx apache2 mysql
+sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
+```
+
+## 第三步：验证状态
+执行完上述命令后，输入：
+```bash
+free -h
+```
+如果看到 `Mem: available` 还有 100MB+，说明救援成功。
+
+## 第四步：通知我
+救援成功后，请关闭网页控制台，并在对话框告诉我 **"搞定了"**。
+我就可以继续连接进去做深度清理和 Xray 检查了。

@@ -1,0 +1,43 @@
+# Cloudflare Error 520 解决方案
+
+## 当前状态
+✅ **Nginx 配置成功** - 服务器本地测试返回 HTTP 200 OK  
+❌ **外网访问失败** - Cloudflare Error 520
+
+## 问题原因
+Cloudflare 橙色云默认使用 HTTPS 连接源服务器，但我们只配置了 HTTP (80端口)。
+
+## 解决方案
+
+### 方案 A：修改 Cloudflare SSL 设置（推荐）
+
+1. 登录 Cloudflare 控制台
+2. 选择 jaxfamlaw.com 域名
+3. 点击左侧菜单 **"SSL/TLS"**
+4. 在 "概述" 页面，找到 **"加密模式"** 或 **"SSL/TLS encryption mode"**
+5. 选择 **"灵活 (Flexible)"**
+6. 等待 1-2 分钟生效
+7. 访问 http://jaxfamlaw.com/compliance/Nike
+
+**优点**：
+- 保留 CDN 加速
+- 保留 DDoS 防护
+- 用户访问时看到 HTTPS（安全）
+- Cloudflare 到服务器用 HTTP（我们已配置）
+
+### 方案 B：暂时关闭橙色云
+
+1. 回到 Cloudflare DNS 设置
+2. 找到 jaxfamlaw.com 的 A 记录
+3. 点击橙色云图标，变成灰色
+4. 保存
+5. 等待 1-2 分钟
+6. 访问 http://jaxfamlaw.com/compliance/Nike
+
+**缺点**：
+- 失去 CDN 加速
+- 失去 DDoS 防护
+- 真实 IP 暴露
+
+## 推荐
+**使用方案 A**，这样既能正常访问，又能享受 Cloudflare 的所有功能。

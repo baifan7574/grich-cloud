@@ -1,0 +1,54 @@
+# 🎉 HTTPS 配置完成！
+
+## ✅ 已完成的工作
+1. ✅ 安装 Certbot
+2. ✅ 获取 Let's Encrypt SSL 证书（jaxfamlaw.com）
+3. ✅ 配置 Nginx HTTPS（443端口）
+4. ✅ 配置 HTTP → HTTPS 自动重定向
+
+## 📋 证书信息
+- **域名**: jaxfamlaw.com
+- **过期时间**: 2026-04-03
+- **自动续期**: 已启用
+- **证书位置**: `/etc/letsencrypt/live/jaxfamlaw.com/`
+
+---
+
+## 🚀 最后步骤（需要您操作）
+
+### 步骤 1：重新开启 Cloudflare 橙色云
+1. 进入 Cloudflare 控制台
+2. 进入 **DNS** 管理
+3. 找到 `jaxfamlaw.com` 的 A 记录
+4. **点击灰色云图标**，变成**橙色云** 🟠
+5. 点击"保存"
+
+### 步骤 2：设置 Cloudflare SSL/TLS 模式
+1. 在 Cloudflare 左侧菜单，点击 **SSL/TLS**
+2. 在"概述"页面，找到 **"加密模式"**
+3. 选择 **"完全（严格）" / "Full (strict)"**
+4. 保存
+
+### 步骤 3：等待生效
+等待 **1-2 分钟**，让 Cloudflare 设置生效
+
+### 步骤 4：访问网站
+打开浏览器，访问：
+**https://jaxfamlaw.com/compliance/Nike**
+
+---
+
+## ✅ 预期结果
+- ✅ 网站使用 HTTPS 加密
+- ✅ 浏览器显示绿色锁图标
+- ✅ 享受 Cloudflare CDN 加速
+- ✅ 享受 Cloudflare DDoS 防护
+- ✅ HTTP 自动跳转到 HTTPS
+
+---
+
+## 📝 注意事项
+- 证书会在 2026-04-03 过期前自动续期
+- 如果需要添加 www.jaxfamlaw.com，需要：
+  1. 在 Cloudflare DNS 添加 www 的 A 记录
+  2. 重新获取证书（包含 www）
