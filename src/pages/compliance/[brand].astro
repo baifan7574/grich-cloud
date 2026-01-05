@@ -212,7 +212,48 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Detailed
 
     // Unlock button
     document.getElementById('unlock-btn').addEventListener('click', () => {
-      alert('Payment gateway integration pending (LemonSqueezy/Stripe)');
+      alert('Payment gateway integration pending (Phase 4)');
     });
+
+    // --- PHASE 3: THE BRAIN INTEGRATION ---
+    const brandName = "{decodedBrand}"; 
+    
+    // Select DOM elements to update
+    const summaryEl = document.querySelector('p.text-slate-200');
+    const jurisdictionEl = document.querySelectorAll('.bg-slate-950 p.font-mono')[0];
+    const jurisdictionLabel = document.querySelectorAll('.bg-slate-950 h4')[0];
+    
+    // Only fetch if we are in the browser
+    if (brandName) {
+        console.log(`🧠 Initiating intelligence scan for: ${brandName}`);
+        
+        // Show loading state (optional visual cue)
+        // summaryEl.innerHTML = `<span class="animate-pulse">Analyzing federal court dockets...</span>`;
+
+        fetch(`/api/generate-report?brand=${encodeURIComponent(brandName)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    console.warn("Intelligence fetch failed:", data.error);
+                    return;
+                }
+                
+                // Update UI with AI Brain data
+                console.log("🧠 Brain Match:", data);
+                
+                // 1. Update Summary
+                if (data.summary) {
+                    summaryEl.innerHTML = `<span class="text-white font-bold bg-red-500/20 px-1 rounded">SYSTEM ALERT:</span> ${data.summary} <br/><br/> <span class="text-xs text-slate-400">Analysis Reference: ${data.action_deadline || '48h'} Deadline</span>`;
+                }
+                
+                // 2. Update Jurisdiction
+                if (data.jurisdiction_note) {
+                    jurisdictionEl.textContent = data.jurisdiction_note;
+                }
+                
+                // 3. Update Triggers (Optional: we could inject these into the list)
+            })
+            .catch(err => console.error("Brain Connection Error:", err));
+    }
   </script>
 </Layout>
