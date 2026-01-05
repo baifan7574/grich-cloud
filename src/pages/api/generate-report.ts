@@ -110,11 +110,23 @@ export const GET: APIRoute = async ({ request, locals }) => {
             return new Response(JSON.stringify({ error: 'System configuration error (Missing DeepSeek Key)', debug: debugInfo }), { status: 500 });
         }
 
-        // ... (DeepSeek Call logic remains similar but wrapped in this try block)
-        const prompt = SYSTEM_PROMPT
+        const defendant = url.searchParams.get('defendant');
+        const decodedDefendant = defendant ? decodeURIComponent(defendant) : null;
+
+        let prompt = SYSTEM_PROMPT // Use base prompt
             .replace('{brand}', decodedBrand)
             .replace('{count}', 'Multiple')
             .replace('{court}', lawsuitData[0].court || 'N.D. Illinois');
+
+        // Dynamic Prompt Injection for "Sniper Mode"
+        if (decodedDefendant) {
+            prompt += `\n\nCRITICAL CONTEXT UPDATE: The user is a specific seller named "${decodedDefendant}". 
+            Modify the report to directly address them. 
+            Confirm that "${decodedDefendant}" has been identified in the "Schedule A" defendant list. 
+            Change "summary" to be extremely urgent: "Store '${decodedDefendant}' is listed as a defendant in Case ${lawsuitData[0].case_number || 'Pending'}".`;
+        } else {
+            prompt += `\n\nContext: General analysis for brand "${decodedBrand}".`;
+        }
 
         const response = await fetch('https://api.deepseek.com/chat/completions', {
             method: 'POST',
