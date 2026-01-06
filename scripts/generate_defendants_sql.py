@@ -1,0 +1,36 @@
+
+import os
+
+def generate_sql():
+    print("-- SQL to create 'defendants' table for Phase 3-B (Unofficial Intelligence)")
+    print("-- Run this in Suapbase SQL Editor")
+    print("")
+    print("CREATE TABLE IF NOT EXISTS defendants (")
+    print("    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,")
+    print("    brand_name TEXT NOT NULL,")
+    print("    case_number TEXT,")
+    print("    defendant_name TEXT NOT NULL, -- This is the 'Sniper' target")
+    print("    platform TEXT, -- e.g. Amazon, eBay, Shopify")
+    print("    store_url TEXT,")
+    print("    source TEXT, -- e.g. 'SellerDefense', 'Reddit', 'GBC_Official'")
+    print("    found_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),")
+    print("    UNIQUE(case_number, defendant_name)")
+    print(");")
+    print("")
+    print("-- Enable Row Level Security (RLS)")
+    print("ALTER TABLE defendants ENABLE ROW LEVEL SECURITY;")
+    print("")
+    print("-- Create Policy: Allow public read access (for SEO pages)")
+    print("CREATE POLICY \"Allow public read access\" ON defendants")
+    print("FOR SELECT USING (true);")
+    print("")
+    print("-- Create Policy: Allow service role write access (for Scrapers)")
+    print("CREATE POLICY \"Allow service role insert\" ON defendants")
+    print("FOR INSERT WITH CHECK (true);")
+    print("")
+    print("-- Create Index for fast search by Defendant Name")
+    print("CREATE INDEX IF NOT EXISTS idx_defendants_name ON defendants(defendant_name);")
+    print("CREATE INDEX IF NOT EXISTS idx_defendants_brand ON defendants(brand_name);")
+
+if __name__ == "__main__":
+    generate_sql()

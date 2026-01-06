@@ -103,10 +103,31 @@ function analyzeContent(html, target) {
     // For now, we just log the "Hit".
 }
 
+
+// === ADVANCED MODE: Range Scanner ===
+// Instead of hardcoded targets, we scan a range of potential cases.
+// GBC cases are usually sequential.
+
+const SCAN_YEAR = 25; // 2025
+const START_ID = 1;
+const END_ID = 50;   // Scan first 50 cases of 2025
+
 async function runSniper() {
-    console.log("=== GBC SNIPER PROTOCOL INITIATED (Node.js) ===");
-    for (const target of PROBE_TARGETS) {
+    console.log(`=== GBC SNIPER PROTOCOL INITIATED (Range Mode) ===`);
+    console.log(`[*] Scanning Year: 20${SCAN_YEAR}`);
+    console.log(`[*] Range: ${START_ID} to ${END_ID}`);
+
+    for (let i = START_ID; i <= END_ID; i++) {
+        const target = {
+            year: SCAN_YEAR,
+            number: i,
+            brand: 'Unknown (Scanning)'
+        };
+        
         await probeTarget(target);
+        
+        // Polite delay to avoid IP ban
+        // await new Promise(r => setTimeout(r, 500)); 
     }
 }
 
