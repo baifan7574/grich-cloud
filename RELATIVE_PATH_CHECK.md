@@ -1,0 +1,1 @@
+Testing relative path execution in n8n.
