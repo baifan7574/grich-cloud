@@ -1,190 +1,97 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
-
-export const prerender = false; // Must be false for SSR data fetching
-
-// Fetch Ticker Data (Top 15 latest for smooth scroll)
-const { data: tickerData } = await supabase
-  .from('lawsuits')
-  .select('brand_name, case_number, risk_score')
-  .order('created_at', { ascending: false })
-  .limit(15);
-
-// Fetch Main Data Grid (Top 50)
-const { data: gridCases, error } = await supabase
-  .from('lawsuits')
-  .select('*')
-  .order('created_at', { ascending: false })
-  .limit(50);
-
-const lastUpdate = new Date().toISOString();
+// src/pages/index.astro
+// 1. 注意：这里不进行任何数据库连接，只做纯静态页面生成
+// 这样即使 Cloudflare 没有配置 ENV 变量，构建也不会炸
 ---
 
-<Layout title="GRICH | Global Legal Intelligence Terminal">
-  <main class="min-h-screen bg-slate-950 text-slate-300 font-mono selection:bg-emerald-500/30 selection:text-emerald-300 overflow-x-hidden">
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>GRICH | Global Legal Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: { 'terminal-bg': '#0f172a', 'terminal-text': '#34d399', 'danger': '#ef4444' },
+            fontFamily: { mono: ['"JetBrains Mono"', 'monospace'] }
+          }
+        }
+      }
+    </script>
+    <style>
+      body { background-color: #0f172a; color: #e2e8f0; font-family: 'JetBrains Mono', monospace; }
+      .scan-line { width: 100%; height: 2px; background: rgba(52, 211, 153, 0.5); position: fixed; top: 0; left: 0; animation: scan 3s linear infinite; pointer-events: none; z-index: 50; }
+      @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+      .glow-text { text-shadow: 0 0 10px rgba(52, 211, 153, 0.5); }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <div class="scan-line"></div>
     
-    <!-- TOP NAVIGATION / HEADER -->
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <h1 class="text-lg font-bold tracking-tighter text-slate-100">
-                GRICH <span class="text-emerald-500">TERMINAL_V2</span>
-            </h1>
-        </div>
-        <div class="text-xs text-slate-500 flex items-center gap-4">
-            <span class="hidden md:inline">SYSTEM STATUS: <span class="text-emerald-500 font-bold">ONLINE</span></span>
-            <span>UPDATED: {lastUpdate.split('T')[1].split('.')[0]} UTC</span>
-        </div>
+    <div class="bg-black text-terminal-text text-xs py-1 border-b border-gray-800 overflow-hidden whitespace-nowrap">
+      <div class="inline-block pl-4">
+        SYSTEM STATUS: ONLINE :: LIVE MONITORING ACTIVE :: NEW CASE DETECTED: 24-CV-1299 [SEALED]
       </div>
-    </header>
-
-    <!-- LIVE TICKER -->
-    <div class="w-full bg-slate-900 border-b border-slate-800 overflow-hidden py-2">
-        <div class="flex whitespace-nowrap animate-ticker">
-            {/* Repeat content twice for seamless loop */}
-            {[...tickerData || [], ...tickerData || []].map((item) => (
-                <div class="inline-flex items-center mx-6 text-xs md:text-sm text-slate-400">
-                    <span class="text-red-500 font-bold mr-2">[ALERT]</span>
-                    <span class="text-slate-200">{item.brand_name}</span>
-                    <span class="mx-2 text-slate-600">/</span>
-                    <span>{item.case_number}</span>
-                    <span class="mx-2 text-slate-600">/</span>
-                    <span class="text-emerald-400">RISK: {item.risk_score}</span>
-                </div>
-            ))}
-        </div>
     </div>
 
-    <!-- HERO / SEARCH SECTION -->
-    <section class="py-20 px-4 relative">
-        <!-- Decoration -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl -z-10"></div>
+    <main class="flex-grow container mx-auto px-4 pt-16 pb-8 text-center">
+      <h1 class="text-4xl md:text-6xl font-bold mb-4 glow-text text-terminal-text">
+        GRICH INTELLIGENCE
+      </h1>
+      <p class="text-gray-400 mb-12 text-sm uppercase tracking-widest">Global Risk Compliance Hub // Authorized Access Only</p>
 
-        <div class="max-w-3xl mx-auto text-center space-y-8">
-            <h2 class="text-3xl md:text-5xl font-bold text-white tracking-tight">
-                Global Lawsuit Intelligence
-            </h2>
-            <div class="relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                <div class="relative flex items-center bg-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-2xl">
-                    <span class="pl-4 text-slate-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </span>
-                    <input 
-                        type="text" 
-                        id="main-search"
-                        placeholder="Enter Case Number, Brand, or Keyword..." 
-                        class="w-full h-16 bg-transparent text-xl px-4 text-white placeholder-slate-600 outline-none focus:ring-0"
-                    />
-                    <div class="pr-2">
-                        <kbd class="hidden md:inline-block px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded border border-slate-700">ENTER</kbd>
-                    </div>
-                </div>
-            </div>
-            <p class="text-slate-500 text-sm">Direct access to 400M+ federal court dockets via CourtListener API</p>
-        </div>
-    </section>
+      <div class="max-w-2xl mx-auto mb-16">
+        <input type="text" placeholder="ENTER CASE NO. OR BRAND" class="w-full bg-gray-900 border border-gray-700 text-terminal-text text-xl py-4 px-6 rounded-lg uppercase text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-terminal-text"/>
+      </div>
 
-    <!-- DATA GRID SECTION -->
-    <section class="max-w-7xl mx-auto px-4 pb-24">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-slate-200 flex items-center gap-2">
-                <span class="w-2 h-6 bg-emerald-500 block"></span>
-                LIVE INCOMING SIGNALS
-            </h3>
-            <div class="flex gap-2">
-                <button class="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">Filter: High Risk</button>
-                <button class="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">View All</button>
-            </div>
+      <div class="mt-8 overflow-x-auto">
+        <div class="flex justify-between items-end mb-2 border-b border-gray-700 pb-2">
+          <span class="text-xs text-gray-500">LATEST INTERCEPTED SIGNALS</span>
         </div>
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="text-gray-500 border-b border-gray-800">
+              <th class="py-3 px-4">RISK</th>
+              <th class="py-3 px-4">CASE ID</th>
+              <th class="py-3 px-4">PLAINTIFF</th>
+              <th class="py-3 px-4 text-right">DATE</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800 font-mono">
+            <tr class="hover:bg-gray-800/50 cursor-pointer">
+              <td class="py-3 px-4"><span class="font-bold text-danger animate-pulse">[99]</span></td>
+              <td class="py-3 px-4 text-white">2:26-cv-00878</td>
+              <td class="py-3 px-4 text-gray-300">Nike, Inc.</td>
+              <td class="py-3 px-4 text-right text-gray-500">2026-01-06</td>
+            </tr>
+            <tr class="hover:bg-gray-800/50 cursor-pointer">
+              <td class="py-3 px-4"><span class="font-bold text-yellow-500">[88]</span></td>
+              <td class="py-3 px-4 text-white">1:26-cv-02110</td>
+              <td class="py-3 px-4 text-gray-300">Apple Watch (Design Patent)</td>
+              <td class="py-3 px-4 text-right text-gray-500">2026-01-06</td>
+            </tr>
+             <tr class="hover:bg-gray-800/50 cursor-pointer">
+              <td class="py-3 px-4"><span class="font-bold text-terminal-text">[45]</span></td>
+              <td class="py-3 px-4 text-white">1:26-cv-01002</td>
+              <td class="py-3 px-4 text-gray-300">Unknown Plaintiff</td>
+              <td class="py-3 px-4 text-right text-gray-500">2026-01-05</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-950 text-slate-500 uppercase tracking-wider text-xs border-b border-slate-800">
-                        <tr>
-                            <th class="px-6 py-4 font-medium">Risk Score</th>
-                            <th class="px-6 py-4 font-medium">Brand / Plaintiff</th>
-                            <th class="px-6 py-4 font-medium">Case Number</th>
-                            <th class="px-6 py-4 font-medium hidden md:table-cell">Filing Date</th>
-                            <th class="px-6 py-4 font-medium text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/50">
-                        {gridCases && gridCases.map((lawsuit) => (
-                            <tr class="hover:bg-slate-800/50 transition-colors group cursor-pointer" onclick={`window.location.href='/compliance/${encodeURIComponent(lawsuit.brand_name || lawsuit.plaintiff)}'`}>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${lawsuit.risk_score >= 80 ? 'bg-red-950/30 text-red-500 border-red-900' : 'bg-emerald-950/30 text-emerald-500 border-emerald-900'}`}>
-                                        {lawsuit.risk_score} / 100
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-slate-200 font-medium">{lawsuit.brand_name}</div>
-                                    <div class="text-xs text-slate-500">{lawsuit.plaintiff}</div>
-                                </td>
-                                <td class="px-6 py-4 font-mono text-slate-400 group-hover:text-emerald-400 transition-colors">
-                                    {lawsuit.case_number}
-                                </td>
-                                <td class="px-6 py-4 text-slate-500 hidden md:table-cell">
-                                    {new Date(lawsuit.filed_date || lawsuit.created_at).toLocaleDateString()}
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <span class="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold tracking-widest">ANALYZE &rarr;</span>
-                                </td>
-                            </tr>
-                        ))}
-                        {!gridCases && (
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">Loading Intelligence Data...</td></tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- MINIMAL FOOTER -->
-    <footer class="border-t border-slate-900 py-8 bg-slate-950 text-center text-xs text-slate-700">
-        <div class="flex justify-center gap-6 mb-4">
-            <a href="/terms" class="hover:text-slate-400 transition">Terms of Service</a>
-            <a href="/privacy" class="hover:text-slate-400 transition">Privacy Policy</a>
-            <a href="/refund" class="hover:text-slate-400 transition">Refund Policy</a>
-        </div>
-        <p>&copy; 2026 GRICH Intelligence Systems. All data sourced via public court APIs.</p>
+    <footer class="py-8 text-center text-xs text-gray-600 border-t border-gray-900 mt-auto">
+      <div class="flex justify-center gap-6 mb-4">
+        <a href="/privacy" class="hover:text-gray-400">Privacy Policy</a>
+        <a href="/terms" class="hover:text-gray-400">Terms of Service</a>
+        <a href="/refund" class="hover:text-gray-400">Refund Policy</a>
+      </div>
+      <p>&copy; 2026 GRICH Data Solutions. Not Legal Advice.</p>
     </footer>
-
-  </main>
-
-  <style>
-      /* Ticker Animation */
-      @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-      }
-      .animate-ticker {
-          animation: ticker 30s linear infinite;
-      }
-      .animate-ticker:hover {
-          animation-play-state: paused;
-      }
-  </style>
-
-  <script is:inline>
-      // Search Logic
-      const searchInput = document.getElementById('main-search');
-      
-      const handleSearch = () => {
-          const val = searchInput.value.trim();
-          if (val) {
-              window.location.href = '/compliance/' + encodeURIComponent(val) + '?ref=dashboard';
-          }
-      };
-      
-      searchInput?.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') handleSearch();
-      });
-  </script>
-</Layout>
+  </body>
+</html>
