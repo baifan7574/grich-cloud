@@ -1,0 +1,35 @@
+name: Daily GRICH Radar (CourtListener)
+
+on:
+  schedule:
+    # Runs at 00:00 UTC (08:00 Beijing Time) every day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  radar_scan:
+    name: Run Radar Compliance Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Radar Script
+        run: node scripts/radar_courtlistener.js
+        env:
+          # Supabase Keys (Must be set in Repo Settings -> Secrets)
+          # Note: The script currently has hardcoded keys, but these env vars 
+          # are prepared for the "Security" cleanup step mentioned in the audit.
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          CL_API_KEY: ${{ secrets.CL_API_KEY }}

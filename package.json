@@ -12,7 +12,7 @@
     "@astrojs/cloudflare": "^12.6.12",
     "@astrojs/sitemap": "^3.6.0",
     "@astrojs/tailwind": "^6.0.2",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/supabase-js": "^2.90.0",
     "astro": "^5.16.6",
     "autoprefixer": "^10.4.23",
     "jspdf": "^4.0.0",
