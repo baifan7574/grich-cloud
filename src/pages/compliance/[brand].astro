@@ -233,5 +233,50 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
     </p>
   </footer>
 
-  <!-- Client-side script removed for build stability. AI features temporarily disabled. -->
+  <!-- Client-side script restored with is:inline to avoid build errors -->
+  <script is:inline>
+    // 1. Recover vars from data attributes
+    const container = document.getElementById('app-container');
+    const initialScore = Number((container && container.dataset.initialScore) || 85);
+    const decodedBrand = (container && container.dataset.decodedBrand) || 'Unknown';
+
+    // 2. Animate risk score
+    const scoreValue = document.getElementById('score-value');
+    const progressCircle = document.getElementById('progress-circle');
+    
+    let current = 0;
+    const duration = 1500;
+    const steps = 60;
+    const interval = duration / steps;
+    const stepValue = initialScore / steps;
+
+    if (scoreValue && progressCircle) {
+        const timer = setInterval(() => {
+        current += stepValue;
+        if (current >= initialScore) {
+            current = initialScore;
+            clearInterval(timer);
+        }
+        const displayScore = Math.floor(current);
+        scoreValue.textContent = displayScore.toString();
+        // Calculate stroke-dasharray (based on 251.2 circumference)
+        progressCircle.setAttribute('stroke-dasharray', `${displayScore * 2.51} 251.2`);
+        }, interval);
+    }
+
+    // 3. Unlock button handler (Payment Success)
+    // This listens for the event from the PayPal component
+    document.addEventListener('payment-success', (e) => {
+        // Safe access to detail
+        const detail = e.detail || {};
+        const payerName = (detail.payer && detail.payer.name && detail.payer.name.given_name) || 'Customer';
+        
+        alert(`PAYMENT SUCCESSFUL!\n\nUser: ${payerName}\nTarget: ${decodedBrand}\n\nSystem is now generating your Secure Compliance Report... (Simulation)`);
+        
+        // In a real app, we would redirect to a secure download link here
+        // window.location.href = '/download/report...'
+    });
+
+    console.log("GRICH System Online: Visuals & Payment Logic Restored.");
+  </script>
 </Layout>
