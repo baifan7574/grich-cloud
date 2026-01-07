@@ -234,12 +234,10 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
   </footer>
 
   <script>
-    // import { jsPDF } from "jspdf"; // DISABLED FOR DEPLOYMENT STABILITY
-
     // Recover vars from data attributes
     const container = document.getElementById('app-container');
-    const initialScore = Number(container.dataset.initialScore || 85);
-    const decodedBrand = container.dataset.decodedBrand || 'Unknown';
+    const initialScore = Number((container && container.dataset.initialScore) || 85);
+    const decodedBrand = (container && container.dataset.decodedBrand) || 'Unknown';
 
     // Store AI data for the PDF
     let brainData = null;
@@ -254,48 +252,37 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
     const interval = duration / steps;
     const stepValue = initialScore / steps;
 
-    const timer = setInterval(() => {
-      current += stepValue;
-      if (current >= initialScore) {
-        current = initialScore;
-        clearInterval(timer);
-      }
-      const displayScore = Math.floor(current);
-      if(scoreValue) scoreValue.textContent = displayScore;
-      if(progressCircle) progressCircle.setAttribute('stroke-dasharray', `${displayScore * 2.51} 251.2`);
-    }, interval);
-
-    // PDF Generation Logic (TEMPORARILY DISABLED)
-    const generatePDF = (brand, data) => {
-        console.log("PDF Generation requested for", brand);
-        alert("Compliance Report download is starting...");
-        /*
-        const doc = new jsPDF();
-        // ... (PDF logic hidden to prevent build errors) ...
-        doc.save(`${brand}_Intelligence_Report.pdf`);
-        */
-    };
+    if (scoreValue && progressCircle) {
+        const timer = setInterval(() => {
+        current += stepValue;
+        if (current >= initialScore) {
+            current = initialScore;
+            clearInterval(timer);
+        }
+        const displayScore = Math.floor(current);
+        scoreValue.textContent = displayScore.toString();
+        progressCircle.setAttribute('stroke-dasharray', `${displayScore * 2.51} 251.2`);
+        }, interval);
+    }
 
     // Unlock button handler (Payment Success)
     document.addEventListener('payment-success', (e) => {
-        const payerName = e.detail.payer.name.given_name;
+        // @ts-ignore
+        const payerName = e.detail && e.detail.payer ? e.detail.payer.name.given_name : 'Customer';
         alert(`Payment Successful! generating secure report for ${payerName}...`);
-        
-        // Trigger PDF Download (Mock)
-        generatePDF(decodedBrand, brainData);
+        console.log("PDF Generation is currently disabled for stability.");
     });
 
     // --- PHASE 3: THE BRAIN INTEGRATION ---
-    const brandName = decodedBrand; // Received from define:vars
+    const brandName = decodedBrand; 
     
     // Select DOM elements to update
     const summaryEl = document.querySelector('p.text-slate-200');
     const jurisdictionEl = document.querySelectorAll('.bg-slate-950 p.font-mono')[0];
-    const jurisdictionLabel = document.querySelectorAll('.bg-slate-950 h4')[0];
     
-    // Only fetch if we are in the browser
-    if (brandName) {
-        console.log(`🧠 Initiating intelligence scan for: ${brandName}`);
+    // Only fetch if we are in the browser and brand is valid
+    if (brandName && brandName !== 'Unknown') {
+        console.log(`Initiating intelligence scan for: ${brandName}`);
 
         fetch(`/api/generate-report?brand=${encodeURIComponent(brandName)}`)
             .then(res => res.json())
@@ -305,24 +292,20 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
                     return;
                 }
                 
-                // Store globally for PDF
+                // Store globally
                 brainData = data;
                 
-                // Update UI with AI Brain data
-                console.log("🧠 Brain Match:", data);
-                
                 // 1. Update Summary
-                if (data.summary) {
-                    if(summaryEl) summaryEl.innerHTML = `<span class="text-white font-bold bg-red-500/20 px-1 rounded">SYSTEM ALERT:</span> ${data.summary} <br/><br/> <span class="text-xs text-slate-400">Analysis Reference: ${data.action_deadline || '48h'} Deadline</span>`;
+                if (data.summary && summaryEl) {
+                    summaryEl.innerHTML = `<span class="text-white font-bold bg-red-500/20 px-1 rounded">SYSTEM ALERT:</span> ${data.summary} <br/><br/> <span class="text-xs text-slate-400">Analysis Reference: ${data.action_deadline || '48h'} Deadline</span>`;
                 }
                 
                 // 2. Update Jurisdiction
-                if (data.jurisdiction_note) {
-                   if(jurisdictionEl) jurisdictionEl.textContent = data.jurisdiction_note;
+                if (data.jurisdiction_note && jurisdictionEl) {
+                    jurisdictionEl.textContent = data.jurisdiction_note;
                 }
             })
             .catch(err => console.error("Brain Connection Error:", err));
     }
-
   </script>
 </Layout>
