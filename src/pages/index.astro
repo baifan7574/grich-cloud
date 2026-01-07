@@ -1,15 +1,8 @@
----
-// src/pages/index.astro
-// 1. 注意：这里不进行任何数据库连接，只做纯静态页面生成
-// 这样即使 Cloudflare 没有配置 ENV 变量，构建也不会炸
----
-
 <html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>GRICH | Global Legal Intelligence</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -17,81 +10,56 @@
         theme: {
           extend: {
             colors: { 'terminal-bg': '#0f172a', 'terminal-text': '#34d399', 'danger': '#ef4444' },
-            fontFamily: { mono: ['"JetBrains Mono"', 'monospace'] }
+            fontFamily: { mono: ['monospace'] }
           }
         }
       }
     </script>
     <style>
-      body { background-color: #0f172a; color: #e2e8f0; font-family: 'JetBrains Mono', monospace; }
+      body { background-color: #0f172a; color: #34d399; font-family: monospace; }
       .scan-line { width: 100%; height: 2px; background: rgba(52, 211, 153, 0.5); position: fixed; top: 0; left: 0; animation: scan 3s linear infinite; pointer-events: none; z-index: 50; }
       @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
-      .glow-text { text-shadow: 0 0 10px rgba(52, 211, 153, 0.5); }
     </style>
   </head>
-  <body class="min-h-screen flex flex-col">
+  <body class="min-h-screen flex flex-col items-center justify-center p-4">
     <div class="scan-line"></div>
     
-    <div class="bg-black text-terminal-text text-xs py-1 border-b border-gray-800 overflow-hidden whitespace-nowrap">
-      <div class="inline-block pl-4">
-        SYSTEM STATUS: ONLINE :: LIVE MONITORING ACTIVE :: NEW CASE DETECTED: 24-CV-1299 [SEALED]
+    <div class="w-full max-w-4xl text-center space-y-8">
+      <div class="border-b border-gray-800 pb-4 mb-8">
+        <p class="animate-pulse text-sm">● SYSTEM ONLINE :: LIVE MONITORING ACTIVE</p>
       </div>
-    </div>
 
-    <main class="flex-grow container mx-auto px-4 pt-16 pb-8 text-center">
-      <h1 class="text-4xl md:text-6xl font-bold mb-4 glow-text text-terminal-text">
+      <h1 class="text-5xl font-bold tracking-widest text-white mb-4" style="text-shadow: 0 0 15px rgba(52,211,153,0.5);">
         GRICH INTELLIGENCE
       </h1>
-      <p class="text-gray-400 mb-12 text-sm uppercase tracking-widest">Global Risk Compliance Hub // Authorized Access Only</p>
+      <p class="text-gray-400 text-sm uppercase">Global Risk Compliance Hub</p>
 
-      <div class="max-w-2xl mx-auto mb-16">
-        <input type="text" placeholder="ENTER CASE NO. OR BRAND" class="w-full bg-gray-900 border border-gray-700 text-terminal-text text-xl py-4 px-6 rounded-lg uppercase text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-terminal-text"/>
+      <div class="max-w-xl mx-auto py-8">
+        <div class="bg-gray-900 border border-gray-700 p-4 rounded text-xl text-gray-500 uppercase tracking-widest">
+          Enter Case Number...
+        </div>
       </div>
 
-      <div class="mt-8 overflow-x-auto">
-        <div class="flex justify-between items-end mb-2 border-b border-gray-700 pb-2">
-          <span class="text-xs text-gray-500">LATEST INTERCEPTED SIGNALS</span>
-        </div>
-        <table class="w-full text-left text-sm">
+      <div class="border border-gray-800 rounded bg-gray-900/50 p-4 text-left">
+        <table class="w-full text-sm">
           <thead>
-            <tr class="text-gray-500 border-b border-gray-800">
-              <th class="py-3 px-4">RISK</th>
-              <th class="py-3 px-4">CASE ID</th>
-              <th class="py-3 px-4">PLAINTIFF</th>
-              <th class="py-3 px-4 text-right">DATE</th>
-            </tr>
+            <tr class="text-gray-500 border-b border-gray-800"><th class="pb-2">RISK</th><th class="pb-2">CASE ID</th><th class="pb-2">TARGET</th></tr>
           </thead>
-          <tbody class="divide-y divide-gray-800 font-mono">
-            <tr class="hover:bg-gray-800/50 cursor-pointer">
-              <td class="py-3 px-4"><span class="font-bold text-danger animate-pulse">[99]</span></td>
-              <td class="py-3 px-4 text-white">2:26-cv-00878</td>
-              <td class="py-3 px-4 text-gray-300">Nike, Inc.</td>
-              <td class="py-3 px-4 text-right text-gray-500">2026-01-06</td>
-            </tr>
-            <tr class="hover:bg-gray-800/50 cursor-pointer">
-              <td class="py-3 px-4"><span class="font-bold text-yellow-500">[88]</span></td>
-              <td class="py-3 px-4 text-white">1:26-cv-02110</td>
-              <td class="py-3 px-4 text-gray-300">Apple Watch (Design Patent)</td>
-              <td class="py-3 px-4 text-right text-gray-500">2026-01-06</td>
-            </tr>
-             <tr class="hover:bg-gray-800/50 cursor-pointer">
-              <td class="py-3 px-4"><span class="font-bold text-terminal-text">[45]</span></td>
-              <td class="py-3 px-4 text-white">1:26-cv-01002</td>
-              <td class="py-3 px-4 text-gray-300">Unknown Plaintiff</td>
-              <td class="py-3 px-4 text-right text-gray-500">2026-01-05</td>
-            </tr>
+          <tbody class="divide-y divide-gray-800">
+            <tr class="h-12"><td class="text-red-500 font-bold">[99]</td><td class="text-white">24-CV-00891</td><td>Nike, Inc.</td></tr>
+            <tr class="h-12"><td class="text-yellow-500 font-bold">[88]</td><td class="text-white">24-CV-00892</td><td>Deckers (UGG)</td></tr>
+            <tr class="h-12"><td class="text-green-500 font-bold">[45]</td><td class="text-white">24-CV-00895</td><td>Dyson Ltd.</td></tr>
           </tbody>
         </table>
       </div>
-    </main>
-
-    <footer class="py-8 text-center text-xs text-gray-600 border-t border-gray-900 mt-auto">
-      <div class="flex justify-center gap-6 mb-4">
-        <a href="/privacy" class="hover:text-gray-400">Privacy Policy</a>
-        <a href="/terms" class="hover:text-gray-400">Terms of Service</a>
-        <a href="/refund" class="hover:text-gray-400">Refund Policy</a>
-      </div>
-      <p>&copy; 2026 GRICH Data Solutions. Not Legal Advice.</p>
-    </footer>
+      
+      <footer class="pt-12 text-xs text-gray-600 flex justify-center gap-4">
+        <a href="/privacy" class="hover:text-white">Privacy</a>
+        <span>|</span>
+        <a href="/terms" class="hover:text-white">Terms</a>
+        <span>|</span>
+        <a href="/refund" class="hover:text-white">Refund</a>
+      </footer>
+    </div>
   </body>
 </html>

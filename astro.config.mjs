@@ -1,10 +1,8 @@
-// astro.config.mjs
 import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
 
+// 移除所有插件引用，防止依赖报错
 export default defineConfig({
-    // 强制声明为静态站点，不需要服务器支持
     output: 'static',
-    integrations: [tailwind()],
-    // 禁用所有其他的适配器，防止报错
+    // 确保没有 integrations: [tailwind()] 这一行！
+    // 确保没有 adapter！
 });
