@@ -1,86 +1,129 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// SEO "Crawler Trap" - A list of high-volume keywords to help Google find the dynamic pages.
+const popularBrands = [
+  "Nike", "Adidas", "Shein", "Temu", "Apple", "Dyson", "Rolex", "LVMH", 
+  "Chanel", "Hermes", "Gucci", "Prada", "Cartier", "Burberry", "Versace",
+  "Fendi", "Dior", "Balenciaga", "Saint Laurent", "Tiffany", "Omega", "Patek Philippe",
+  "Audemars Piguet", "Tag Heuer", "Breitling", "Hublot", "IWC", "Panerai",
+  "Seiko", "Casio", "Sony", "Samsung", "Nintendo", "Microsoft", "Google",
+  "Amazon", "Disney", "Marvel", "Star Wars", "Harry Potter", "Lego", "Mattel",
+  "Hasbro", "Funko", "Bandai", "Pokemon", "Yu-Gi-Oh", "Magic: The Gathering"
+];
 ---
 
-<Layout title="GRICH | Global Regulatory Lawsuit Search Engine" description="Search global trademark infringement lawsuits and compliance alerts. Monitoring 500+ brands daily.">
+<Layout title="GRICH | Global Risk Intelligence & Compliance Hub" description="Search global trademark infringement lawsuits and compliance alerts. Monitoring 500+ brands daily for e-commerce sellers.">
   
-  <!-- Main Container with inline fallback styles -->
-  <main class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden" style="background-color: #020617; min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative;">
+  <main class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-slate-950 text-slate-200">
     
-    <!-- Background Effects (CSS Grid Overlay) -->
-    <div style="position: absolute; top:0; left:0; width:100%; height:100%; overflow: hidden; pointer-events: none; z-index: 0;">
-      <div style="position: absolute; top: -20%; left: -10%; width: 50%; height: 50%; background: rgba(59, 130, 246, 0.1); border-radius: 50%; filter: blur(100px);"></div>
-      <div style="position: absolute; top: 40%; right: -10%; width: 40%; height: 40%; background: rgba(239, 68, 68, 0.1); border-radius: 50%; filter: blur(100px);"></div>
+    <!-- Background Effects -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div class="absolute -top-[20%] -left-[10%] w-1/2 h-1/2 bg-blue-500/10 rounded-full blur-[100px]"></div>
+      <div class="absolute top-[40%] -right-[10%] w-2/5 h-2/5 bg-red-500/10 rounded-full blur-[100px]"></div>
     </div>
 
-    <div class="relative z-10 w-full max-w-2xl text-center space-y-8" style="z-index: 10; width: 100%; max-width: 42rem; text-align: center;">
+    <!-- Hero Section -->
+    <div class="relative z-10 w-full max-w-4xl text-center space-y-12 mt-20">
       
-      <!-- Logo / Header -->
-      <div class="space-y-2" style="margin-bottom: 2rem;">
-        <h1 class="text-5xl md:text-7xl font-black text-white tracking-tighter" style="font-size: 3.75rem; font-weight: 900; color: white; letter-spacing: -0.05em; margin: 0;">
-          GRICH <span class="text-red-500" style="color: #ef4444;">INTEL</span>
+      <!-- Brand Header -->
+      <div class="space-y-4">
+        <h1 class="text-6xl md:text-8xl font-black text-white tracking-tighter">
+          GRICH <span class="text-red-500">INTEL</span>
         </h1>
-        <p class="text-slate-400 text-lg md:text-xl font-light tracking-wide" style="color: #94a3b8; font-size: 1.25rem; font-weight: 300; letter-spacing: 0.05em; margin-top: 0.5rem;">
-          Global Lawsuit & Compliance Search Engine
+        <p class="text-slate-400 text-xl md:text-2xl font-light tracking-wide">
+          The Global Standard for <span class="text-white font-normal">Seller Compliance</span> & <span class="text-white font-normal">Risk Intelligence</span>.
         </p>
       </div>
 
-      <!-- Search Box (Glassmorphism Hardcoded) -->
-      <div class="group" style="width: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid #334155; border-radius: 1rem; padding: 0.75rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-        <div class="pl-4 text-slate-500" style="padding-left: 1rem; color: #64748b;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </div>
-        <input 
-          type="text" 
-          id="brand-search"
-          placeholder="Enter Brand Name (e.g. Nike, Shein, Dyson)..." 
-          class="bg-transparent border-none outline-none text-white text-lg w-full placeholder-slate-600 h-12"
-          style="background: transparent; border: none; outline: none; color: white; font-size: 1.125rem; width: 100%; height: 3rem;"
-          onkeydown="if(event.key === 'Enter') document.getElementById('search-btn').click()"
-        />
-        <button 
-          id="search-btn"
-          class="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-red-500/20"
-          style="background-color: #dc2626; color: white; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.75rem; border: none; cursor: pointer; transition: background 0.3s;"
-          onmouseover="this.style.backgroundColor='#ef4444'"
-          onmouseout="this.style.backgroundColor='#dc2626'"
-        >
-          SEARCH
-        </button>
-      </div>
-
-      <!-- Footer / Trust -->
-      <div class="pt-8 flex flex-col items-center gap-4" style="padding-top: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-        <p class="text-xs text-slate-600 uppercase tracking-widest font-semibold" style="font-size: 0.75rem; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">
-          Trusted Intelligence Source
-        </p>
-        <div class="flex gap-4 opacity-30 grayscale items-center justify-center" style="display: flex; gap: 1rem; opacity: 0.3; filter: grayscale(100%); align-items: center; justify-content: center;">
-             <span style="color: #94a3b8; font-family: serif; font-weight: 700; font-size: 1.25rem;">COURT<span style="color: #475569;">LISTENER</span></span>
-             <span style="color: #475569;">|</span>
-             <span style="color: #94a3b8; font-family: sans-serif; font-weight: 700; font-size: 1.25rem;">PACER</span>
+      <!-- Search Box -->
+      <div class="mx-auto max-w-2xl group relative">
+        <div class="absolute -inset-1 bg-gradient-to-r from-red-600 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+        <div class="relative flex items-center bg-slate-900 border border-slate-700/50 rounded-xl p-2 shadow-2xl">
+          <div class="pl-4 text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input 
+            type="text" 
+            id="brand-search"
+            placeholder="Enter Brand Name (e.g. Nike, Shein, Dyson)..." 
+            class="bg-transparent border-none outline-none text-white text-lg w-full placeholder-slate-600 h-14 px-4 font-medium"
+            onkeydown="if(event.key === 'Enter') document.getElementById('search-btn').click()"
+          />
+          <button 
+            id="search-btn"
+            class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-lg transition-all shadow-lg hover:shadow-red-500/20 whitespace-nowrap"
+          >
+            SEARCH
+          </button>
         </div>
       </div>
 
+       <!-- Trust Indicators -->
+       <div class="flex flex-col items-center gap-4 pt-8">
+        <p class="text-xs text-slate-600 uppercase tracking-widest font-semibold">Authoritative Data Sources</p>
+        <div class="flex gap-8 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
+             <span class="text-slate-300 font-serif font-bold text-xl">COURT<span class="text-slate-500">LISTENER</span></span>
+             <span class="text-slate-500 text-xl">|</span>
+             <span class="text-slate-300 font-sans font-bold text-xl">PACER</span>
+             <span class="text-slate-500 text-xl">|</span>
+             <span class="text-slate-300 font-mono font-bold text-xl">USPTO</span>
+        </div>
+      </div>
+
+      <!-- SEO Content Block: "Why GRICH?" -->
+      <div class="text-left mt-24 border-t border-slate-800 pt-16 grid md:grid-cols-2 gap-12">
+        <div class="space-y-4">
+          <h2 class="text-2xl font-bold text-white">Why Sellers Choose GRICH?</h2>
+          <p class="text-slate-400 leading-relaxed">Cross-border e-commerce sellers face increasing risks of TROs (Temporary Restraining Orders) and asset freezes. GRICH provides <strong>real-time monitoring</strong> of US federal lawsuits, giving you the early warning needed to withdraw funds and remove listing before it's too late.</p>
+        </div>
+        <div class="space-y-4">
+          <h2 class="text-2xl font-bold text-white">Automated Intelligence</h2>
+          <p class="text-slate-400 leading-relaxed">Unlike manual law firm newsletters, GRICH uses advanced <strong>AI scrapers</strong> to monitor court dockets 24/7. When a new case is filed by heavy hitters like GBC, Keith, or SMG, our system detects it instantly.</p>
+        </div>
+      </div>
+
+      <!-- SEO "Crawler Trap" / Consumer Directory -->
+      <div class="mt-24 border-t border-slate-800 pt-16">
+        <h3 class="text-xl font-semibold text-white mb-8">Recently Monitored Brands</h3>
+        <div class="flex flex-wrap justify-center gap-3">
+          {popularBrands.map((brand) => (
+             <a href={`/compliance/scan/${brand}`} class="text-sm text-slate-500 hover:text-red-400 transition-colors border border-slate-800 px-3 py-1 rounded-full">{brand}</a>
+          ))}
+        </div>
+      </div>
+      
     </div>
 
-    <!-- Live Intelligence Ticker (Fixed Bottom) -->
-    <div style="position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(239, 68, 68, 0.2); padding: 0.75rem 0; z-index: 50; backdrop-filter: blur(4px); display: flex; align-items: center; overflow: hidden;">
-        <div style="display: block; background-color: #dc2626; color: white; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.75rem; margin-left: 1rem; border-radius: 0.25rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); white-space: nowrap; z-index: 60;">
-            LIVE FEED
+    <!-- Compliance Footer (Lemon Squeezy Requirement) -->
+    <footer class="w-full max-w-4xl mt-32 py-12 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-slate-600">
+      <div class="flex gap-6">
+        <a href="/terms" class="hover:text-slate-300 transition-colors">Terms of Service</a>
+        <a href="/privacy" class="hover:text-slate-300 transition-colors">Privacy Policy</a>
+        <a href="/refund" class="hover:text-slate-300 transition-colors">Refund Policy</a>
+      </div>
+      <div>
+        &copy; 2026 GRICH Intelligence. All rights reserved.
+      </div>
+    </footer>
+
+    <!-- Fixed Ticker -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-sm border-t border-red-900/30 py-2 flex items-center overflow-hidden">
+        <div class="bg-red-600 text-white text-xs font-bold px-3 py-1 ml-4 rounded shadow-lg z-10 whitespace-nowrap">
+            LIVE INTEL
         </div>
-        <div class="flex whitespace-nowrap animate-scroll-left hover:pause-animation" style="display: flex; white-space: nowrap; flex: 1; overflow: hidden;">
-            {/* Repeated items for smooth loop */}
+        <div class="flex whitespace-nowrap animate-scroll-left hover:pause-animation flex-1">
             {[1, 2, 3].map(() => (
-                <div class="flex gap-8 mx-4 text-xs font-mono text-slate-400" style="display: flex; gap: 2rem; margin: 0 1rem; font-size: 0.75rem; font-family: monospace; color: #94a3b8;">
-                    <span style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span> NIKE: Case #26-0029 Detected (N.D. Ill)</span>
-                    <span style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background-color: #f97316; display: inline-block;"></span> SHEIN: Risk Level High (TRO Pending)</span>
-                    <span style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span> DYSON: Asset Freeze Executed</span>
-                    <span style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background-color: #eab308; display: inline-block;"></span> LV: Settlement Negotiations</span>
-                    <span style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span> DAIMLER: 24h Deadline Alert</span>
+                <div class="flex gap-12 mx-8 text-xs font-mono text-slate-400">
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> ALERT: New NIKE Lawsuit (Il.ND 26-cv-0291)</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span> WARNING: SHEIN TRO Issued</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> ALERT: DYSON Asset Freeze Active</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500"></span> WATCH: POKEMON Copyright Filing</span>
                 </div>
             ))}
         </div>
     </div>
+
   </main>
 
   <style is:global>
@@ -89,10 +132,14 @@ import Layout from '../layouts/Layout.astro';
         100% { transform: translateX(-33.33%); }
     }
     .animate-scroll-left {
-        animation: scroll 30s linear infinite;
+        animation: scroll 40s linear infinite;
     }
     .hover\:pause-animation:hover {
         animation-play-state: paused;
+    }
+    /* Simple glass effect for the search container */
+    #brand-search::placeholder {
+      color: #475569;
     }
   </style>
 
@@ -101,8 +148,7 @@ import Layout from '../layouts/Layout.astro';
         const input = document.getElementById('brand-search') as HTMLInputElement;
         const val = input.value.trim();
         if (val) {
-            // Redirect to the dynamic route
-            window.location.href = `/compliance/${encodeURIComponent(val)}`;
+            window.location.href = `/compliance/scan/${encodeURIComponent(val)}`;
         }
     });
   </script>
