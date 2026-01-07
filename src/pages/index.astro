@@ -1,16 +1,72 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="GRICH | Global Regulatory Lawsuit Search Engine" description="Search global trademark infringement lawsuits and compliance alerts. Monitoring 500+ brands daily.">
+  <main class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    
+    <!-- Background Effects -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+      <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[100px]"></div>
+      <div class="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-red-500/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-2xl text-center space-y-8">
+      
+      <!-- Logo / Header -->
+      <div class="space-y-2">
+        <h1 class="text-5xl md:text-7xl font-black text-white tracking-tighter">
+          GRICH <span class="text-red-500">INTEL</span>
+        </h1>
+        <p class="text-slate-400 text-lg md:text-xl font-light tracking-wide">
+          Global Lawsuit & Compliance Search Engine
+        </p>
+      </div>
+
+      <!-- Search Box -->
+      <div class="w-full bg-slate-900/80 backdrop-blur border border-slate-700 rounded-2xl p-2 md:p-3 shadow-2xl flex items-center gap-2 group focus-within:border-red-500/50 transition-all">
+        <div class="pl-4 text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <input 
+          type="text" 
+          id="brand-search"
+          placeholder="Enter Brand Name (e.g. Nike, Shein, Dyson)..." 
+          class="bg-transparent border-none outline-none text-white text-lg w-full placeholder-slate-600 h-12"
+          onkeydown="if(event.key === 'Enter') document.getElementById('search-btn').click()"
+        />
+        <button 
+          id="search-btn"
+          class="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-red-500/20"
+        >
+          SEARCH
+        </button>
+      </div>
+
+      <!-- Footer / Trust -->
+      <div class="pt-8 flex flex-col items-center gap-4">
+        <p class="text-xs text-slate-600 uppercase tracking-widest font-semibold">
+          Trusted Intelligence Source
+        </p>
+        <div class="flex gap-4 opacity-30 grayscale items-center justify-center">
+             <!-- Simple text placeholders for logos to avoid image issues -->
+             <span class="text-slate-400 font-serif font-bold text-xl">COURT<span class="text-slate-600">LISTENER</span></span>
+             <span class="text-slate-600 mx-2">|</span>
+             <span class="text-slate-400 font-sans font-bold text-xl">PACER</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('search-btn').addEventListener('click', () => {
+        const input = document.getElementById('brand-search') as HTMLInputElement;
+        const val = input.value.trim();
+        if (val) {
+            // Redirect to the dynamic route
+            window.location.href = `/compliance/${encodeURIComponent(val)}`;
+        }
+    });
+  </script>
+</Layout>
