@@ -57,7 +57,40 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
     </div>
+
+    <!-- Live Intelligence Ticker (Fixed Bottom) -->
+    <div class="fixed bottom-0 w-full bg-slate-900/90 border-t border-red-500/20 py-2 sm:py-3 z-50 backdrop-blur flex items-center overflow-hidden">
+        <div class="bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 ml-2 sm:ml-4 rounded shadow-lg animate-pulse whitespace-nowrap z-10 hidden sm:block">
+            LIVE FEED
+        </div>
+        <div class="flex whitespace-nowrap animate-scroll-left hover:pause-animation">
+            {/* Repeated items for smooth loop */}
+            {[1, 2, 3].map(() => (
+                <div class="flex gap-8 mx-4 text-xs font-mono text-slate-400">
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span> NIKE: Case #26-0029 Detected (N.D. Ill)</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span> SHEIN: Risk Level High (TRO Pending)</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span> DYSON: Asset Freeze Executed</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span> MONSTER: New Filing (SAD Scheme)</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500"></span> LV: Settlement Negotiations</span>
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span> DAIMLER: 24h Deadline Alert</span>
+                </div>
+            ))}
+        </div>
+    </div>
   </main>
+
+  <style>
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-33.33%); }
+    }
+    .animate-scroll-left {
+        animation: scroll 30s linear infinite;
+    }
+    .hover\:pause-animation:hover {
+        animation-play-state: paused;
+    }
+  </style>
 
   <script>
     document.getElementById('search-btn').addEventListener('click', () => {
