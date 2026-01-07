@@ -3,6 +3,16 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="GRICH | Global Regulatory Lawsuit Search Engine" description="Search global trademark infringement lawsuits and compliance alerts. Monitoring 500+ brands daily.">
+  <style>
+    /* CRITICAL FALLBACK: Ensure dark mode even if Tailwind fails */
+    body, html {
+      background-color: #020617 !important; /* Slate 950 */
+      color: #ffffff !important;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
   <main class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
     
     <!-- Background Effects -->
