@@ -1,0 +1,15 @@
+{
+  "scanDate": "2026-01-07T10:24:00.000Z",
+  "scanYear": 25,
+  "casesScanned": 100,
+  "casesFound": 10,
+  "filesDownloaded": 1,
+  "files": [
+    {
+      "caseNumber": "1:2025-cv-00029",
+      "filePath": "./temp_downloads/test_defendants.xlsx",
+      "sourceUrl": "http://gbcinternetenforcement.net/25-29/",
+      "sharePointUrl": "https://gbcnet-my.sharepoint.com/test"
+    }
+  ]
+}

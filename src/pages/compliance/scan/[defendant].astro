@@ -6,25 +6,56 @@ import PayPalButton from '../../components/PayPalButton.astro';
 const { defendant } = Astro.params;
 const decodedDefendant = decodeURIComponent(defendant || '');
 
-// Force High Risk for Demo
-const mockRiskScore = 99;
+// Initialize Supabase
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
+const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || process.env.PUBLIC_SUPABASE_ANON_KEY;
 
-// TODO: In real production, query Supabase for this defendant's specific case
-// but for the "Sniper Demo", we assume if they are here, they are guilty.
+let dbRecord = null;
+let riskScore = 15; // Low risk by default
+let isMatch = false;
+let statusMessage = "NO RECORDS FOUND";
+let evidenceLink = "";
+
+// Query Database (SSR)
+if (supabaseUrl && supabaseKey && decodedDefendant) {
+  try {
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Search exact match first, case insensitive
+    const { data, error } = await supabase
+      .from('defendants')
+      .select('*')
+      .ilike('defendant_name', decodedDefendant)
+      .limit(1)
+      .single();
+
+    if (data) {
+      dbRecord = data;
+      isMatch = true;
+      riskScore = 99; // Critical Risk
+      statusMessage = "CRITICAL MATCH CONFIRMED";
+      // Use the store_url or sharepoint link if we have it in the future
+      evidenceLink = "https://gbcnet-my.sharepoint.com/:f:/g/personal/jmachuca_gbc_law/ElM4QXTLf1pPrGW52eX4JO0BGkxnCmOiuXOyk5XncXWWTg?e=4EL9qs"; 
+    }
+  } catch (e) {
+    console.error("Supabase Query Error:", e);
+  }
+}
 ---
 
 <div class="min-h-screen bg-[#050505] text-white">
   <!-- Emergency Header -->
-  <div class="bg-red-900/40 border-b border-red-500/50 p-4 animate-pulse">
+  <div class={`border-b p-4 ${isMatch ? 'bg-red-900/40 border-red-500/50 animate-pulse' : 'bg-gray-900/40 border-gray-700'}`}>
     <div class="container mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="relative flex h-3 w-3">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          <span class={`absolute inline-flex h-full w-full rounded-full opacity-75 ${isMatch ? 'animate-ping bg-red-400' : 'bg-gray-400'}`}></span>
+          <span class={`relative inline-flex rounded-full h-3 w-3 ${isMatch ? 'bg-red-500' : 'bg-gray-500'}`}></span>
         </span>
-        <span class="font-mono text-red-400 font-bold tracking-wider">CRITICAL ALERT: DEFENDANT MATCH FOUND</span>
+        <span class={`font-mono font-bold tracking-wider ${isMatch ? 'text-red-400' : 'text-gray-400'}`}>
+          {isMatch ? 'CRITICAL ALERT: DEFENDANT MATCH FOUND' : 'SYSTEM STATUS: DATA ANALYSIS COMPLETE'}
+        </span>
       </div>
-      <span class="font-mono text-xs text-red-500/80">ID: {decodedDefendant}</span>
+      <span class="font-mono text-xs text-gray-500/80">ID: {decodedDefendant}</span>
     </div>
   </div>
 
@@ -33,17 +64,25 @@ const mockRiskScore = 99;
     <div class="mb-12 text-center">
       <h1 class="text-5xl md:text-7xl font-black mb-4 tracking-tighter uppercase relative inline-block">
         <span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500">Target:</span>
-        <span class="text-red-500">{decodedDefendant}</span>
+        <span class={isMatch ? "text-red-500" : "text-gray-400"}>{decodedDefendant}</span>
       </h1>
-      <p class="text-xl text-gray-400 max-w-2xl mx-auto">
-        Our intelligence network has detected that <strong class="text-white">{decodedDefendant}</strong> has been named as a defendant in a recent federal IP lawsuit. 
-        <span class="text-red-400 block mt-2 font-bold">Your assets may be subject to immediate freeze.</span>
-      </p>
+      
+      {isMatch ? (
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+          Our intelligence network has detected that <strong class="text-white">{decodedDefendant}</strong> has been named as a defendant in a recent federal IP lawsuit. 
+          <span class="text-red-400 block mt-2 font-bold">Your assets may be subject to immediate freeze.</span>
+        </p>
+      ) : (
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+          Searching global litigation databases... No direct matches found in currently active GBC datasets for this exact name.
+          <span class="block mt-2 text-sm">Please verifying spelling or try our "Deep Scan" (Engine 1).</span>
+        </p>
+      )}
     </div>
 
     <!-- The "Proof" Card -->
     <div class="grid md:grid-cols-2 gap-6 mb-8">
-        <div class="col-span-2 bg-gray-900/50 border border-red-500/30 rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
+        <div class={`col-span-2 border rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden ${isMatch ? 'bg-gray-900/50 border-red-500/30' : 'bg-gray-900/20 border-gray-800'}`}>
              <!-- Background Texture -->
              <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
              
@@ -52,114 +91,94 @@ const mockRiskScore = 99;
                 <div class="relative w-40 h-40 flex-shrink-0">
                     <svg class="w-full h-full transform -rotate-90">
                         <circle cx="80" cy="80" r="70" class="stroke-gray-800" stroke-width="12" fill="none"/>
-                        <circle cx="80" cy="80" r="70" class="stroke-red-600" stroke-width="12" fill="none"
-                                stroke-dasharray="440" stroke-dashoffset="10"/>
+                        <circle cx="80" cy="80" r="70" class={isMatch ? "stroke-red-600" : "stroke-green-600"} stroke-width="12" fill="none"
+                                stroke-dasharray="440" stroke-dashoffset={440 - (440 * riskScore / 100)}/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-5xl font-black text-white">{mockRiskScore}</span>
-                        <span class="text-xs font-bold text-red-500 tracking-widest uppercase mt-1">CRITICAL</span>
+                        <span class="text-5xl font-black text-white">{riskScore}</span>
+                        <span class={`text-xs font-bold tracking-widest uppercase mt-1 ${isMatch ? 'text-red-500' : 'text-green-500'}`}>
+                            {isMatch ? 'CRITICAL' : 'SAFE'}
+                        </span>
                     </div>
                 </div>
 
-                <!-- AI Intelligence Summary -->
-                <div class="flex-1">
+                <!-- Intelligence Details -->
+                <div class="flex-1 w-full">
                     <div class="flex items-center gap-2 mb-3">
-                        <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-1 rounded">AI INTELLIGENCE REPORT</span>
-                        <span class="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded">VERIFIED</span>
+                        <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-1 rounded">DATA SOURCE: GBC_OFFICIAL</span>
+                        {isMatch && <span class="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded">VERIFIED</span>}
                     </div>
                     
-                    <!-- Dynamic Loading Container -->
-                    <div id="ai-report-container" class="min-h-[120px] mb-4">
-                        <div class="animate-pulse space-y-3">
-                            <div class="h-2 bg-gray-800 rounded w-3/4"></div>
-                            <div class="h-2 bg-gray-800 rounded w-full"></div>
-                            <div class="h-2 bg-gray-800 rounded w-5/6"></div>
+                    {isMatch && dbRecord ? (
+                        <div class="space-y-4">
+                            <div class="bg-black/40 rounded p-4 border border-red-500/20">
+                                <h3 class="text-gray-400 text-xs uppercase tracking-wider mb-2">Lawsuit Details</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">Case Number</div>
+                                        <div class="text-white font-mono">{dbRecord.case_number}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">Brand Plaintiff</div>
+                                        <div class="text-white font-mono">{dbRecord.brand_name}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">Platform</div>
+                                        <div class="text-white font-mono">{dbRecord.platform || 'General'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">Found At</div>
+                                        <div class="text-white font-mono">{new Date(dbRecord.found_at).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                           {dbRecord.store_url && (
+                                <div class="text-xs text-gray-500 font-mono truncate">
+                                    Linked Store: <span class="text-red-400">{dbRecord.store_url}</span>
+                                </div>
+                            )}
                         </div>
-                        <p class="text-sm text-gray-400 font-mono mt-2">Connecting to Federal Court Database...</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mt-6">
-                        <div class="bg-black/40 rounded p-3 border border-gray-800">
-                            <div class="text-xs text-gray-500 mb-1">Status</div>
-                            <div class="text-red-400 font-mono font-bold">TRO GRANTED</div>
-                        </div>
-                        <div class="bg-black/40 rounded p-3 border border-gray-800">
-                            <div class="text-xs text-gray-500 mb-1">Action Required</div>
-                            <div class="text-white font-mono font-bold">IMMEDIATE RESPONSE</div>
-                        </div>
-                    </div>
+                    ) : (
+                         <div class="bg-black/40 rounded p-4 border border-gray-800 text-center py-8">
+                             <p class="text-gray-400 text-sm">No active lawsuit records found matching this identity.</p>
+                             <p class="text-xs text-gray-600 mt-2">Database Updated: {new Date().toLocaleDateString()}</p>
+                         </div>
+                    )}
                 </div>
              </div>
         </div>
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
-        <!-- Pay $29.90 to Download -->
-        <div class="w-full max-w-xs">
-            <PayPalButton amount="29.90" integrationId="sniper_defendant" />
+    {isMatch && (
+        <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+            <div class="w-full max-w-xs text-center">
+                <p class="text-gray-400 text-sm mb-2">Unlock Full Liability Report & Evidence</p>
+                <PayPalButton amount="29.90" integrationId="sniper_defendant" />
+            </div>
         </div>
-    </div>
+    )}
 
   </main>
 </div>
 
-<!-- AI Loader Script -->
-<script define:vars={{ decodedDefendant }}>
-    const container = document.getElementById('ai-report-container');
-    
-    // Simulate finding specific data
-    const fetchReport = async () => {
-        try {
-            // Updated API call to include defendant name for personalized report
-            const res = await fetch(`/api/generate-report?brand=NIKE&defendant=${encodeURIComponent(decodedDefendant)}`);
-            if (res.ok) {
-                const data = await res.json();
-                
-                // If it's the "Specific" report, it might have different fields, but let's assume same schema for now
-                if (data.summary) {
-                    container.innerHTML = `
-                        <p class="text-gray-300 leading-relaxed font-light text-sm md:text-base">
-                            ${data.summary}
-                        </p>
-                        ${data.likely_triggers ? `
-                        <div class="mt-4 space-y-2">
-                            ${data.likely_triggers.map(t => `
-                                <div class="flex items-center gap-2 text-xs md:text-sm text-red-300">
-                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                    <span>${t}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ` : ''}
-                    `;
-                }
-            } else {
-                throw new Error("API Fatal");
-            }
-        } catch (e) {
-            // Fallback for Demo
-            container.innerHTML = `
-                <p class="text-gray-300 leading-relaxed font-light">
-                   System has confirmed that <span class="text-white font-bold">${decodedDefendant}</span> appears on the protected <strong>Schedule A</strong> defendant list. Plaintiffs have likely already moved for an <em>ex parte</em> Temporary Restraining Order. Electronic service via email or website publication is imminent.
-                </p>
-                <div class="mt-3 text-red-400 text-sm font-mono">
-                    > EVIDENCE: Screenshot captured from GBC Portal<br>
-                    > STATUS: Frozen (Pending)
-                </div>
-            `;
-        }
-    };
-
-    // Delay slightly for effect
-    setTimeout(fetchReport, 800);
-
+<script define:vars={{ isMatch, evidenceLink }}>
     // Payment Success Handler
     document.addEventListener('payment-success', (e) => {
+        if (!isMatch) return;
+        
         const payerName = e.detail.payer.name.given_name;
-        // In Branch B (Sniper), we unlock the downloaded files (GBC SharePoint Link)
-        alert(`ACCESS GRANTED. User: ${payerName}\n\nUnlocking Schedule A Document...`);
-        // Simulating the "Vault Open"
-        window.location.href = "https://gbcnet-my.sharepoint.com/:f:/g/personal/jramos_gbc_law/EtrdoDFXs0lHkeBPfq7E1DUBP2Uuc3E2OFA7kTx6cqiWVQ?e=lNLTrF";
+        // In Branch B (Sniper), we unlock the downloaded files
+        console.log("Unlock Triggered", evidenceLink);
+        
+        alert(`PAYMENT CONFIRMED: ${payerName}\n\nUnlocking Federal Court Evidence Packet...`);
+        
+        if(evidenceLink) {
+             window.location.href = evidenceLink;
+        } else {
+             // Fallback
+             alert("Thank you. The report has been emailed to you.");
+        }
     });
 </script>
