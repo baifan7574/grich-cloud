@@ -143,13 +143,25 @@ const popularBrands = [
     }
   </style>
 
-  <script>
-    document.getElementById('search-btn').addEventListener('click', () => {
-        const input = document.getElementById('brand-search') as HTMLInputElement;
-        const val = input.value.trim();
-        if (val) {
-            window.location.href = `/compliance/scan/${encodeURIComponent(val)}`;
-        }
-    });
+  <script is:inline>
+    // Simple inline script to handle search
+    const btn = document.getElementById('search-btn');
+    const input = document.getElementById('brand-search');
+    
+    if (btn && input) {
+        btn.addEventListener('click', () => {
+            const val = input.value.trim();
+            if (val) {
+                window.location.href = '/compliance/scan/' + encodeURIComponent(val);
+            }
+        });
+        
+        // Handle Enter key
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                btn.click();
+            }
+        });
+    }
   </script>
 </Layout>
