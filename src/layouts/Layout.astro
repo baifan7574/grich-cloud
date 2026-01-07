@@ -18,6 +18,36 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <style is:global>
+        /* CRITICAL: HARDCODED GLOBAL STYLES (NO TAILWIND DEPENDENCY for BASE) */
+        :root {
+            --bg-color: #020617; /* Slate 950 */
+            --text-color: #f8fafc; /* Slate 50 */
+            --accent-red: #ef4444;
+        }
+        html, body {
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
   </head>
   <body>
     <slot />
