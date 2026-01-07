@@ -1,11 +1,10 @@
-// @ts-check
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
 import tailwind from '@astrojs/tailwind';
 
-// https://astro.build/config
 export default defineConfig({
-    output: 'server',
-    adapter: cloudflare(),
-    integrations: [tailwind()]
+    // 强制声明为静态站点，不需要服务器支持
+    output: 'static',
+    integrations: [tailwind()],
+    // 禁用所有其他的适配器，防止报错
 });
