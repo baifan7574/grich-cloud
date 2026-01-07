@@ -44,7 +44,7 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
     </div>
   </nav>
 
-  <main class="pt-24 pb-20 max-w-5xl mx-auto px-4 min-h-screen bg-slate-950 text-slate-200">
+  <main id="app-container" data-initial-score={mockRiskScore} data-decoded-brand={decodedBrand} class="pt-24 pb-20 max-w-5xl mx-auto px-4 min-h-screen bg-slate-950 text-slate-200">
     <header class="mb-12 text-center md:text-left">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-xs font-bold mb-4 border border-red-500/20">
         <span class="relative flex h-2 w-2">
@@ -233,8 +233,13 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
     </p>
   </footer>
 
-  <script define:vars={{ initialScore: mockRiskScore, decodedBrand }}>
+  <script>
     import { jsPDF } from "jspdf";
+
+    // Recover vars from data attributes
+    const container = document.getElementById('app-container');
+    const initialScore = Number(container.dataset.initialScore || 85);
+    const decodedBrand = container.dataset.decodedBrand || 'Unknown';
 
     // Store AI data for the PDF
     let brainData = null;
@@ -256,8 +261,8 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
         clearInterval(timer);
       }
       const displayScore = Math.floor(current);
-      scoreValue.textContent = displayScore;
-      progressCircle.setAttribute('stroke-dasharray', `${displayScore * 2.51} 251.2`);
+      if(scoreValue) scoreValue.textContent = displayScore;
+      if(progressCircle) progressCircle.setAttribute('stroke-dasharray', `${displayScore * 2.51} 251.2`);
     }, interval);
 
     // PDF Generation Logic
@@ -370,12 +375,12 @@ const pageDescription = `Urgent compliance warning for ${decodedBrand}. Involved
                 
                 // 1. Update Summary
                 if (data.summary) {
-                    summaryEl.innerHTML = `<span class="text-white font-bold bg-red-500/20 px-1 rounded">SYSTEM ALERT:</span> ${data.summary} <br/><br/> <span class="text-xs text-slate-400">Analysis Reference: ${data.action_deadline || '48h'} Deadline</span>`;
+                    if(summaryEl) summaryEl.innerHTML = `<span class="text-white font-bold bg-red-500/20 px-1 rounded">SYSTEM ALERT:</span> ${data.summary} <br/><br/> <span class="text-xs text-slate-400">Analysis Reference: ${data.action_deadline || '48h'} Deadline</span>`;
                 }
                 
                 // 2. Update Jurisdiction
                 if (data.jurisdiction_note) {
-                    jurisdictionEl.textContent = data.jurisdiction_note;
+                   if(jurisdictionEl) jurisdictionEl.textContent = data.jurisdiction_note;
                 }
             })
             .catch(err => console.error("Brain Connection Error:", err));
