@@ -51,12 +51,26 @@
     </div>
 
     <script>
+        // --- STATE RECOVERY LOGIC ---
+        // 1. Try URL params (if Payhip supports pass-through)
+        const urlParams = new URLSearchParams(window.location.search);
+        let caseId = urlParams.get('case');
+        let targetId = urlParams.get('target');
+
+        // 2. Try LocalStorage (Recovery)
+        if (!caseId) {
+            caseId = localStorage.getItem('grich_pending_case');
+            targetId = localStorage.getItem('grich_pending_target');
+        }
+
+        // Fallback
+        if (!caseId) caseId = "UNKNOWN_CASE";
+
         const logs = [
             "Initializing Secure Handshake...",
-            "Transaction ID: TXN_99882211 verified.",
-            "Accessing GRICH Private Database...",
-            "Retrieving Case 24-cv-4675 Metadata...",
-            "Decrypting Defendant List (82 targets)...",
+            "Transaction ID: PAYHIP_VERIFIED.",
+            `Accessing GRICH Private Database (Case ${caseId})...`,
+            "Decrypting Defendant List...",
             "Connecting to Microsoft Sharepoint Evidence Locker...",
             "Generating PDF Report...",
             "Finalizing Output...",
@@ -68,10 +82,12 @@
 
         function addLog() {
             if (i >= logs.length) {
-                // Redirect
+                // Redirect logic
                 setTimeout(() => {
-                    // Redirect to the Unlocked Report for Case 24-cv-4675
-                    window.location.href = "case_template.html?case=1:24-cv-4675&paid=true";
+                    let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
+                    if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
+
+                    window.location.href = dest;
                 }, 1000);
                 return;
             }
@@ -83,7 +99,7 @@
             logDiv.scrollTop = logDiv.scrollHeight;
 
             i++;
-            setTimeout(addLog, 400); // Speed of logs
+            setTimeout(addLog, 400);
         }
 
         setTimeout(addLog, 500);

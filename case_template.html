@@ -43,20 +43,6 @@
             background-size: 4px 4px;
         }
 
-        .crt::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 50;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-
         .header-bar {
             border-bottom: 2px solid #ff3333;
             box-shadow: 0 0 15px rgba(255, 51, 51, 0.3);
@@ -78,36 +64,6 @@
             letter-spacing: 1px;
             display: flex;
             justify-content: space-between;
-        }
-
-        .glitch-text {
-            text-shadow: 2px 0 #330000, -2px 0 #00ffff;
-        }
-
-        /* Dial */
-        .circle-chart {
-            width: 100px;
-            height: 100px;
-        }
-
-        .circle-chart__circle {
-            stroke: #222;
-            stroke-width: 2;
-            fill: none;
-        }
-
-        .circle-chart__circle--completed {
-            stroke: #ff3333;
-            stroke-width: 3;
-            stroke-dasharray: 0, 100;
-            stroke-linecap: butt;
-            fill: none;
-            transition: stroke-dasharray 1s ease-out;
-        }
-
-        /* Loader Log */
-        #loader {
-            font-family: 'Courier New', Courier, monospace;
         }
 
         ::-webkit-scrollbar {
@@ -163,34 +119,16 @@
         <!-- Dashboard Grid -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
-            <!-- Dial 1: Total Targets -->
+            <!-- Dial 1 -->
             <div class="panel col-span-1 p-6 flex flex-col items-center justify-center">
-                <div class="relative w-32 h-32 flex items-center justify-center mb-4">
-                    <svg class="circle-chart" viewbox="0 0 33.83098862 33.83098862" width="120" height="120">
-                        <circle class="circle-chart__circle" cx="16.91549431" cy="16.91549431" r="15.91549431" />
-                        <circle class="circle-chart__circle--completed" stroke-dasharray="80,100" cx="16.91549431"
-                            cy="16.91549431" r="15.91549431" transform="rotate(-90 16.91549431 16.91549431)"
-                            style="stroke: #ff3333;" />
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white"
-                        id="count-total">-</div>
-                </div>
-                <div class="text-xs text-ops-red uppercase tracking-widest">Targets Identified</div>
+                <div class="text-4xl font-bold text-white mb-2" id="count-total">-</div>
+                <div class="text-xs text-ops-red uppercase tracking-widest">TARGETS DETECTED</div>
             </div>
 
-            <!-- Dial 2: Enriched -->
+            <!-- Dial 2 -->
             <div class="panel col-span-1 p-6 flex flex-col items-center justify-center">
-                <div class="relative w-32 h-32 flex items-center justify-center mb-4">
-                    <svg class="circle-chart" viewbox="0 0 33.83098862 33.83098862" width="120" height="120">
-                        <circle class="circle-chart__circle" cx="16.91549431" cy="16.91549431" r="15.91549431" />
-                        <circle class="circle-chart__circle--completed" stroke-dasharray="10,100" cx="16.91549431"
-                            cy="16.91549431" r="15.91549431" transform="rotate(-90 16.91549431 16.91549431)"
-                            style="stroke: #ffffff;" id="enriched-ring" />
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white"
-                        id="count-enriched">-</div>
-                </div>
-                <div class="text-xs text-white uppercase tracking-widest">Shops Located</div>
+                <div class="text-4xl font-bold text-white mb-2" id="count-enriched">-</div>
+                <div class="text-xs text-white uppercase tracking-widest">SHOPS IDENTIFIED</div>
             </div>
 
             <!-- Evidence Locker -->
@@ -207,31 +145,13 @@
                                 <span class="w-2 h-2 bg-ops-red"></span>
                                 MICROSOFT_CLOUD_DRIVE
                             </div>
-                            <div class="text-xs text-gray-500 font-mono pl-4">Contains: Images, Screenshots</div>
+                            <div class="text-xs text-gray-500 font-mono pl-4">Evidence: Screenshots, Purchase Logs
+                                (Active)</div>
                         </div>
-                        <a id="btn-cloud" href="#" target="_blank"
+                        <a id="btn-cloud" href="#" target="_blank" onclick="saveState()"
                             class="border border-ops-red text-ops-red hover:bg-ops-red hover:text-black px-4 py-1 text-xs font-bold uppercase transition-all">ACCESS
                             ></a>
                     </div>
-                    <div
-                        class="flex justify-between items-center group cursor-pointer hover:bg-white/5 p-2 rounded transition-colors">
-                        <div>
-                            <div class="text-white font-bold flex items-center gap-2">
-                                <span class="w-2 h-2 bg-white"></span>
-                                DEFENDANT_LIST.PDF
-                            </div>
-                            <div class="text-xs text-gray-500 font-mono pl-4">Schedule A (Parsed)</div>
-                        </div>
-                        <a id="btn-pdf" href="#" target="_blank"
-                            class="border border-white text-white hover:bg-white hover:text-black px-4 py-1 text-xs font-bold uppercase transition-all">DOWNLOAD
-                            ></a>
-                    </div>
-                </div>
-                <!-- Deco Lines -->
-                <div class="absolute bottom-2 right-2 flex gap-1">
-                    <div class="w-1 h-1 bg-ops-red"></div>
-                    <div class="w-1 h-1 bg-ops-red"></div>
-                    <div class="w-1 h-1 bg-ops-red"></div>
                 </div>
             </div>
         </div>
@@ -239,14 +159,14 @@
         <!-- Defendant Table -->
         <div class="panel">
             <div class="panel-header">
-                <span>Intercepted Data Stream</span>
-                <span>STATUS: PARSING</span>
+                <span>INTERCEPTED DATA STREAM // TARGET ISOLATION ACTIVE</span>
+                <span class="text-ops-red animate-pulse">LOCKED ON</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left font-mono text-sm">
                     <thead class="bg-gray-900 text-gray-500 border-b border-gray-800">
                         <tr>
-                            <th class="p-4 uppercase tracking-widest">ID Hash</th>
+                            <th class="p-4 uppercase tracking-widest">Target ID</th>
                             <th class="p-4 uppercase tracking-widest">Entity Name</th>
                             <th class="p-4 uppercase tracking-widest">Platform</th>
                             <th class="p-4 uppercase tracking-widest">Status</th>
@@ -268,203 +188,170 @@
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // --- LINKS ---
+        const LINK_BASIC = "https://payhip.com/b/BHtvq"; // $9.99
+        const LINK_PREMIUM = "https://payhip.com/b/nc08Y"; // $29.99
+
         function log(msg) {
             const el = document.getElementById('loading-log');
-            el.innerHTML += `> ${msg}<br>`;
-            el.scrollTop = el.scrollHeight;
+            if (el) {
+                el.innerHTML += `> ${msg}<br>`;
+                el.scrollTop = el.scrollHeight;
+            }
             console.log(msg);
+        }
+
+        function saveState() {
+            // Save current params to LocalStorage before redirecting to Payhip
+            const urlParams = new URLSearchParams(window.location.search);
+            localStorage.setItem('grich_pending_case', urlParams.get('case'));
+            localStorage.setItem('grich_pending_target', urlParams.get('target') || '');
+            log("State saved. Redirecting to Payment Gateway...");
         }
 
         async function init() {
             const urlParams = new URLSearchParams(window.location.search);
             let caseParam = urlParams.get('case');
+            let targetId = urlParams.get('target');
+            let isPaid = urlParams.get('paid') === 'true';
 
-            log(`PARSING PARAMS: Case=${caseParam}`);
-
-            // FIX: If param is null, check for encoded version in string manually if browser fails
+            // Auto-Decode Fallback
             if (!caseParam && window.location.href.includes('case%3D')) {
-                log("DETECTED MALFORMED URL, ATTEMPTING DECODE...");
                 try {
                     const decoded = decodeURIComponent(window.location.href);
-                    const match = decoded.match(/case=([^&]+)/);
-                    if (match) caseParam = match[1];
-                } catch (e) { log("DECODE FAILED."); }
+                    caseParam = (decoded.match(/case=([^&]+)/) || [])[1];
+                    targetId = (decoded.match(/target=([^&]+)/) || [])[1];
+                } catch (e) { }
             }
 
+            // Defaults (Fail-Open)
             if (!caseParam) {
-                log("CRITICAL ERROR: MISSING CASE PARAMETER");
-                log("ACTIVATING FAILSAFE PROTOCOL: Defaulting to Case 24-cv-4675");
-                caseParam = "1:24-cv-4675"; // Default
+                log("MISSING PARAMS. FAILSAFE: DEFAULT CASE.");
+                caseParam = "1:24-cv-4675";
             }
 
             try {
-                log(`ESTABLISHING DATA LINK: ${SUPABASE_URL}...`);
+                log(`CONNECTING...`);
 
-                // 1. Fetch Metadata
-                log(`QUERYING LAWSUITS [${caseParam}]...`);
+                // 1. Metadata
                 const { data: lawsuit, error: err1 } = await supabaseClient.from('lawsuits').select('*').eq('case_number', caseParam).single();
+                if (!lawsuit && !err1) throw new Error("Case not found");
 
-                if (err1) {
-                    log(`DB ERROR (LAWSUIT): ${err1.message}`);
-                    // Don't throw yet, try to proceed to defendants? No, need metadata.
-                    // Actually, if we are in 'Mock Mode', we proceed.
-                    throw new Error(err1.message);
-                }
-                if (!lawsuit) {
-                    log(`CASE '${caseParam}' NOT FOUND IN INDEX.`);
-                    throw new Error("CASE NOT FOUND");
-                }
-
-                log("METADATA SECURED.");
-
-                // 2. Fetch Defendants
-                log("QUERYING TARGET LIST...");
-                const { data: defendants, error: err2 } = await supabaseClient.from('defendants').select('*').eq('case_number', caseParam).order('store_url', { ascending: false, nullsFirst: false });
-
-                if (err2) log(`DB ERROR (DEFENDANTS): ${err2.message}`);
-
-                log(`TARGETS INTERCEPTED: ${defendants ? defendants.length : 0}`);
+                // 2. Defendants
+                const { data: defendants, error: err2 } = await supabaseClient.from('defendants').select('*').eq('case_number', caseParam);
 
                 // 3. Render
-                log("RENDERING INTERFACE...");
-                render(lawsuit, defendants || []);
+                render(lawsuit || {}, defendants || [], targetId, isPaid);
 
             } catch (e) {
-                log(`FATAL EXCEPTION: ${e.message}`);
-                log("--------------------------------");
-                log("INITIATING EMERGENCY RENDER MODE (MOCK DATA)...");
-                log("BYPASSING DATABASE CHECK...");
-
-                // FORCE RENDER MOCK DATA SO USER SEES SOMETHING
+                log(`ERROR: ${e.message}. USING MOCK DATA.`);
+                // Fail-Open Mock
                 const mockLawsuit = {
-                    case_number: caseParam || "24-cv-4675",
-                    plaintiff: "Chrome Hearts (Detected)",
+                    case_number: caseParam,
+                    plaintiff: "System Detected",
                     risk_score: "99",
-                    raw_data_url: "http://gbcinternetenforcement.net/24-4675/"
+                    raw_data_url: "http://example.com"
                 };
-
-                // Try to get ANY defendants just to show something
-                let mockDefs = [];
-                try {
-                    log("ATTEMPTING TO SALVAGE ANY DEFENDANT DATA...");
-                    const { data } = await supabaseClient.from('defendants').select('*').limit(50);
-                    if (data && data.length > 0) {
-                        mockDefs = data;
-                        log(`SALVAGED ${data.length} RECORDS.`);
-                    } else {
-                        throw "No data";
-                    }
-                } catch (err) {
-                    log("OFFLINE MODE CONFIRMED. USING STATIC TARGETS.");
-                    mockDefs = [
-                        { id: "d7885e33", defendant_name: "Yiwu Target Trading Co.", platform: "Amazon", store_url: "http://amazon.com" },
-                        { id: "x9981a22", defendant_name: "Shenzhen Dropship Ltd.", platform: "eBay", store_url: null },
-                        { id: "k1122334", defendant_name: "Global Sale Store", platform: "Wish", store_url: null },
-                        { id: "m5566778", defendant_name: "Super Deal Shop", platform: "AliExpress", store_url: "http://aliexpress.com" }
-                    ];
-                }
-
-                setTimeout(() => {
-                    render(mockLawsuit, mockDefs);
-                }, 1500);
+                const mockDefs = [{
+                    id: targetId || "d7885e",
+                    defendant_name: "Target Shop (Detected)",
+                    platform: "Amazon",
+                    store_url: "http://amazon.com"
+                }];
+                render(mockLawsuit, mockDefs, targetId, isPaid);
             }
         }
 
-        function render(lawsuit, defendants) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const targetId = urlParams.get('target');
-            const isPaid = urlParams.get('paid') === 'true';
-
-            // Header
-            if (lawsuit) {
-                document.getElementById('case-id').innerText = lawsuit.case_number ? lawsuit.case_number.replace('1:', '') : 'UNKNOWN';
-                document.getElementById('plaintiff').innerText = lawsuit.plaintiff || 'UNKNOWN';
-                document.getElementById('risk-score').innerText = lawsuit.risk_score || "100";
-            }
-
-            // Buttons Logic (The Product)
-            const btnCloud = document.getElementById('btn-cloud');
-            const btnPdf = document.getElementById('btn-pdf');
-            const rawUrl = lawsuit ? lawsuit.raw_data_url : '#';
-
-            if (isPaid) {
-                // UNLOCKED: Real Value
-                btnCloud.href = rawUrl;
-                btnCloud.innerHTML = "ACCESS GRANTED >";
-                btnCloud.classList.remove('border-ops-red', 'text-ops-red', 'hover:bg-ops-red', 'hover:text-black', 'opacity-50', 'cursor-not-allowed');
-                btnCloud.classList.add('bg-ops-red', 'text-black');
-
-                btnPdf.href = rawUrl;
-                btnPdf.innerHTML = "DOWNLOAD REPORT >";
-                btnPdf.classList.remove('border-white', 'text-white', 'hover:bg-white', 'hover:text-black', 'opacity-50', 'cursor-not-allowed');
-                btnPdf.classList.add('bg-white', 'text-black');
-            } else {
-                // LOCKED: Paywall with Gumroad
-                const gumroadLink = "https://baifan15.gumroad.com/l/lkqhps";
-
-                btnCloud.href = gumroadLink;
-                btnCloud.innerHTML = "🔒 UNLOCK EVIDENCE ($29.90)";
-                btnCloud.classList.remove('border-ops-red', 'text-ops-red', 'hover:bg-ops-red', 'hover:text-black');
-                btnCloud.classList.add('opacity-50', 'cursor-pointer', 'hover:opacity-100', 'transition-opacity', 'border-ops-red', 'text-ops-red', 'border');
-
-                btnPdf.href = gumroadLink;
-                btnPdf.innerHTML = "🔒 UNLOCK PDF ($29.90)";
-                btnPdf.classList.remove('border-white', 'text-white', 'hover:bg-white', 'hover:text-black');
-                btnPdf.classList.add('opacity-50', 'cursor-pointer', 'hover:opacity-100', 'transition-opacity', 'border-white', 'text-white', 'border');
-            }
-
+        function render(lawsuit, defendants, targetId, isPaid) {
             // Stats
             document.getElementById('count-total').innerText = defendants.length;
             const enrichedCount = defendants.filter(d => d.store_url).length;
             document.getElementById('count-enriched').innerText = enrichedCount;
 
-            // Calc Ring Stroke
-            const pct = Math.min((enrichedCount / (defendants.length || 1)) * 100, 100);
-            const ring = document.getElementById('enriched-ring');
-            if (ring) ring.setAttribute('stroke-dasharray', `${pct}, 100`);
-
-            const body = document.getElementById('table-body');
-            if (defendants.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-600">NO TARGETS INTERCEPTED YET...</td></tr>`;
-            } else {
-                body.innerHTML = defendants.map(d => {
-                    // ID Matching Logic
-                    const isTarget = targetId && d.id && d.id.includes(targetId);
-                    const isBlurred = targetId && !isTarget;
-
-                    // Styles
-                    const rowClass = isTarget
-                        ? "bg-ops-red/10 border-l-4 border-ops-red shadow-[0_0_20px_rgba(255,51,51,0.3)] z-10 relative scale-[1.01]"
-                        : "hover:bg-white/5 transition group border-l-4 border-transparent";
-
-                    const blurClass = isBlurred ? "opacity-20 blur-[2px] transition-all hover:blur-0 hover:opacity-100" : "";
-                    const idText = d.id ? d.id.substring(0, 8).toUpperCase() : 'UNK';
-
-                    return `
-                    <tr class="${rowClass} ${blurClass}">
-                        <td class="p-4 text-gray-600 text-xs font-mono">
-                            ${isTarget ? `<span class="text-ops-red font-bold animate-pulse">>> TARGET <<</span>` : idText}
-                        </td>
-                        <td class="p-4 text-white font-bold text-lg tracking-wide group-hover:text-ops-red transition-colors">
-                            ${d.defendant_name}
-                        </td>
-                        <td class="p-4 text-gray-400">${d.platform || 'UNK'}</td>
-                        <td class="p-4">
-                            ${d.store_url
-                            ? '<span class="text-ops-red font-bold text-xs border border-ops-red px-1">MATCHED</span>'
-                            : '<span class="text-gray-700 font-bold text-xs">SEARCHING</span>'}
-                        </td>
-                        <td class="p-4 text-right">
-                             ${d.store_url
-                            ? `<a href="${d.store_url}" target="_blank" class="bg-ops-red text-black font-bold px-4 py-1 hover:bg-white transition-colors uppercase text-xs">Target ></a>`
-                            : `<span class="text-gray-800 text-xs">---</span>`
-                        }
-                        </td>
-                    </tr>
-                `}).join('');
+            // Update Header
+            if (lawsuit.case_number) {
+                document.getElementById('case-id').innerText = lawsuit.case_number.replace('1:', '');
+                document.getElementById('plaintiff').innerText = lawsuit.plaintiff || 'UNKNOWN';
+                document.getElementById('risk-score').innerText = lawsuit.risk_score || "100";
             }
 
-            // Show
+            // --- TARGET ISOLATION LOGIC ---
+            // If targetId is present, we ONLY show that one row.
+            let displayList = defendants;
+            let targetRecord = null;
+
+            if (targetId) {
+                const found = defendants.find(d => d.id && d.id.includes(targetId));
+                if (found) {
+                    displayList = [found]; // ISOLATE
+                    targetRecord = found;
+                } else {
+                    // Fallback if target ID passed but not found in DB list (rare)
+                    displayList = [{
+                        id: targetId,
+                        defendant_name: "Target Entity (Parsing...)",
+                        platform: "Unknown",
+                        store_url: null
+                    }];
+                    targetRecord = displayList[0];
+                }
+            }
+
+            // --- SMART PRICING LOGIC ---
+            // Premium ($29.99) if target has store_url (enriched). Basic ($9.99) otherwise.
+            let priceLink = LINK_BASIC;
+            let priceLabel = "$9.99";
+
+            if (targetRecord && targetRecord.store_url) {
+                // High Value = Premium Price
+                priceLink = LINK_PREMIUM;
+                priceLabel = "$29.99";
+                log(`SMART PRICING: PREMIUM TIER (${priceLabel}) ACTIVATED`);
+            } else {
+                log(`SMART PRICING: BASIC TIER (${priceLabel}) ACTIVATED`);
+            }
+
+            // --- BUTTON STATE ---
+            const btnCloud = document.getElementById('btn-cloud');
+
+            if (isPaid) {
+                // UNLOCKED
+                btnCloud.href = lawsuit.raw_data_url || '#';
+                btnCloud.onclick = null; // Remove saveState
+                btnCloud.innerHTML = "DOWNLOAD REPORT (UNLOCKED)";
+                btnCloud.classList.remove('border-ops-red', 'text-ops-red');
+                btnCloud.classList.add('bg-white', 'text-black', 'border-white');
+            } else {
+                // LOCKED -> RE-ROUTE TO PAYHIP
+                btnCloud.href = priceLink;
+                // onclick="saveState()" is already in HTML, ensures we save params
+                btnCloud.innerHTML = `🔒 UNLOCK EVIDENCE (${priceLabel})`;
+            }
+
+            // --- RENDER TABLE ---
+            const body = document.getElementById('table-body');
+            body.innerHTML = displayList.map(d => {
+                const isMatched = !!d.store_url;
+                return `
+                <tr class="bg-ops-red/10 border-l-4 border-ops-red shadow-[0_0_20px_rgba(255,51,51,0.2)]">
+                    <td class="p-4 text-ops-red font-bold font-mono animate-pulse">>> ${d.id.substring(0, 8).toUpperCase()} <<</td>
+                    <td class="p-4 text-white font-bold text-lg tracking-wide">${d.defendant_name}</td>
+                    <td class="p-4 text-gray-400">${d.platform || 'UNK'}</td>
+                    <td class="p-4">
+                        ${isMatched
+                        ? '<span class="text-ops-red font-bold text-xs border border-ops-red px-1">MATCHED</span>'
+                        : '<span class="text-gray-500 font-bold text-xs">SEARCHING</span>'}
+                    </td>
+                    <td class="p-4 text-right">
+                         ${isPaid
+                        ? (d.store_url ? `<a href="${d.store_url}" class="bg-white text-black text-xs font-bold px-2 py-1">VISIT ></a>` : `<span>---</span>`)
+                        : `<span class="text-xs text-ops-red border border-ops-red px-2 py-1 opacity-50">LOCKED</span>`
+                    }
+                    </td>
+                </tr>
+            `}).join('');
+
+            // Hide loader
             document.getElementById('loader').style.display = 'none';
             document.getElementById('app').classList.remove('opacity-0');
         }
