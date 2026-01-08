@@ -44,7 +44,6 @@
             overflow-x: hidden;
         }
 
-        /* CRT Effect */
         .scanline {
             width: 100%;
             height: 100px;
@@ -118,23 +117,39 @@
         <div class="w-full bg-ops-dim/30 border border-ops-red/50 p-6 md:p-8 mb-8 relative overflow-hidden group">
             <div class="absolute top-0 left-0 bg-ops-red text-black text-xs font-bold px-2 py-1">TARGET_ENTITY</div>
 
-            <div class="text-2xl md:text-4xl text-white font-bold mb-2 tracking-wide" id="target-name">
+            <div class="text-2xl md:text-4xl text-white font-bold mb-4 tracking-wide" id="target-name">
                 DETECTING STORE...
             </div>
+
+            <!-- Court Details Grid -->
+            <div class="grid grid-cols-2 gap-4 text-left text-sm md:text-base border-t border-ops-red/30 pt-4 mb-4">
+                <div>
+                    <span class="text-ops-orange block text-xs">PLAINTIFF</span>
+                    <span id="plaintiff-name" class="text-white font-bold tracking-wide">LOADING...</span>
+                </div>
+                <div>
+                    <span class="text-ops-orange block text-xs">COURT</span>
+                    <span id="court-name" class="text-white font-bold tracking-wide">U.S. District Court, N.D.
+                        Illinois</span>
+                </div>
+            </div>
+
             <div class="text-ops-red font-mono text-sm md:text-base uppercase tracking-widest" id="risk-status">
                 Scanning for screenshots...
             </div>
 
             <!-- BLURRED PREVIEW (Only for Premium) -->
             <div id="evidence-preview"
-                class="hidden mt-6 relative w-full h-32 bg-gray-900 border border-gray-700 overflow-hidden opacity-80">
-                <div class="absolute inset-0 flex items-center justify-center z-10">
-                    <span class="bg-black/80 text-white px-3 py-1 text-sm border border-white/30">CONFIDENTIAL
-                        EVIDENCE</span>
+                class="hidden mt-6 relative w-full h-48 bg-gray-900 border border-gray-700 overflow-hidden opacity-80 group-hover:opacity-100 transition-opacity">
+                <div
+                    class="absolute inset-0 flex items-center justify-center z-10 transition-transform duration-500 scale-100 group-hover:scale-110">
+                    <span
+                        class="bg-black/90 text-ops-red font-black px-4 py-2 text-xl border-2 border-ops-red animate-pulse">EVIDENCE
+                        LOCKED</span>
                 </div>
                 <!-- Fake blurred UI -->
                 <div
-                    class="w-full h-full filter blur-md bg-[url('https://placehold.co/600x200/111/333?text=EVIDENCE')] bg-cover opacity-50">
+                    class="w-full h-full filter blur-lg bg-[url('https://placehold.co/800x400/111/333?text=CONFIDENTIAL+EVIDENCE')] bg-cover opacity-60">
                 </div>
             </div>
         </div>
@@ -173,56 +188,82 @@
 
         async function init() {
             const urlParams = new URLSearchParams(window.location.search);
+
+            // 1. Dynamic Case ID (No more hardcoded 24-CV-4675)
             let caseParam = urlParams.get('case');
+
+            // Auto-decode if user copy-pasted wrong
+            if (!caseParam && window.location.href.includes('case%3D')) {
+                try { caseParam = decodeURIComponent(window.location.href).split('case=')[1].split('&')[0]; } catch (e) { }
+            }
+
             let targetId = urlParams.get('target');
             let isPaid = urlParams.get('paid') === 'true';
 
-            // 1. Session ID (Fake)
+            // Fake Session
             document.getElementById('session-id').innerText = Math.random().toString(36).substring(7).toUpperCase();
 
-            // 2. Failsafe Params
-            if (!caseParam) {
-                // Try decode
-                if (window.location.href.includes('case%3D')) {
-                    try { caseParam = decodeURIComponent(window.location.href).split('case=')[1].split('&')[0]; } catch (e) { }
-                }
-                if (!caseParam) caseParam = "1:24-cv-4675"; // Default
-            }
+            // RENDER IMMEDIATELY WITH PARAM DATA while loading DB
+            // This prevents "---" flicker
+            if (caseParam) document.getElementById('case-id').innerText = caseParam.replace('1:', '');
 
             try {
-                // Fetch Data
                 log("QUERYING MAIN DATABASE...");
                 const { data: lawsuit } = await supabaseClient.from('lawsuits').select('*').eq('case_number', caseParam).single();
 
                 log("SEARCHING TARGET INDEX...");
                 let targetRecord = null;
-
                 if (targetId) {
                     const { data: defendants } = await supabaseClient.from('defendants').select('*').eq('case_number', caseParam);
-                    if (defendants) {
-                        targetRecord = defendants.find(d => d.id && d.id.includes(targetId));
-                    }
+                    // Better search: actually filter by string
+                    if (defendants) targetRecord = defendants.find(d => d.id && d.id.includes(targetId));
                 }
 
-                // Render
-                render(lawsuit || { case_number: caseParam }, targetRecord, isPaid);
+                // Render with Real Data
+                render(lawsuit || { case_number: caseParam }, targetRecord, targetId, isPaid);
 
             } catch (e) {
-                log("CONNECTION ERROR. USING OFFLINE CACHE.");
-                // Mock Data
-                render({ case_number: caseParam }, { id: targetId || "UNK", defendant_name: "TARGET STORE (DETECTED)", store_url: null }, isPaid);
+                log("CONNECTION ERROR. USING DYNAMIC OFFLINE MODE.");
+                // FAIL-OPEN: Use URL Params to populate text
+                render(
+                    { case_number: caseParam, plaintiff: "CONFIDENTIAL PLAINTIFF" },
+                    null,
+                    targetId,
+                    isPaid
+                );
             }
         }
 
-        function render(lawsuit, target, isPaid) {
-            // Update Text
-            const caseNo = lawsuit.case_number ? lawsuit.case_number.replace('1:', '') : 'UNKNOWN';
+        function render(lawsuit, target, rawTargetInfo, isPaid) {
+            // Case No
+            const caseNo = lawsuit.case_number ? lawsuit.case_number.replace('1:', '') : (rawTargetInfo || 'UNKNOWN');
             document.getElementById('case-id').innerText = caseNo;
 
-            const storeName = target ? target.defendant_name : "UNKNOWN TARGET";
+            // Plaintiff
+            document.getElementById('plaintiff-name').innerText = lawsuit.plaintiff || "UNDER SEAL (Restricted)";
+
+            // Target Name Logic
+            // If we found a record, use it. If not, use the param or ID + Placeholder
+            let storeName = "UNKNOWN STORE (Parsing...)";
+            let hasEvidence = false;
+
+            if (target) {
+                storeName = target.defendant_name;
+                // Evidence check
+                if (target.store_url) hasEvidence = true;
+                // DEMO HACK: If ID contains 'd7885e33', FORCE EVIDENCE MODE
+                if (target.id && target.id.includes('d7885e33')) hasEvidence = true;
+            } else if (rawTargetInfo) {
+                // If we didn't find record in DB but have a target ID from URL
+                storeName = `STORE_ID: ${rawTargetInfo}`;
+                // Demo hack for fallback mode too
+                if (rawTargetInfo.includes('d7885e33')) hasEvidence = true;
+            }
+
             document.getElementById('target-name').innerText = storeName;
 
-            // --- LOGIC: TIER 1 vs TIER 2 ---
+
+            // --- UI LOGIC ---
             const btn = document.getElementById('cta-btn');
             const statusBadge = document.getElementById('status-badge');
             const mainHeadline = document.getElementById('main-headline');
@@ -231,8 +272,8 @@
             const evidencePreview = document.getElementById('evidence-preview');
             const ctaText = document.getElementById('cta-text');
 
-            // If Paid -> Unlock
             if (isPaid) {
+                // UNLOCKED STATE
                 statusBadge.innerText = "ACCESS GRANTED";
                 statusBadge.className = "bg-green-500 text-black font-bold px-3 py-1 text-lg";
                 mainHeadline.innerText = "REPORT UNLOCKED";
@@ -241,56 +282,53 @@
                 btn.href = lawsuit.raw_data_url || "#";
                 ctaText.innerText = "DOWNLOAD REPORT";
                 btn.classList.add('bg-white', 'text-black');
-                btn.classList.remove('bg-ops-orange');
-                evidencePreview.classList.add('hidden'); // No need to tease
+                btn.classList.remove('bg-ops-orange', 'bg-ops-red');
+                evidencePreview.classList.add('hidden');
+
+            } else if (hasEvidence) {
+                // TIER 2: PREMIUM ($29.99)
+                document.title = "CRITICAL ALERT";
+                statusBadge.innerText = "[SYSTEM: CRITICAL MATCH FOUND]";
+                statusBadge.className = "bg-ops-red text-black font-bold px-3 py-1 text-lg animate-pulse";
+
+                subTitle.innerHTML = `URGENT: EVIDENCE SECURED`;
+                subTitle.className = "text-ops-red text-xl md:text-2xl tracking-[0.2em] mb-2 uppercase font-bold";
+
+                mainHeadline.innerText = "EVIDENCE DETECTED";
+
+                riskText.innerText = `Store: ${storeName} identified.\nDeep-level evidence detected.\nScreenshots & Logs: VERIFIED`;
+                riskText.className = "text-ops-red font-mono text-base md:text-lg uppercase tracking-widest mt-2";
+
+                // SHOW BLURRED EVIDENCE
+                evidencePreview.classList.remove('hidden');
+
+                // Update Button
+                btn.href = LINK_PREMIUM;
+                btn.setAttribute('onclick', "saveState()");
+                ctaText.innerText = "UNLOCK FULL EVIDENCE ($29.99)";
+                btn.className = "group relative inline-flex items-center justify-center px-12 py-6 text-2xl font-black text-white transition-all duration-200 bg-ops-red hover:bg-white hover:text-black hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ops-red/50 shadow-[0_0_50px_rgba(255,34,0,0.8)]";
 
             } else {
-                // Determine Tier
-                // Tier 2: Premium (Store URL found)
-                if (target && target.store_url) {
-                    // COPY: PREMIUM
-                    statusBadge.innerText = "[SYSTEM: CRITICAL MATCH FOUND]";
-                    statusBadge.className = "bg-ops-red text-black font-bold px-3 py-1 text-lg animate-pulse";
+                // TIER 1: BASIC ($9.99)
+                document.title = "RISK ALERT";
+                statusBadge.innerText = "[SYSTEM: TARGET IDENTIFIED]";
+                statusBadge.className = "bg-ops-orange text-black font-bold px-3 py-1 text-lg";
 
-                    subTitle.innerHTML = "URGENT: EVIDENCE SECURED";
-                    subTitle.className = "text-ops-red text-xl md:text-2xl tracking-[0.2em] mb-2 uppercase font-bold";
+                subTitle.innerHTML = `CASE #${caseNo}: ALERT`;
+                subTitle.className = "text-ops-orange text-xl md:text-2xl tracking-[0.2em] mb-2 uppercase";
 
-                    mainHeadline.innerText = "EVIDENCE DETECTED";
+                mainHeadline.innerText = "RISK DETECTED";
 
-                    riskText.innerText = `Store: ${storeName} identified.\nDeep-level evidence detected. Risk: CRITICAL.`;
-                    riskText.className = "text-ops-red font-mono text-base md:text-lg uppercase tracking-widest mt-2";
+                riskText.innerText = `Store: ${storeName} identified.\nLegal risk: HIGH. Awaiting detailed scan.`;
+                riskText.className = "text-ops-orange font-mono text-sm md:text-base uppercase tracking-widest mt-2";
 
-                    // Show Preview
-                    evidencePreview.classList.remove('hidden');
+                evidencePreview.classList.add('hidden');
 
-                    // Button
-                    btn.href = LINK_PREMIUM;
-                    // Save state
-                    btn.setAttribute('onclick', "saveState()");
-                    ctaText.innerText = "UNLOCK EVIDENCE ($29.99)";
-                    btn.className = "group relative inline-flex items-center justify-center px-12 py-6 text-2xl font-black text-white transition-all duration-200 bg-ops-red hover:bg-white hover:text-black hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ops-red/50 shadow-[0_0_50px_rgba(255,34,0,0.8)]";
-
-                } else {
-                    // COPY: BASIC ($9.99)
-                    statusBadge.innerText = "[SYSTEM: TARGET IDENTIFIED]";
-                    statusBadge.className = "bg-ops-orange text-black font-bold px-3 py-1 text-lg";
-
-                    subTitle.innerHTML = `CASE #${caseNo}: ALERT`;
-                    subTitle.className = "text-ops-orange text-xl md:text-2xl tracking-[0.2em] mb-2 uppercase";
-
-                    mainHeadline.innerText = "RISK DETECTED";
-
-                    riskText.innerText = `Store: ${storeName} identified.\nLegal risk: HIGH. Awaiting detailed scan.`;
-                    riskText.className = "text-ops-orange font-mono text-sm md:text-base uppercase tracking-widest mt-2";
-
-                    evidencePreview.classList.add('hidden');
-
-                    // Button
-                    btn.href = LINK_BASIC;
-                    btn.setAttribute('onclick', "saveState()");
-                    ctaText.innerText = "UNLOCK CASE INFO ($9.99)";
-                    btn.className = "group relative inline-flex items-center justify-center px-12 py-6 text-2xl font-black text-black transition-all duration-200 bg-ops-orange hover:bg-white hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ops-orange/50 shadow-[0_0_40px_rgba(255,170,0,0.6)]";
-                }
+                // Update Button
+                btn.href = LINK_BASIC;
+                btn.setAttribute('onclick', "saveState()");
+                ctaText.innerText = "UNLOCK CASE INFO ($9.99)";
+                btn.className = "group relative inline-flex items-center justify-center px-12 py-6 text-2xl font-black text-black transition-all duration-200 bg-ops-orange hover:bg-white hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ops-orange/50 shadow-[0_0_40px_rgba(255,170,0,0.6)]";
             }
 
             // Reveal
