@@ -4,16 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROCESSING PAYMENT...</title>
+    <title>PROCESSING...</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Black+Ops+One&display=swap"
+        rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { mono: ['"Share Tech Mono"', 'monospace'] },
-                    colors: { ops: { red: '#ff3333', black: '#050505' } },
-                    animation: { 'blink': 'blink 0.5s steps(2) infinite' },
+                    fontFamily: { mono: ['"Share Tech Mono"', 'monospace'], impact: ['"Black Ops One"', 'cursive'] },
+                    colors: { ops: { red: '#ff2200', orange: '#ffaa00' } },
+                    animation: { 'blink': 'blink 0.2s steps(2) infinite' },
                     keyframes: { blink: { '0%': { opacity: '1' }, '100%': { opacity: '0' } } }
                 }
             }
@@ -22,58 +23,70 @@
     <style>
         body {
             background-color: #000;
-            color: #ff3333;
+            color: #ff2200;
             font-family: 'Share Tech Mono', monospace;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 34, 0, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 5s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% {
+                bottom: 100%;
+            }
+
+            100% {
+                bottom: -100%;
+            }
         }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body class="h-screen w-screen flex flex-col items-center justify-center p-4 overflow-hidden relative">
 
-    <div class="max-w-md w-full text-center space-y-8">
-        <!-- Icon -->
+    <div class="scanline"></div>
+
+    <h1 class="font-impact text-5xl md:text-7xl text-white tracking-widest mb-8 animate-pulse">
+        PAYMENT VERIFIED
+    </h1>
+
+    <div class="w-full max-w-2xl bg-black border-2 border-ops-red p-6 shadow-[0_0_30px_rgba(255,34,0,0.3)]">
         <div
-            class="mx-auto w-24 h-24 border-4 border-ops-red rounded-full flex items-center justify-center animate-pulse">
-            <svg class="w-12 h-12 text-ops-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            class="flex justify-between border-b border-ops-red/50 pb-2 mb-4 text-xs text-ops-orange uppercase tracking-widest">
+            <span>SECURE CHANNEL: #ENC-9982</span>
+            <span>STATUS: DECRYPTING</span>
         </div>
-
-        <h1 class="text-3xl font-bold tracking-tighter">PAYMENT VERIFIED</h1>
-
-        <div class="text-left bg-[#110000] border border-[#330000] p-4 font-mono text-sm h-48 overflow-hidden relative">
-            <div id="log" class="space-y-1 text-gray-400"></div>
-            <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[#110000] to-transparent"></div>
-        </div>
-
-        <p class="text-xs text-gray-600">PLEASE WAIT WHILE WE GENERATE YOUR INTELLIGENCE REPORT...</p>
+        <div id="log" class="space-y-2 text-sm md:text-lg font-bold text-gray-300 h-64 overflow-y-auto font-mono"></div>
     </div>
 
     <script>
-        // --- STATE RECOVERY LOGIC ---
-        // 1. Try URL params (if Payhip supports pass-through)
+        // --- RECOVERY LOGIC ---
         const urlParams = new URLSearchParams(window.location.search);
         let caseId = urlParams.get('case');
         let targetId = urlParams.get('target');
 
-        // 2. Try LocalStorage (Recovery)
         if (!caseId) {
-            caseId = localStorage.getItem('grich_pending_case');
+            caseId = localStorage.getItem('grich_pending_case') || "UNKNOWN";
             targetId = localStorage.getItem('grich_pending_target');
         }
 
-        // Fallback
-        if (!caseId) caseId = "UNKNOWN_CASE";
-
         const logs = [
-            "Initializing Secure Handshake...",
-            "Transaction ID: PAYHIP_VERIFIED.",
-            `Accessing GRICH Private Database (Case ${caseId})...`,
-            "Decrypting Defendant List...",
-            "Connecting to Microsoft Sharepoint Evidence Locker...",
-            "Generating PDF Report...",
-            "Finalizing Output...",
+            `INITIATING HANDSHAKE FOR CASE ${caseId}...`,
+            "AUTHORIZING TRANSACTION ID...",
+            "ACCESSING EVIDENCE VAULT [LAYER 1]...",
+            "DECRYPTING DEFENDANT LIST...",
+            "RETRIEVING HIGH-RES SCREENSHOTS...",
+            "COMPILING PDF REPORT...",
+            "FINALIZING SECURE DOWNLOAD LINK...",
             "ACCESS GRANTED."
         ];
 
@@ -82,24 +95,24 @@
 
         function addLog() {
             if (i >= logs.length) {
-                // Redirect logic
                 setTimeout(() => {
                     let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
                     if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
-
                     window.location.href = dest;
-                }, 1000);
+                }, 800);
                 return;
             }
 
             const p = document.createElement('div');
             p.innerText = `> ${logs[i]}`;
-            if (i === logs.length - 1) p.className = "text-ops-red font-bold animate-blink";
+            if (i === logs.length - 1) {
+                p.className = "text-ops-red text-xl font-black animate-blink";
+            }
             logDiv.appendChild(p);
             logDiv.scrollTop = logDiv.scrollHeight;
 
             i++;
-            setTimeout(addLog, 400);
+            setTimeout(addLog, 500);
         }
 
         setTimeout(addLog, 500);
