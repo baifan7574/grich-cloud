@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROCESSING PAYMENT...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['"Share Tech Mono"', 'monospace'] },
+                    colors: { ops: { red: '#ff3333', black: '#050505' } },
+                    animation: { 'blink': 'blink 0.5s steps(2) infinite' },
+                    keyframes: { blink: { '0%': { opacity: '1' }, '100%': { opacity: '0' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: #ff3333;
+            font-family: 'Share Tech Mono', monospace;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-md w-full text-center space-y-8">
+        <!-- Icon -->
+        <div
+            class="mx-auto w-24 h-24 border-4 border-ops-red rounded-full flex items-center justify-center animate-pulse">
+            <svg class="w-12 h-12 text-ops-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+
+        <h1 class="text-3xl font-bold tracking-tighter">PAYMENT VERIFIED</h1>
+
+        <div class="text-left bg-[#110000] border border-[#330000] p-4 font-mono text-sm h-48 overflow-hidden relative">
+            <div id="log" class="space-y-1 text-gray-400"></div>
+            <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[#110000] to-transparent"></div>
+        </div>
+
+        <p class="text-xs text-gray-600">PLEASE WAIT WHILE WE GENERATE YOUR INTELLIGENCE REPORT...</p>
+    </div>
+
+    <script>
+        const logs = [
+            "Initializing Secure Handshake...",
+            "Transaction ID: TXN_99882211 verified.",
+            "Accessing GRICH Private Database...",
+            "Retrieving Case 24-cv-4675 Metadata...",
+            "Decrypting Defendant List (82 targets)...",
+            "Connecting to Microsoft Sharepoint Evidence Locker...",
+            "Generating PDF Report...",
+            "Finalizing Output...",
+            "ACCESS GRANTED."
+        ];
+
+        const logDiv = document.getElementById('log');
+        let i = 0;
+
+        function addLog() {
+            if (i >= logs.length) {
+                // Redirect
+                setTimeout(() => {
+                    // Redirect to the Unlocked Report for Case 24-cv-4675
+                    window.location.href = "case_template.html?case=1:24-cv-4675&paid=true";
+                }, 1000);
+                return;
+            }
+
+            const p = document.createElement('div');
+            p.innerText = `> ${logs[i]}`;
+            if (i === logs.length - 1) p.className = "text-ops-red font-bold animate-blink";
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            i++;
+            setTimeout(addLog, 400); // Speed of logs
+        }
+
+        setTimeout(addLog, 500);
+    </script>
+</body>
+
+</html>
