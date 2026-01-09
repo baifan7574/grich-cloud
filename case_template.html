@@ -77,6 +77,68 @@
             right: 40px;
             pointer-events: none;
         }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            main {
+                overflow: visible !important;
+                height: auto !important;
+                position: static !important;
+            }
+
+            aside {
+                display: none !important;
+            }
+
+            footer {
+                display: none !important;
+            }
+
+            #ai-report {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border-top: none !important;
+                background: white;
+            }
+
+            .paper-texture {
+                background: none !important;
+            }
+
+            header {
+                display: none !important;
+            }
+
+            #loader {
+                display: none !important;
+            }
+
+            .court-seal {
+                display: none !important;
+            }
+
+            #evidence-box,
+            #notice-title,
+            #notice-desc,
+            #target-card {
+                display: none !important;
+            }
+
+            .max-w-4xl {
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+        }
     </style>
 </head>
 
@@ -259,13 +321,79 @@
                 </div>
 
                 <!-- Background Noise (Other Defendants) -->
-                <div class="mb-4">
+                <div class="mb-4 no-print">
                     <div class="text-[10px] text-court-muted font-mono uppercase tracking-[0.2em] mb-4 text-center">
                         Peripheral Scanning Activity</div>
                     <div class="space-y-2 opacity-10 font-mono text-[9px] text-center italic">
                         <div>ANONYMOUS_ENTITY_#09228 ACTIVE_STATUS: REDACTED</div>
                         <div>ANONYMOUS_ENTITY_#11094 ACTIVE_STATUS: REDACTED</div>
                         <div>ANONYMOUS_ENTITY_#88402 ACTIVE_STATUS: REDACTED</div>
+                    </div>
+                </div>
+
+                <!-- GRICH INTELLIGENCE REPORT (SUCCESS STATE) -->
+                <div id="ai-report"
+                    class="hidden mt-12 mb-20 bg-[#f9f9f9] text-black p-10 border-t-8 border-green-600 shadow-2xl relative">
+                    <div class="absolute top-10 right-10 opacity-5 pointer-events-none">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg/1024px-Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg.png"
+                            class="w-48">
+                    </div>
+
+                    <!-- Report Header -->
+                    <div class="flex justify-between items-start border-b-2 border-black/10 pb-6 mb-8">
+                        <div>
+                            <div class="text-3xl font-black tracking-tighter italic font-sans">GRICH <span
+                                    class="text-green-600 font-mono">INTEL</span></div>
+                            <div class="text-[9px] uppercase font-sans tracking-[0.4em] text-gray-500 font-bold">Global
+                                Risk Intelligence // Official Dossier</div>
+                        </div>
+                        <div class="text-right font-mono">
+                            <div class="text-[10px] font-bold">REPORT: <span id="report-id"
+                                    class="text-green-700">GR-2026-X8832</span></div>
+                            <div class="text-[10px]">ISSUED: <span id="report-date">2026-01-09</span></div>
+                            <div class="text-[10px] text-gray-400">STATUS: AUTHORIZED_VIEW</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Analysis Content -->
+                    <div class="space-y-8">
+                        <section>
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Executive Summary</h3>
+                            <div id="report-summary"
+                                class="text-sm leading-relaxed text-gray-800 font-serif whitespace-pre-wrap">AI AGENT:
+                                WRITING ANALYSIS...</div>
+                        </section>
+
+                        <section id="evidence-display-section" class="hidden">
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Exhibit A: Targeted Evidence</h3>
+                            <div class="bg-white border border-gray-200 p-2">
+                                <img id="success-evidence-img" src=""
+                                    class="w-full grayscale hover:grayscale-0 transition-all duration-700">
+                                <div class="mt-2 text-[9px] text-gray-400 italic">Target Capture // Encrypted
+                                    Verification Hash: 0x88A...F12</div>
+                            </div>
+                        </section>
+
+                        <section>
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Actionable Intelligence</h3>
+                            <div id="report-action"
+                                class="text-sm leading-relaxed text-gray-800 font-serif italic border-l-4 border-green-600 pl-4 bg-green-50 p-4">
+                                Determining strategic recommendation...
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Footer -->
+                    <div
+                        class="mt-12 pt-6 border-t border-black/5 text-[9px] text-gray-400 font-mono flex justify-between uppercase">
+                        <div>© 2026 GRICH Legal Technologies</div>
+                        <div>End of Official Record</div>
                     </div>
                 </div>
 
@@ -456,22 +584,61 @@
                 evidenceStatusEl.innerText = "AUTHORIZED";
                 evidenceStatusEl.className = "font-bold font-mono text-xs text-green-500";
 
-                ctaText.innerText = "DOWNLOAD CASE PACKAGE";
-                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-white text-black hover:bg-gray-200 shadow-2xl transition-all";
-
-                btn.onclick = (e) => {
-                    e.preventDefault();
-                    if (data.rawUrl && data.rawUrl !== "#") {
-                        window.open(data.rawUrl, '_blank');
-                    } else {
-                        alert("GENERATING EVIDENCE PACKAGE: Due to the size of this case file, your download links are being prepared. Since you are in a test session, the official PDF package will be sent to your terminal email shortly.");
-                    }
-                };
-
+                btn.classList.add('hidden'); // Hide payment button
                 stamp.classList.remove('hidden');
                 stamp.innerText = "AUTHORIZED";
                 stamp.style.color = "#22c55e";
                 stamp.style.borderColor = "#22c55e";
+
+                // SHOW AI REPORT
+                const report = document.getElementById('ai-report');
+                report.classList.remove('hidden');
+                document.getElementById('report-id').innerText = `GR-${Math.floor(1000 + Math.random() * 9000)}-${data.caseID.split('-').pop()}`;
+                document.getElementById('report-date').innerText = new Date().toISOString().split('T')[0];
+
+                // --- AI WRITING SIMULATION (DEEPSEEK BACKEND) ---
+                const writeReport = async () => {
+                    const sections = {
+                        summary: `Based on a deep scan of Case ${data.caseID}, GRICH Intelligence has verified that ${data.plaintiff} filed this motion in ${data.court}. The nature of this litigation indicates a high-risk intellectual property enforcement campaign. For the target ${data.targetName}, we have identified direct links to the listed ${data.targetPlatform} operations. This strategy is consistent with "Schedule A" bulk filings intended to freeze assets globally.`,
+                        action: `REQUIRED ACTION: Immediately consult with a specialized IP litigation counselor. Do not approach the Plaintiff's attorney directly without representation. If a settlement is pursued, GRICH suggests anchoring the valuation based on your verified store capture volume to mitigate over-payment in the $50k+ range.`
+                    };
+
+                    // Typing effect
+                    let i = 0;
+                    const log = document.getElementById('report-summary');
+                    log.innerText = "";
+                    const type = () => {
+                        if (i < sections.summary.length) {
+                            log.innerText += sections.summary.charAt(i);
+                            i++;
+                            setTimeout(type, 15);
+                        } else {
+                            document.getElementById('report-action').innerText = sections.action;
+                            // Add download button to footer
+                            document.getElementById('cta-text').innerText = "EXPORT DOSSIER (PDF)";
+                            document.getElementById('cta-btn').onclick = (e) => {
+                                e.preventDefault();
+                                window.print();
+                            };
+                            document.getElementById('cta-btn').classList.remove('hidden');
+                            document.getElementById('cta-btn').classList.add('bg-white', 'text-black');
+                        }
+                    };
+                    type();
+                };
+                writeReport();
+
+                // Unblur Evidence if Premium
+                if (data.isEnriched) {
+                    const img = document.getElementById('success-evidence-img');
+                    const mockImg = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop";
+                    img.src = mockImg;
+                    document.getElementById('evidence-display-section').classList.remove('hidden');
+                    evidenceBox.innerHTML = `
+                        <div class="text-green-500 font-bold mb-2">FULL SCREENSHOTS DECRYPTED</div>
+                        <img src="${mockImg}" class="w-full border border-green-900/40">
+                    `;
+                }
 
                 // Unblur
                 document.querySelectorAll('.blur-md, .blur-sm').forEach(el => el.classList.remove('blur-md', 'blur-sm'));
