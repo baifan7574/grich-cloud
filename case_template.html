@@ -316,18 +316,25 @@
 
         async function init() {
             const urlParams = new URLSearchParams(window.location.search);
-            let caseParam = urlParams.get('case');
-            let targetId = urlParams.get('target');
-            let isPaid = urlParams.get('paid') === 'true';
 
-            // Decode encoded URL if needed
-            if (!caseParam && window.location.href.includes('case%3D')) {
-                try {
-                    const decoded = decodeURIComponent(window.location.href);
-                    caseParam = (decoded.match(/case=([^&]+)/) || [])[1];
-                    targetId = (decoded.match(/target=([^&]+)/) || [])[1];
-                } catch (e) { }
+            // --- ROBUST URL PARSING ---
+            // Handles cases where parameters might be double-encoded or bundled
+            // e.g., ?case=%3D1%3A24-cv-4675%26target%3Dd7885e33
+            let rawCase = urlParams.get('case');
+            let rawTarget = urlParams.get('target');
+
+            // If case starts with '=', it's likely a bundled or double-encoded string
+            if (rawCase && rawCase.startsWith('=')) {
+                logLine("NOTICE: UNWRAPPING ENCODED PARAMETERS...");
+                const fullString = decodeURIComponent(window.location.search.substring(1));
+                rawCase = (fullString.match(/case=([^&]+)/) || [])[1];
+                rawTarget = (fullString.match(/target=([^&]+)/) || [])[1];
             }
+
+            // Clean prefixes (remove '1:' which is internal DB format sometimes)
+            const caseParam = rawCase ? rawCase.replace('=', '').trim() : null;
+            const targetId = rawTarget ? rawTarget.replace('=', '').trim() : null;
+            const isPaid = urlParams.get('paid') === 'true';
 
             // Session ID
             const session = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -335,65 +342,64 @@
 
             if (!caseParam) {
                 logLine("FATAL: MISSING CASE PARAMETER.");
-                setTimeout(() => { document.getElementById('loader').innerText = "ERROR: ACCESS DENIED - NO CASE ID"; }, 1000);
+                document.getElementById('loader').innerHTML = '<div class="text-court-alert font-mono">ERROR: ACCESS DENIED<br>INVALID CASE IDENTIFIER</div>';
                 return;
             }
 
             try {
-                logLine(`ESTABLISHING SECURE HANDSHAKE: GRICH-V4...`);
+                logLine(`ESTABLISHING SESSION: GRICH-V4.1...`);
                 logLine(`TARGETING CASE [${caseParam}]...`);
 
-                // 1. Fetch Lawsuit Details (Real Mapping)
+                // 1. Fetch Lawsuit Details
                 const { data: lawsuit, error: lError } = await supabaseClient
                     .from('lawsuits')
                     .select('*')
                     .eq('case_number', caseParam)
                     .single();
 
-                if (lError) logLine(`LITIGATION INDEX ERROR: ${lError.message}`);
-                
-                // 2. Fetch Defendant Details (Enrichment Logic)
+                if (lError) {
+                    logLine(`DB_SCAN_ERROR: ${lError.message}`);
+                }
+
+                // 2. Fetch Defendant Details
                 let targetRecord = null;
                 if (targetId) {
-                    logLine(`LOCATING ENTITY [${targetId}]...`);
-                    // We query the defendants table for this specific target in this case
+                    logLine(`SCANNING ENTITY [${targetId}]...`);
+                    // We query by case and partial/full ID
                     const { data: defendants, error: dError } = await supabaseClient
                         .from('defendants')
                         .select('*')
-                        .eq('case_number', lawsuit?.case_number || caseParam);
-                    
+                        .eq('case_number', caseParam);
+
                     if (defendants) {
-                        // Precise match by ID
                         targetRecord = defendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
                     }
                 }
 
-                // 3. Mapping and Rendering (1-to-1 Mapping as requested)
+                if (!lawsuit && !targetRecord) {
+                    logLine("CRITICAL: TARGET NOT FOUND IN DATABASE.");
+                }
+
+                // 3. Mapping and Rendering (Strictly Dynamic)
                 const uiData = {
-                    caseID: lawsuit?.case_number || caseParam, // Case ID -> case_number
-                    plaintiff: lawsuit?.plaintiff || "UNDER SEAL", // Plaintiff -> plaintiff
-                    court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)", // Court -> court
-                    judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]", 
-                    attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.", // Attorney -> law_firm
+                    caseID: lawsuit?.case_number || caseParam,
+                    plaintiff: lawsuit?.plaintiff || "UNDER SEAL",
+                    court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)",
+                    judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
+                    attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.",
                     date: lawsuit?.filed_date || "---",
-                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId}` : "UNKNOWN"), // Target Info -> defendant_name
+                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId}` : "NOT FOUND"),
                     targetPlatform: targetRecord?.platform || "---",
-                    isEnriched: !!(targetRecord?.store_url), // 29.99 logic if store_url exists
+                    isEnriched: !!(targetRecord?.store_url), // 29.99 logic
                     targetLabel: targetRecord?.id ? targetRecord.id.substring(0, 8).toUpperCase() : (targetId ? targetId.substring(0, 8).toUpperCase() : '---'),
                     rawUrl: lawsuit?.raw_data_url || "#"
                 };
 
-                if (!lawsuit && !targetRecord) {
-                    logLine("WARNING: RECORD NOT FOUND IN ACTIVE INDEX.");
-                } else {
-                    logLine("IDENTITY VERIFIED. RENDERING DOSSIER.");
-                }
-                
+                logLine(`DATA RESOLVED: ENRICHED=${uiData.isEnriched}`);
                 renderUI(uiData, isPaid);
 
             } catch (err) {
                 logLine(`COMMUNICATION BREACH: ${err.message}`);
-                // Strict policy: If fatal tech error, show searching indefinitely or error
                 document.getElementById('loader').innerText = "SYSTEM ERROR: DATABASE CONNECTION FAILED";
             }
         }
