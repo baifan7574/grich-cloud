@@ -456,16 +456,26 @@
                 evidenceStatusEl.innerText = "AUTHORIZED";
                 evidenceStatusEl.className = "font-bold font-mono text-xs text-green-500";
 
-                btn.href = data.rawUrl;
-                btn.removeAttribute('onclick');
                 ctaText.innerText = "DOWNLOAD CASE PACKAGE";
                 btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-white text-black hover:bg-gray-200 shadow-2xl transition-all";
+
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    if (data.rawUrl && data.rawUrl !== "#") {
+                        window.open(data.rawUrl, '_blank');
+                    } else {
+                        alert("GENERATING EVIDENCE PACKAGE: Due to the size of this case file, your download links are being prepared. Since you are in a test session, the official PDF package will be sent to your terminal email shortly.");
+                    }
+                };
 
                 stamp.classList.remove('hidden');
                 stamp.innerText = "AUTHORIZED";
                 stamp.style.color = "#22c55e";
                 stamp.style.borderColor = "#22c55e";
 
+                // Unblur
+                document.querySelectorAll('.blur-md, .blur-sm').forEach(el => el.classList.remove('blur-md', 'blur-sm'));
+                document.querySelectorAll('.opacity-20').forEach(el => el.classList.remove('opacity-20'));
             } else if (data.isEnriched) {
                 // TIER 2: PREMIUM ($29.99) - Alert Yellow
                 noticeTitle.innerText = "NOTICE OF SECURED EVIDENCE: SCREENSHOTS ATTACHED";
