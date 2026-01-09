@@ -315,40 +315,48 @@
         }
 
         async function init() {
+            // --- THE "BULLETPROOF" GRICH PARSER V3 ---
             const searchStr = window.location.search || "";
             logLine(`INIT SESSION: RAW_QUERY=[${searchStr}]`);
 
-            // --- ULTRA-ROBUST URL PARSER (GRICH-PARSER-V2) ---
-            function getParam(key) {
-                const urlParams = new URLSearchParams(searchStr);
-                let val = urlParams.get(key);
+            let paramsMap = {};
 
-                // Fallback 1: Key itself might contain the '=' (e.g. ?case=1:24...)
-                if (!val) {
-                    for (const [k, v] of urlParams.entries()) {
-                        if (k.toLowerCase().includes(`${key}=`)) {
-                            val = k.split('=')[1] || v;
-                            break;
-                        }
+            function deFuse(str) {
+                if (!str) return;
+                // Remove leading ? or &
+                const clean = str.replace(/^[?&]/, '');
+
+                // Try to parse normally first
+                const urlParams = new URLSearchParams(str);
+                let standardCount = 0;
+                urlParams.forEach((v, k) => {
+                    if (k && v) {
+                        paramsMap[k.toLowerCase()] = v;
+                        standardCount++;
+                    } else if (k.includes('=') || k.includes('&')) {
+                        // This is a "fused" key like "case=1:24&target=..."
+                        deFuse('?' + k);
                     }
-                }
+                });
 
-                // Fallback 2: Regex on raw string (most aggressive)
-                if (!val) {
-                    const decoded = decodeURIComponent(searchStr);
-                    const regex = new RegExp(`[?&]${key}=([^&]+)`, 'i');
-                    const match = decoded.match(regex);
-                    if (match) val = match[1];
+                // Fail-safe: Regex matching for those pesky encoded equal signs
+                const decoded = decodeURIComponent(str);
+                const matches = decoded.matchAll(/[?&]([^=&]+)=([^&]*)/g);
+                for (const m of matches) {
+                    paramsMap[m[1].toLowerCase()] = m[2];
                 }
-
-                return val ? val.replace(/=/g, '').trim() : null;
             }
 
-            const caseParam = getParam('case');
-            const targetId = getParam('target');
-            const isPaid = getParam('paid') === 'true' || getParam('success') === 'true';
+            deFuse(searchStr);
 
-            logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}]`);
+            // Clean specific values
+            const getVal = (key) => (paramsMap[key] || "").replace(/=/g, '').split('&')[0].trim();
+
+            const caseParam = getVal('case');
+            const targetId = getVal('target');
+            const isPaid = getVal('paid') === 'true' || getVal('success') === 'true';
+
+            logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}] PAID=[${isPaid}]`);
 
             // Session ID
             const session = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -363,8 +371,7 @@
                         <div class="bg-black/80 border border-green-900/20 p-4 text-[10px] text-green-500 text-left">
                             [DEBUG_INFO]<br>
                             QUERY_STRING: ${searchStr}<br>
-                            PARSED_CASE: NULL<br>
-                            ACTION: CHECK URL FORMAT
+                            INTERPRETED_PARAMS: ${JSON.stringify(paramsMap)}
                         </div>
                     </div>
                 `;
@@ -374,8 +381,7 @@
             try {
                 logLine(`ESTABLISHING SECURE HANDSHAKE...`);
 
-                // 1. Fetch Lawsuit Details (Normalize case number)
-                // We try both the raw form and the "1:" prefixed form if needed
+                // 1. Fetch Lawsuit Details
                 const searchCases = [caseParam, `1:${caseParam}`];
                 let lawsuit = null;
 
@@ -397,7 +403,6 @@
                 let targetRecord = null;
                 if (targetId) {
                     logLine(`TARGETING ENTITY [${targetId}]...`);
-                    // Get all defendants for this case to find our target
                     const { data: defendants } = await supabaseClient
                         .from('defendants')
                         .select('*')
