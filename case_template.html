@@ -315,26 +315,37 @@
         }
 
         async function init() {
-            const urlParams = new URLSearchParams(window.location.search);
+            const searchStr = window.location.search || "";
+            logLine(`INIT SESSION: RAW_QUERY=[${searchStr}]`);
 
-            // --- ROBUST URL PARSING ---
-            // Handles cases where parameters might be double-encoded or bundled
-            // e.g., ?case=%3D1%3A24-cv-4675%26target%3Dd7885e33
-            let rawCase = urlParams.get('case');
-            let rawTarget = urlParams.get('target');
+            // --- ULTRA-ROBUST URL PARSING ---
+            const urlParams = new URLSearchParams(searchStr);
+            let caseInput = urlParams.get('case') || "";
+            let targetInput = urlParams.get('target') || "";
 
-            // If case starts with '=', it's likely a bundled or double-encoded string
-            if (rawCase && rawCase.startsWith('=')) {
-                logLine("NOTICE: UNWRAPPING ENCODED PARAMETERS...");
-                const fullString = decodeURIComponent(window.location.search.substring(1));
-                rawCase = (fullString.match(/case=([^&]+)/) || [])[1];
-                rawTarget = (fullString.match(/target=([^&]+)/) || [])[1];
+            // Handle mangled/bundled strings: e.g. ?case=%3D1:24...&target=...
+            // or ?case==1:24... (where decoder might leave extra '=')
+            function cleanParam(val) {
+                if (!val) return "";
+                // Remove all '=' signs and any stray URL encoding artifacts
+                return val.replace(/=/g, '').trim();
             }
 
-            // Clean prefixes (remove '1:' which is internal DB format sometimes)
-            const caseParam = rawCase ? rawCase.replace('=', '').trim() : null;
-            const targetId = rawTarget ? rawTarget.replace('=', '').trim() : null;
+            // If 'case' header contains '&', it means the whole query string was smashed into one key
+            if (caseInput.includes('&') || caseInput.includes('=')) {
+                logLine("NOTICE: DETECTED MANGLED PARAMETERS. DE-CONSTRUCTING...");
+                const fullStr = decodeURIComponent(searchStr.substring(1));
+                const caseMatch = fullStr.match(/case=([^&]+)/);
+                const targetMatch = fullStr.match(/target=([^&]+)/);
+                if (caseMatch) caseInput = caseMatch[1];
+                if (targetMatch) targetInput = targetMatch[1];
+            }
+
+            const caseParam = cleanParam(caseInput);
+            const targetId = cleanParam(targetInput);
             const isPaid = urlParams.get('paid') === 'true';
+
+            logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}]`);
 
             // Session ID
             const session = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -342,45 +353,54 @@
 
             if (!caseParam) {
                 logLine("FATAL: MISSING CASE PARAMETER.");
-                document.getElementById('loader').innerHTML = '<div class="text-court-alert font-mono">ERROR: ACCESS DENIED<br>INVALID CASE IDENTIFIER</div>';
+                document.getElementById('loader').innerHTML = `
+                    <div class="text-court-alert font-mono text-center">
+                        <div class="text-2xl font-bold mb-4">ERROR: ACCESS DENIED</div>
+                        <div class="text-xs opacity-50">INVALID_CASE_IDENTIFIER</div>
+                        <div class="mt-8 text-[10px] text-gray-700">QUERY: ${searchStr}</div>
+                    </div>
+                `;
                 return;
             }
 
             try {
-                logLine(`ESTABLISHING SESSION: GRICH-V4.1...`);
-                logLine(`TARGETING CASE [${caseParam}]...`);
+                logLine(`ESTABLISHING SECURE HANDSHAKE...`);
 
-                // 1. Fetch Lawsuit Details
-                const { data: lawsuit, error: lError } = await supabaseClient
-                    .from('lawsuits')
-                    .select('*')
-                    .eq('case_number', caseParam)
-                    .single();
+                // 1. Fetch Lawsuit Details (Normalize case number)
+                // We try both the raw form and the "1:" prefixed form if needed
+                const searchCases = [caseParam, `1:${caseParam}`];
+                let lawsuit = null;
 
-                if (lError) {
-                    logLine(`DB_SCAN_ERROR: ${lError.message}`);
+                for (const c of searchCases) {
+                    const { data } = await supabaseClient
+                        .from('lawsuits')
+                        .select('*')
+                        .eq('case_number', c)
+                        .maybeSingle();
+                    if (data) {
+                        lawsuit = data;
+                        break;
+                    }
                 }
+
+                if (!lawsuit) logLine(`LITIGATION SEARCH: NO_RECORD_FOUND. ACCESSING RAW INDEX.`);
 
                 // 2. Fetch Defendant Details
                 let targetRecord = null;
                 if (targetId) {
-                    logLine(`SCANNING ENTITY [${targetId}]...`);
-                    // We query by case and partial/full ID
-                    const { data: defendants, error: dError } = await supabaseClient
+                    logLine(`TARGETING ENTITY [${targetId}]...`);
+                    // Get all defendants for this case to find our target
+                    const { data: defendants } = await supabaseClient
                         .from('defendants')
                         .select('*')
-                        .eq('case_number', caseParam);
+                        .or(`case_number.eq.${caseParam},case_number.eq.1:${caseParam}`);
 
                     if (defendants) {
                         targetRecord = defendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
                     }
                 }
 
-                if (!lawsuit && !targetRecord) {
-                    logLine("CRITICAL: TARGET NOT FOUND IN DATABASE.");
-                }
-
-                // 3. Mapping and Rendering (Strictly Dynamic)
+                // 3. Final Dynamic Mapping
                 const uiData = {
                     caseID: lawsuit?.case_number || caseParam,
                     plaintiff: lawsuit?.plaintiff || "UNDER SEAL",
@@ -388,19 +408,19 @@
                     judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
                     attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.",
                     date: lawsuit?.filed_date || "---",
-                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId}` : "NOT FOUND"),
+                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId.substring(0, 8)}` : "GENERIC_TARGET"),
                     targetPlatform: targetRecord?.platform || "---",
-                    isEnriched: !!(targetRecord?.store_url), // 29.99 logic
+                    isEnriched: !!(targetRecord?.store_url),
                     targetLabel: targetRecord?.id ? targetRecord.id.substring(0, 8).toUpperCase() : (targetId ? targetId.substring(0, 8).toUpperCase() : '---'),
                     rawUrl: lawsuit?.raw_data_url || "#"
                 };
 
-                logLine(`DATA RESOLVED: ENRICHED=${uiData.isEnriched}`);
+                logLine(`IDENTITY VERIFIED. TIER=[${uiData.isEnriched ? 'PREMIUM' : 'BASIC'}]`);
                 renderUI(uiData, isPaid);
 
             } catch (err) {
                 logLine(`COMMUNICATION BREACH: ${err.message}`);
-                document.getElementById('loader').innerText = "SYSTEM ERROR: DATABASE CONNECTION FAILED";
+                document.getElementById('loader').innerText = "SYSTEM ERROR: DATABASE HANDSHAKE FAILED";
             }
         }
 
