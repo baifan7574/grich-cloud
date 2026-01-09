@@ -7,7 +7,7 @@ export async function onRequest(context) {
     const supabaseKey = env.PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
 
     // 1. Fetch all unique case numbers
-    const res = await fetch(`${supabaseUrl}/rest/v1/lawsuits?select=case_number,updated_at`, {
+    const res = await fetch(`${supabaseUrl}/rest/v1/lawsuits?select=case_number,created_at`, {
       headers: {
         "apikey": supabaseKey,
         "Authorization": `Bearer ${supabaseKey}`
@@ -15,12 +15,12 @@ export async function onRequest(context) {
     });
 
     if (!res.ok) {
-      throw new Error(`Supabase Fetch Failed: ${res.status} ${res.statusText}`);
+      throw new Error(`Supabase Fetch Failed: ${res.status}`);
     }
 
     const cases = await res.json();
     if (!Array.isArray(cases)) {
-      throw new Error(`Supabase returned non-array: ${JSON.stringify(cases)}`);
+      throw new Error(`Supabase returned non-array`);
     }
 
     // 2. Build the XML string
@@ -34,14 +34,13 @@ export async function onRequest(context) {
   </url>`;
 
     cases.forEach(c => {
-      // Robust timestamp handling
-      let lastModIso;
+      let lastModIso = new Date().toISOString();
       try {
-        const d = new Date(c.updated_at || new Date());
-        lastModIso = !isNaN(d.getTime()) ? d.toISOString() : new Date().toISOString();
-      } catch (e) {
-        lastModIso = new Date().toISOString();
-      }
+        if (c.created_at) {
+          const d = new Date(c.created_at);
+          if (!isNaN(d.getTime())) lastModIso = d.toISOString();
+        }
+      } catch (e) { }
 
       sitemap += `
   <url>
