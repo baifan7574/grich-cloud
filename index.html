@@ -229,38 +229,97 @@
     const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- UTILS ---
+    function animateValue(id, start, end, duration) {
+      if (start === end) return;
+      const range = end - start;
+      let current = start;
+      const increment = end > start ? 1 : -1;
+      const stepTime = Math.abs(Math.floor(duration / range));
+      const obj = document.getElementById(id);
+
+      let timer = setInterval(function () {
+        current += increment;
+        obj.innerHTML = current;
+        if (current == end) {
+          clearInterval(timer);
+        }
+      }, Math.max(stepTime, 10)); // Cap speed
+    }
+
     // --- STATS TICKER ---
     async function updateStats() {
-      const { count: total } = await supabaseClient.from('defendants').select('*', { count: 'exact', head: true });
-      const { count: enriched } = await supabaseClient.from('defendants').select('*', { count: 'exact', head: true }).not('store_url', 'is', null);
-      document.getElementById('stat-total').innerText = total || '4.2K';
-      document.getElementById('stat-enriched').innerText = enriched || '1.1K';
+      // Count TOTAL lawsuits (The Engines' Raw Output)
+      const { count: totalLawsuits } = await supabaseClient
+        .from('lawsuits')
+        .select('*', { count: 'exact', head: true });
+
+      // Count Verified Targets
+      const { count: totalTargets } = await supabaseClient
+        .from('defendants')
+        .select('*', { count: 'exact', head: true });
+
+      // Update with animation
+      animateValue("stat-total", 0, totalLawsuits || 415, 2000);
+      animateValue("stat-enriched", 0, totalTargets || 63, 2000);
+      document.getElementById("stat-pending").innerText = (totalLawsuits || 400) - (totalTargets || 0); // Pending = Raw - Processed
     }
 
     // --- LIVE RADAR FEED ---
+    let radarScrollInterval;
+
     async function updateRadar() {
+      // Fetch MORE items (50) to populate the scroll list from raw lawsuits
       const { data: lawsuits } = await supabaseClient
         .from('lawsuits')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(50);
 
       const feed = document.getElementById('radar-feed');
-      if (lawsuits) {
+      if (lawsuits && feed) {
         feed.innerHTML = lawsuits.map(l => `
-                    <div class="p-4 hover:bg-white/5 transition group border-b border-white/5 last:border-0 cursor-pointer" onclick="window.location='/case_template?case=${l.case_number}'">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-grich-green font-mono text-[11px] font-bold tracking-tighter">${l.case_number}</span>
-                            <span class="text-[9px] bg-red-500/20 text-red-500 px-1 rounded font-bold">${l.risk_score}</span>
-                        </div>
-                        <div class="text-[12px] font-bold text-gray-300 truncate">${l.plaintiff}</div>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-[9px] text-gray-600 font-mono uppercase">${l.court}</span>
-                            <span class="text-[9px] text-gray-500">${new Date(l.created_at).toLocaleTimeString()}</span>
-                        </div>
+                <div class="p-4 border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer" onclick="window.location='/case_template?case=${l.case_number}'">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-mono text-grich-green text-xs font-bold">${l.case_number}</span>
+                        <span class="text-[10px] ${l.status === 'CLOSED' ? 'text-red-500' : 'text-gray-500'} font-black uppercase tracking-wider">
+                            ${l.risk_score ? 'RISK: ' + l.risk_score : 'MONITORING'}
+                        </span>
                     </div>
-                `).join('');
+                    <div class="text-sm font-bold text-gray-200 mb-1 group-hover:text-white transition-colors truncate">
+                        ${l.plaintiff || '<span class="text-red-500/50 italic font-mono text-xs">SEALED PLAINTIFF // REDACTED</span>'}
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-[10px] text-gray-600 font-mono uppercase">${l.court || 'US DISTRICT COURT'}</div>
+                        <div class="text-[10px] text-grich-green/50 font-mono">${new Date(l.created_at).toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `).join('');
+
+        // Start Auto-Scroll if not already scrolling
+        if (!radarScrollInterval) startRadarScroll(feed);
       }
+    }
+
+    function startRadarScroll(element) {
+      if (radarScrollInterval) clearInterval(radarScrollInterval);
+
+      // Duplicate content for seamless infinite scroll
+      element.innerHTML += element.innerHTML;
+
+      let scrollPos = 0;
+
+      radarScrollInterval = setInterval(() => {
+        if (!element) return;
+        scrollPos += 0.5; // Smooth slow scroll
+
+        // Reset when we've scrolled past the first set of content
+        // Note: element.scrollHeight changes after duplicate, so we reset at half
+        if (scrollPos >= element.scrollHeight / 2) {
+          scrollPos = 0;
+        }
+        element.scrollTop = scrollPos;
+      }, 30);
     }
 
     // --- REAL-TIME SEARCH (DEBOUNCED) ---
@@ -286,15 +345,15 @@
 
         if (data && data.length > 0) {
           resultsBox.innerHTML = data.map(res => `
-                        <div class="p-4 hover:bg-grich-green/10 cursor-pointer border-b border-white/5 last:border-0 transition flex justify-between items-center" 
-                             onclick="window.location='/case_template?case=${res.case_number}&target=${res.id.split('-')[0]}'">
-                            <div>
-                                <div class="text-sm font-black text-white uppercase">${res.defendant_name}</div>
-                                <div class="text-[10px] text-gray-500 font-mono uppercase">${res.platform || 'General Seller'} // Linked to ${res.case_number}</div>
-                            </div>
-                            <div class="text-grich-green text-xs font-black">VIEW REPORT →</div>
+                    <div class="p-4 hover:bg-grich-green/10 cursor-pointer border-b border-white/5 last:border-0 transition flex justify-between items-center" 
+                            onclick="window.location='/case_template?case=${res.case_number}&target=${res.id.split('-')[0]}'">
+                        <div>
+                            <div class="text-sm font-black text-white uppercase">${res.defendant_name}</div>
+                            <div class="text-[10px] text-gray-500 font-mono uppercase">${res.platform || 'General Seller'} // Linked to ${res.case_number}</div>
                         </div>
-                    `).join('');
+                        <div class="text-grich-green text-xs font-black">VIEW REPORT →</div>
+                    </div>
+                `).join('');
           resultsBox.classList.remove('hidden');
         } else {
           resultsBox.innerHTML = '<div class="p-8 text-center text-gray-500 text-xs">NO TARGETS FOUND IN CURRENT DATABASE</div>';
@@ -313,7 +372,8 @@
     // Initial Calls
     updateStats();
     updateRadar();
-    setInterval(updateRadar, 3000);
+    // No need for setInterval updateRadar anymore as we want the scroll to be smooth and fetching 50 is enough for "live" feel for now.
+    // If we want real "live" updates pushing top, it complicates scroll. Static "Recent 50" scrolling is safer for UX.
   </script>
 </body>
 
