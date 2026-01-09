@@ -1,18 +1,27 @@
 export async function onRequest(context) {
-    const { env } = context;
+  const { env } = context;
+  const baseUrl = "https://grich-cloud.pages.dev";
+
+  try {
     const supabaseUrl = "https://rdlmumybuwveaaeceohj.supabase.co";
     const supabaseKey = env.PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
 
     // 1. Fetch all unique case numbers
     const res = await fetch(`${supabaseUrl}/rest/v1/lawsuits?select=case_number,updated_at`, {
-        headers: {
-            "apikey": supabaseKey,
-            "Authorization": `Bearer ${supabaseKey}`
-        }
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`
+      }
     });
 
+    if (!res.ok) {
+      throw new Error(`Supabase Fetch Failed: ${res.status} ${res.statusText}`);
+    }
+
     const cases = await res.json();
-    const baseUrl = "https://grich-cloud.pages.dev";
+    if (!Array.isArray(cases)) {
+      throw new Error(`Supabase returned non-array: ${JSON.stringify(cases)}`);
+    }
 
     // 2. Build the XML string
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -25,11 +34,16 @@ export async function onRequest(context) {
   </url>`;
 
     cases.forEach(c => {
-        // Fallback logic for missing or invalid updated_at
-        const lastModDate = new Date(c.updated_at || new Date());
-        const lastModIso = !isNaN(lastModDate.getTime()) ? lastModDate.toISOString() : new Date().toISOString();
+      // Robust timestamp handling
+      let lastModIso;
+      try {
+        const d = new Date(c.updated_at || new Date());
+        lastModIso = !isNaN(d.getTime()) ? d.toISOString() : new Date().toISOString();
+      } catch (e) {
+        lastModIso = new Date().toISOString();
+      }
 
-        sitemap += `
+      sitemap += `
   <url>
     <loc>${baseUrl}/case/${encodeURIComponent(c.case_number)}</loc>
     <lastmod>${lastModIso}</lastmod>
@@ -41,9 +55,17 @@ export async function onRequest(context) {
     sitemap += `\n</urlset>`;
 
     return new Response(sitemap, {
-        headers: {
-            "Content-Type": "application/xml;charset=UTF-8",
-            "Cache-Control": "public, max-age=3600"
-        }
+      headers: {
+        "Content-Type": "application/xml;charset=UTF-8",
+        "Cache-Control": "public, max-age=3600"
+      }
     });
+
+  } catch (error) {
+    // Return the error message as a plain text response for debugging
+    return new Response(`Sitemap XML Worker Error: ${error.message}\n${error.stack}`, {
+      status: 200, // Returning 200 so we can actually see it in the browser
+      headers: { "Content-Type": "text/plain;charset=UTF-8" }
+    });
+  }
 }
