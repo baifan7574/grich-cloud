@@ -287,7 +287,7 @@
                         </span>
                     </div>
                     <div class="text-sm font-bold text-gray-200 mb-1 group-hover:text-white transition-colors truncate">
-                        ${l.plaintiff || '<span class="text-red-500/50 italic font-mono text-xs">SEALED PLAINTIFF // REDACTED</span>'}
+                        ${(l.plaintiff && l.plaintiff !== 'Unknown Plaintiff') ? l.plaintiff : '<span class="text-red-500/50 italic font-mono text-xs">SEALED PLAINTIFF // REDACTED</span>'}
                     </div>
                     <div class="flex justify-between items-end">
                         <div class="text-[10px] text-gray-600 font-mono uppercase">${l.court || 'US DISTRICT COURT'}</div>
