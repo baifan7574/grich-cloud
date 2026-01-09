@@ -318,32 +318,35 @@
             const searchStr = window.location.search || "";
             logLine(`INIT SESSION: RAW_QUERY=[${searchStr}]`);
 
-            // --- ULTRA-ROBUST URL PARSING ---
-            const urlParams = new URLSearchParams(searchStr);
-            let caseInput = urlParams.get('case') || "";
-            let targetInput = urlParams.get('target') || "";
+            // --- ULTRA-ROBUST URL PARSER (GRICH-PARSER-V2) ---
+            function getParam(key) {
+                const urlParams = new URLSearchParams(searchStr);
+                let val = urlParams.get(key);
 
-            // Handle mangled/bundled strings: e.g. ?case=%3D1:24...&target=...
-            // or ?case==1:24... (where decoder might leave extra '=')
-            function cleanParam(val) {
-                if (!val) return "";
-                // Remove all '=' signs and any stray URL encoding artifacts
-                return val.replace(/=/g, '').trim();
+                // Fallback 1: Key itself might contain the '=' (e.g. ?case=1:24...)
+                if (!val) {
+                    for (const [k, v] of urlParams.entries()) {
+                        if (k.toLowerCase().includes(`${key}=`)) {
+                            val = k.split('=')[1] || v;
+                            break;
+                        }
+                    }
+                }
+
+                // Fallback 2: Regex on raw string (most aggressive)
+                if (!val) {
+                    const decoded = decodeURIComponent(searchStr);
+                    const regex = new RegExp(`[?&]${key}=([^&]+)`, 'i');
+                    const match = decoded.match(regex);
+                    if (match) val = match[1];
+                }
+
+                return val ? val.replace(/=/g, '').trim() : null;
             }
 
-            // If 'case' header contains '&', it means the whole query string was smashed into one key
-            if (caseInput.includes('&') || caseInput.includes('=')) {
-                logLine("NOTICE: DETECTED MANGLED PARAMETERS. DE-CONSTRUCTING...");
-                const fullStr = decodeURIComponent(searchStr.substring(1));
-                const caseMatch = fullStr.match(/case=([^&]+)/);
-                const targetMatch = fullStr.match(/target=([^&]+)/);
-                if (caseMatch) caseInput = caseMatch[1];
-                if (targetMatch) targetInput = targetMatch[1];
-            }
-
-            const caseParam = cleanParam(caseInput);
-            const targetId = cleanParam(targetInput);
-            const isPaid = urlParams.get('paid') === 'true';
+            const caseParam = getParam('case');
+            const targetId = getParam('target');
+            const isPaid = getParam('paid') === 'true' || getParam('success') === 'true';
 
             logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}]`);
 
@@ -354,10 +357,15 @@
             if (!caseParam) {
                 logLine("FATAL: MISSING CASE PARAMETER.");
                 document.getElementById('loader').innerHTML = `
-                    <div class="text-court-alert font-mono text-center">
+                    <div class="text-court-alert font-mono text-center px-6">
                         <div class="text-2xl font-bold mb-4">ERROR: ACCESS DENIED</div>
-                        <div class="text-xs opacity-50">INVALID_CASE_IDENTIFIER</div>
-                        <div class="mt-8 text-[10px] text-gray-700">QUERY: ${searchStr}</div>
+                        <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Invalid Case Identifier</div>
+                        <div class="bg-black/80 border border-green-900/20 p-4 text-[10px] text-green-500 text-left">
+                            [DEBUG_INFO]<br>
+                            QUERY_STRING: ${searchStr}<br>
+                            PARSED_CASE: NULL<br>
+                            ACTION: CHECK URL FORMAT
+                        </div>
                     </div>
                 `;
                 return;

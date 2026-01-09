@@ -81,24 +81,24 @@
     <script>
         const SUPABASE_URL = "https://rdlmumybuwveaaeceohj.supabase.co";
         const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function updateStats() {
             try {
                 // 1. Total Lawsuits
-                const { count: lawsuitsCount } = await supabase.from('lawsuits').select('*', { count: 'exact', head: true });
+                const { count: lawsuitsCount } = await supabaseClient.from('lawsuits').select('*', { count: 'exact', head: true });
                 document.getElementById('lawsuit-count').innerText = lawsuitsCount || 0;
 
                 // 2. Total Defendants
-                const { count: defsCount } = await supabase.from('defendants').select('*', { count: 'exact', head: true });
+                const { count: defsCount } = await supabaseClient.from('defendants').select('*', { count: 'exact', head: true });
                 document.getElementById('target-count').innerText = defsCount || 0;
 
                 // 3. Enriched Defendants
-                const { count: enrichedCount } = await supabase.from('defendants').select('*', { count: 'exact', head: true }).not('store_url', 'is', null).neq('store_url', '');
+                const { count: enrichedCount } = await supabaseClient.from('defendants').select('*', { count: 'exact', head: true }).not('store_url', 'is', null).neq('store_url', '');
                 document.getElementById('enriched-count').innerText = enrichedCount || 0;
 
                 // 4. Latest Activities
-                const { data: latest } = await supabase.from('defendants').select('*').order('found_at', { ascending: false }).limit(10);
+                const { data: latest } = await supabaseClient.from('defendants').select('*').order('found_at', { ascending: false }).limit(10);
 
                 const body = document.getElementById('feed-body');
                 body.innerHTML = '';
