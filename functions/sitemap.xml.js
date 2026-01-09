@@ -25,10 +25,14 @@ export async function onRequest(context) {
   </url>`;
 
     cases.forEach(c => {
+        // Fallback logic for missing or invalid updated_at
+        const lastModDate = new Date(c.updated_at || new Date());
+        const lastModIso = !isNaN(lastModDate.getTime()) ? lastModDate.toISOString() : new Date().toISOString();
+
         sitemap += `
   <url>
     <loc>${baseUrl}/case/${encodeURIComponent(c.case_number)}</loc>
-    <lastmod>${new Date(c.updated_at).toISOString()}</lastmod>
+    <lastmod>${lastModIso}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>`;
