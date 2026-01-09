@@ -315,43 +315,32 @@
         }
 
         async function init() {
-            // --- THE "BULLETPROOF" GRICH PARSER V3 ---
+            // --- THE "ULTRA-DECODER" GRICH PARSER V4 ---
             const searchStr = window.location.search || "";
             logLine(`INIT SESSION: RAW_QUERY=[${searchStr}]`);
 
-            let paramsMap = {};
-
-            function deFuse(str) {
-                if (!str) return;
-                // Remove leading ? or &
-                const clean = str.replace(/^[?&]/, '');
-
-                // Try to parse normally first
-                const urlParams = new URLSearchParams(str);
-                let standardCount = 0;
-                urlParams.forEach((v, k) => {
-                    if (k && v) {
-                        paramsMap[k.toLowerCase()] = v;
-                        standardCount++;
-                    } else if (k.includes('=') || k.includes('&')) {
-                        // This is a "fused" key like "case=1:24&target=..."
-                        deFuse('?' + k);
-                    }
-                });
-
-                // Fail-safe: Regex matching for those pesky encoded equal signs
-                const decoded = decodeURIComponent(str);
-                const matches = decoded.matchAll(/[?&]([^=&]+)=([^&]*)/g);
-                for (const m of matches) {
-                    paramsMap[m[1].toLowerCase()] = m[2];
+            function recursiveDecode(str) {
+                let last = "";
+                let curr = str;
+                while (curr !== last && curr.includes('%')) {
+                    last = curr;
+                    try { curr = decodeURIComponent(curr); } catch (e) { break; }
                 }
+                return curr;
             }
 
-            deFuse(searchStr);
+            const decodedQuery = recursiveDecode(searchStr).replace(/^[?&]/, '');
+            const paramsMap = {};
 
-            // Clean specific values
-            const getVal = (key) => (paramsMap[key] || "").replace(/=/g, '').split('&')[0].trim();
+            // Manually split to be bulletproof against malformed pairs
+            decodedQuery.split('&').forEach(pair => {
+                const [k, ...v] = pair.split('=');
+                if (k) paramsMap[k.toLowerCase().trim()] = v.join('=').trim();
+            });
 
+            logLine(`DECODED_PARAMS: ${JSON.stringify(paramsMap)}`);
+
+            const getVal = (key) => paramsMap[key] || "";
             const caseParam = getVal('case');
             const targetId = getVal('target');
             const isPaid = getVal('paid') === 'true' || getVal('success') === 'true';
@@ -370,8 +359,8 @@
                         <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Invalid Case Identifier</div>
                         <div class="bg-black/80 border border-green-900/20 p-4 text-[10px] text-green-500 text-left">
                             [DEBUG_INFO]<br>
-                            QUERY_STRING: ${searchStr}<br>
-                            INTERPRETED_PARAMS: ${JSON.stringify(paramsMap)}
+                            RAW: ${searchStr}<br>
+                            DECODED: ${decodedQuery}
                         </div>
                     </div>
                 `;
