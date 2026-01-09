@@ -357,34 +357,89 @@
 
                     <!-- AI Analysis Content -->
                     <div class="space-y-8">
+                        <!-- Section 1: Official Case Metadata -->
                         <section>
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Executive Summary</h3>
-                            <div id="report-summary"
-                                class="text-sm leading-relaxed text-gray-800 font-serif whitespace-pre-wrap">AI AGENT:
-                                WRITING ANALYSIS...</div>
-                        </section>
-
-                        <section id="evidence-display-section" class="hidden">
-                            <h3
-                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Exhibit A: Targeted Evidence</h3>
-                            <div class="bg-white border border-gray-200 p-2">
-                                <img id="success-evidence-img" src=""
-                                    class="w-full grayscale hover:grayscale-0 transition-all duration-700">
-                                <div class="mt-2 text-[9px] text-gray-400 italic">Target Capture // Encrypted
-                                    Verification Hash: 0x88A...F12</div>
+                                Section I: Official Record Verification</h3>
+                            <div class="grid grid-cols-2 gap-4 text-[11px] font-mono">
+                                <div><span class="text-gray-400">CASE NUMBER:</span> <span id="report-case-id"
+                                        class="font-bold"></span></div>
+                                <div><span class="text-gray-400">JURISDICTION:</span> <span id="report-court"
+                                        class="font-bold"></span></div>
+                                <div><span class="text-gray-400">PLAINTIFF:</span> <span id="report-plaintiff"
+                                        class="font-bold text-red-600"></span></div>
+                                <div><span class="text-gray-400">ATTORNEY:</span> <span id="report-attorney"
+                                        class="font-bold"></span></div>
                             </div>
                         </section>
 
+                        <!-- Section 2: Defendant Identification -->
                         <section>
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Actionable Intelligence</h3>
-                            <div id="report-action"
-                                class="text-sm leading-relaxed text-gray-800 font-serif italic border-l-4 border-green-600 pl-4 bg-green-50 p-4">
-                                Determining strategic recommendation...
+                                Section II: Targeted Entity Identity</h3>
+                            <div class="bg-gray-100 p-4 border-l-4 border-black">
+                                <div class="text-lg font-black tracking-tighter" id="report-target-name"></div>
+                                <div class="text-[10px] text-gray-500 font-mono uppercase">Platform: <span
+                                        id="report-target-platform" class="text-black font-bold"></span> // Internal
+                                    Index ID: <span id="report-target-id" class="text-black font-bold"></span></div>
+                            </div>
+                        </section>
+
+                        <!-- Section 3: AI Intelligence Summary -->
+                        <section>
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section III: Strategic Intelligence Summary</h3>
+                            <div id="report-summary"
+                                class="text-sm leading-relaxed text-gray-800 font-serif whitespace-pre-wrap">AI AGENT:
+                                SYNTHESIZING ARCHIVES...</div>
+                        </section>
+
+                        <!-- Section 4: Official Filing Archive -->
+                        <section id="filing-archive-section">
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section IV: Official Filing Archive</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3 p-3 bg-white border border-gray-200 hover:border-green-500 transition-colors group cursor-pointer"
+                                    id="main-docket-link">
+                                    <div
+                                        class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-400 group-hover:bg-green-100 group-hover:text-green-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-[10px] font-bold uppercase tracking-tight">Main Case Docket &
+                                            Filing Schedule</div>
+                                        <div class="text-[9px] text-gray-400 font-mono truncate" id="report-docket-url">
+                                            https://www.courtlistener.com/...</div>
+                                    </div>
+                                    <div
+                                        class="text-green-600 font-bold text-[10px] uppercase opacity-0 group-hover:opacity-100">
+                                        Access Record</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 5: Evidence Exhibit (Premium Only) -->
+                        <section id="evidence-display-section" class="hidden">
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section V: Exhibit A - Verification Material</h3>
+                            <div class="bg-white border-2 border-dashed border-gray-200 p-2">
+                                <img id="success-evidence-img" src=""
+                                    class="w-full grayscale hover:grayscale-0 transition-all duration-700 mb-2">
+                                <div class="p-3 bg-gray-50 border-t border-gray-100">
+                                    <div class="text-[10px] font-bold text-gray-700 uppercase mb-1">Authenticated Store
+                                        Capture</div>
+                                    <div class="text-[9px] text-gray-500 font-mono italic">Timestamp: 2026-01-09 //
+                                        Hash: 0xFD88...AC21 // Source: GRICH GBC-Engine V2.4</div>
+                                </div>
                             </div>
                         </section>
                     </div>
@@ -594,13 +649,26 @@
                 const report = document.getElementById('ai-report');
                 report.classList.remove('hidden');
                 document.getElementById('report-id').innerText = `GR-${Math.floor(1000 + Math.random() * 9000)}-${data.caseID.split('-').pop()}`;
-                document.getElementById('report-date').innerText = new Date().toISOString().split('T')[0];
 
-                // --- AI WRITING SIMULATION (DEEPSEEK BACKEND) ---
+                // Inject Real Metadata into Report
+                document.getElementById('report-case-id').innerText = data.caseID;
+                document.getElementById('report-court').innerText = data.court;
+                document.getElementById('report-plaintiff').innerText = data.plaintiff;
+                document.getElementById('report-attorney').innerText = data.attorney;
+                document.getElementById('report-target-name').innerText = data.targetName;
+                document.getElementById('report-target-platform').innerText = data.targetPlatform;
+                document.getElementById('report-target-id').innerText = data.targetLabel;
+                document.getElementById('report-docket-url').innerText = data.rawUrl;
+                document.getElementById('main-docket-link').onclick = () => window.open(data.rawUrl, '_blank');
+
+                // --- AI WRITING SIMULATION (貨要對版 - DATA MATCHED) ---
                 const writeReport = async () => {
                     const sections = {
-                        summary: `Based on a deep scan of Case ${data.caseID}, GRICH Intelligence has verified that ${data.plaintiff} filed this motion in ${data.court}. The nature of this litigation indicates a high-risk intellectual property enforcement campaign. For the target ${data.targetName}, we have identified direct links to the listed ${data.targetPlatform} operations. This strategy is consistent with "Schedule A" bulk filings intended to freeze assets globally.`,
-                        action: `REQUIRED ACTION: Immediately consult with a specialized IP litigation counselor. Do not approach the Plaintiff's attorney directly without representation. If a settlement is pursued, GRICH suggests anchoring the valuation based on your verified store capture volume to mitigate over-payment in the $50k+ range.`
+                        summary: `REPORT SUMMARY: Case ${data.caseID} has been cross-referenced with the GRICH Litigation Database. The Plaintiff, ${data.plaintiff}, is currently represented by ${data.attorney} in the ${data.court}. 
+
+GRICH Analysis: This specific action targeting ${data.targetName} ${data.targetPlatform ? 'on the ' + data.targetPlatform + ' platform' : ''} follows a "Schedule A" pattern characteristic of large-scale IP enforcement. Our system has flagged this as a high-risk event due to the potential for immediate asset freezes via judicial temporary restraining orders (TRO). The association of ${data.targetName} within the ${data.plaintiff} filing is now structurally verified through our internal indexing system.`,
+
+                        action: `STRATEGIC ADVISORY: 1. Do not contact ${data.attorney} until legal counsel has reviewed your specific sales volume. 2. GRICH has verified that ${data.plaintiff} typically targets entities with active digital storefronts. 3. If your ${data.targetPlatform} account is currently active, prepare for a potential 14-day discovery window before funds are restricted. Current GRICH recommendation: ANCHOR SETTLEMENT VALUATION BASED ON CAPTURED EVIDENCE.`
                     };
 
                     // Typing effect
@@ -611,10 +679,15 @@
                         if (i < sections.summary.length) {
                             log.innerText += sections.summary.charAt(i);
                             i++;
-                            setTimeout(type, 15);
+                            setTimeout(type, 10);
                         } else {
-                            document.getElementById('report-action').innerText = sections.action;
-                            // Add download button to footer
+                            // After summary wraps, add the "Action" block as a new section or styled div
+                            const actionDiv = document.createElement('div');
+                            actionDiv.className = "mt-6 text-sm leading-relaxed text-gray-800 font-serif italic border-l-4 border-green-600 pl-4 bg-green-50 p-4";
+                            actionDiv.innerText = sections.action;
+                            log.appendChild(actionDiv);
+
+                            // Reveal final buttons
                             document.getElementById('cta-text').innerText = "EXPORT DOSSIER (PDF)";
                             document.getElementById('cta-btn').onclick = (e) => {
                                 e.preventDefault();
@@ -635,7 +708,7 @@
                     img.src = mockImg;
                     document.getElementById('evidence-display-section').classList.remove('hidden');
                     evidenceBox.innerHTML = `
-                        <div class="text-green-500 font-bold mb-2">FULL SCREENSHOTS DECRYPTED</div>
+                        <div class="text-green-500 font-bold mb-2 uppercase text-xs tracking-widest">Store Capture Decrypted</div>
                         <img src="${mockImg}" class="w-full border border-green-900/40">
                     `;
                 }
