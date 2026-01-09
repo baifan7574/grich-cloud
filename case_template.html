@@ -343,7 +343,7 @@
                 logLine(`ESTABLISHING SECURE HANDSHAKE: GRICH-V4...`);
                 logLine(`TARGETING CASE [${caseParam}]...`);
 
-                // 1. Fetch Lawsuit Details
+                // 1. Fetch Lawsuit Details (Real Mapping)
                 const { data: lawsuit, error: lError } = await supabaseClient
                     .from('lawsuits')
                     .select('*')
@@ -351,57 +351,50 @@
                     .single();
 
                 if (lError) logLine(`LITIGATION INDEX ERROR: ${lError.message}`);
-
-                // 2. Fetch Defendant Details
+                
+                // 2. Fetch Defendant Details (Enrichment Logic)
                 let targetRecord = null;
                 if (targetId) {
                     logLine(`LOCATING ENTITY [${targetId}]...`);
+                    // We query the defendants table for this specific target in this case
                     const { data: defendants, error: dError } = await supabaseClient
                         .from('defendants')
                         .select('*')
                         .eq('case_number', lawsuit?.case_number || caseParam);
-
+                    
                     if (defendants) {
-                        // Match by part of ID or name
+                        // Precise match by ID
                         targetRecord = defendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
                     }
                 }
 
-                // 3. Mapping and Rendering
-                // Apply dynamic mapping logic
+                // 3. Mapping and Rendering (1-to-1 Mapping as requested)
                 const uiData = {
-                    caseID: lawsuit?.case_number || caseParam,
-                    plaintiff: lawsuit?.plaintiff || "UNDER SEAL",
-                    court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)",
-                    judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
-                    attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.",
+                    caseID: lawsuit?.case_number || caseParam, // Case ID -> case_number
+                    plaintiff: lawsuit?.plaintiff || "UNDER SEAL", // Plaintiff -> plaintiff
+                    court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)", // Court -> court
+                    judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]", 
+                    attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.", // Attorney -> law_firm
                     date: lawsuit?.filed_date || "---",
-                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId}` : "UNKNOWN"),
-                    targetPlatform: targetRecord?.platform || "UNKNOWN",
-                    isEnriched: !!(targetRecord?.store_url), // Crucial: Tier logic
+                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId}` : "UNKNOWN"), // Target Info -> defendant_name
+                    targetPlatform: targetRecord?.platform || "---",
+                    isEnriched: !!(targetRecord?.store_url), // 29.99 logic if store_url exists
                     targetLabel: targetRecord?.id ? targetRecord.id.substring(0, 8).toUpperCase() : (targetId ? targetId.substring(0, 8).toUpperCase() : '---'),
                     rawUrl: lawsuit?.raw_data_url || "#"
                 };
 
-                logLine("IDENTITY VERIFIED. RENDERING DOSSIER.");
+                if (!lawsuit && !targetRecord) {
+                    logLine("WARNING: RECORD NOT FOUND IN ACTIVE INDEX.");
+                } else {
+                    logLine("IDENTITY VERIFIED. RENDERING DOSSIER.");
+                }
+                
                 renderUI(uiData, isPaid);
 
             } catch (err) {
                 logLine(`COMMUNICATION BREACH: ${err.message}`);
-                // Fallback to Param-based UI if possible
-                renderUI({
-                    caseID: caseParam,
-                    plaintiff: "PENDING DECRYPTION",
-                    court: "U.S. DISTRICT COURT",
-                    judge: "HON. [REDACTED]",
-                    attorney: "GREER, BURNS & CRAIN, LTD.",
-                    date: "---",
-                    targetName: targetId || "UNKNOWN",
-                    targetPlatform: "---",
-                    isEnriched: false,
-                    targetLabel: targetId?.substring(0, 8).toUpperCase() || "---",
-                    rawUrl: "#"
-                }, isPaid);
+                // Strict policy: If fatal tech error, show searching indefinitely or error
+                document.getElementById('loader').innerText = "SYSTEM ERROR: DATABASE CONNECTION FAILED";
             }
         }
 
