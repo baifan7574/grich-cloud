@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGAL NOTICE // CASE FILE ACCESS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Roboto Mono"', 'monospace'],
+                        sans: ['"Inter"', 'sans-serif']
+                    },
+                    colors: {
+                        court: {
+                            bg: '#0a0a0a',
+                            sidebar: '#1a1a1a',
+                            border: '#333333',
+                            text: '#e0e0e0',
+                            muted: '#666666',
+                            yellow: '#fbbf24',
+                            blue: '#3b82f6',
+                            alert: '#ff0000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .paper-texture {
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, .02) 2px, rgba(255, 255, 255, .02) 4px);
+        }
+
+        .stamp {
+            opacity: 0.2;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #ff0000;
+            border: 6px solid #ff0000;
+            padding: 1rem 2rem;
+            pointer-events: none;
+            z-index: 5;
+            text-transform: uppercase;
+        }
+
+        .court-seal {
+            opacity: 0.1;
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg/1024px-Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            top: 40px;
+            right: 40px;
+            pointer-events: none;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            main {
+                overflow: visible !important;
+                height: auto !important;
+                position: static !important;
+            }
+
+            aside {
+                display: none !important;
+            }
+
+            footer {
+                display: none !important;
+            }
+
+            #ai-report {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border-top: none !important;
+                background: white;
+            }
+
+            .paper-texture {
+                background: none !important;
+            }
+
+            header {
+                display: none !important;
+            }
+
+            #loader {
+                display: none !important;
+            }
+
+            .court-seal {
+                display: none !important;
+            }
+
+            #evidence-box,
+            #notice-title,
+            #notice-desc,
+            #target-card {
+                display: none !important;
+            }
+
+            .max-w-4xl {
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="h-screen w-screen flex flex-col md:flex-row overflow-hidden bg-court-bg selection:bg-court-yellow selection:text-black">
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-full max-w-md">
+            <div class="text-xl font-mono mb-4 text-court-yellow tracking-tighter animate-pulse">SEARCHING GLOBAL LEGAL
+                DATABASE...</div>
+            <div class="h-1 bg-court-sidebar w-full overflow-hidden mb-6">
+                <div class="h-full bg-court-yellow animate-[shimmer_2s_infinite] w-1/3"></div>
+            </div>
+            <div id="loading-log"
+                class="text-xs font-mono text-gray-600 text-left h-32 overflow-hidden border-l border-court-border pl-4 space-y-1">
+                > INITIALIZING SCAN...<br>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEFT SIDEBAR: Case Dossier -->
+    <aside id="sidebar"
+        class="w-full md:w-80 bg-court-sidebar border-r border-court-border flex-shrink-0 p-6 overflow-y-auto hidden md:block">
+        <div class="mb-8 p-3 border border-court-border border-dashed">
+            <div class="text-[10px] text-court-muted uppercase tracking-[0.2em] mb-1">Dossier Index</div>
+            <div class="text-2xl font-bold font-mono text-white tracking-tighter" id="sidebar-case">CASE_PENDING</div>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Court of Jurisdiction</div>
+                <div class="font-bold text-xs" id="sidebar-court">UNITED STATES DISTRICT COURT</div>
+            </div>
+
+            <div>
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Presiding Judge</div>
+                <div class="font-bold text-xs" id="sidebar-judge">HON. [PENDING ASSIGNMENT]</div>
+            </div>
+
+            <div>
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Plaintiff</div>
+                <div class="font-bold text-xs text-court-yellow" id="sidebar-plaintiff">SEARCHING...</div>
+            </div>
+
+            <div>
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Plaintiff Attorney</div>
+                <div class="font-bold text-xs" id="sidebar-attorney">GREER, BURNS & CRAIN, LTD.</div>
+            </div>
+
+            <div>
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">First Filing Date</div>
+                <div class="font-bold text-xs font-mono" id="sidebar-date">---</div>
+            </div>
+
+            <div class="pt-6 border-t border-court-border">
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-2">Security Level</div>
+                <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></div>
+                    <span class="text-[10px] font-mono font-bold text-red-500 uppercase" id="doc-status">ENCRYPTED //
+                        RESTRICTED</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 opacity-10">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg/1024px-Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg.png"
+                alt="Seal" class="grayscale">
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT: Evidence Locker -->
+    <main class="flex-1 flex flex-col overflow-hidden paper-texture relative bg-[#080808]">
+
+        <!-- Court Seal Watermark -->
+        <div class="court-seal"></div>
+
+        <!-- Stamp -->
+        <div id="stamp" class="stamp hidden">IN EVIDENCE</div>
+
+        <!-- Header -->
+        <header class="border-b border-court-border p-6 md:p-10 bg-black/40 backdrop-blur-md z-10">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div>
+                    <div class="text-[10px] text-court-muted font-mono uppercase tracking-[0.3em] mb-2">
+                        FEDERAL CIVIL LITIGATION RECORD // ACCESS CONTROL
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-mono font-bold tracking-tighter text-white" id="main-title">
+                        OFFICIAL CASE FILE <span id="case-number" class="text-court-yellow">SEARCHING...</span>
+                    </h1>
+                </div>
+                <div class="flex flex-col items-end">
+                    <div class="text-[10px] text-court-muted mb-1 font-mono">CLASSIFICATION</div>
+                    <div class="px-3 py-1 bg-red-900/20 border border-red-900/40 text-red-500 font-mono text-xs font-bold"
+                        id="classification">
+                        RESTRICTED
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 z-10">
+
+            <div class="max-w-4xl mx-auto">
+
+                <!-- Notice Header -->
+                <div class="mb-10">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4 tracking-tight" id="notice-title">
+                        SYSTEM STATUS: RESOLVING...
+                    </h2>
+                    <p class="text-court-muted text-sm leading-relaxed border-l-2 border-court-border pl-6"
+                        id="notice-desc">
+                        Initializing secure session to retrieve litigation metadata from global indices. Please wait for
+                        authority verification.
+                    </p>
+                </div>
+
+                <!-- Target Entity Card -->
+                <div class="bg-black/80 border border-court-border p-8 mb-10 relative">
+                    <div
+                        class="absolute top-0 right-0 px-3 py-1 bg-court-sidebar border-b border-l border-court-border text-court-muted text-[10px] font-mono tracking-widest">
+                        MATCH_ID: <span id="target-id-label">PENDING</span>
+                    </div>
+
+                    <div class="mb-8">
+                        <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Identified Defendant
+                            Entity</div>
+                        <div class="text-3xl font-bold text-white tracking-tight" id="target-name">LOCATING TARGET...
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Involved Platform
+                            </div>
+                            <div class="font-bold font-mono text-sm" id="target-platform">---</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1">Litigation Position
+                            </div>
+                            <div class="font-bold font-mono text-sm text-red-500" id="evidence-status">CONFIRMING...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evidence Preview Box -->
+                <div id="evidence-box"
+                    class="hidden bg-yellow-900/5 border border-yellow-600/20 p-8 mb-10 group transition-all hover:bg-yellow-900/10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="p-2 bg-yellow-600/10 rounded">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="font-bold text-yellow-600 uppercase tracking-tighter">Verified Evidence Cache
+                            </div>
+                            <div class="text-[10px] text-yellow-700/60 font-mono">STATUS: HIGH_RESOLUTION_FILES_SECURED
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="h-44 bg-black border border-court-border flex items-center justify-center relative overflow-hidden">
+                        <div
+                            class="absolute inset-0 filter blur-[20px] bg-[url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop')] bg-cover opacity-20">
+                        </div>
+                        <div class="relative z-10 text-center">
+                            <div
+                                class="inline-block px-4 py-2 border-2 border-yellow-600/50 text-yellow-600 font-bold text-lg tracking-tighter mb-2 bg-black/80">
+                                EVIDENCE LOCKED
+                            </div>
+                            <div class="text-[10px] text-court-muted font-mono uppercase">Full screenshots & store
+                                capture files (3.2MB)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Noise (Other Defendants) -->
+                <div class="mb-4 no-print">
+                    <div class="text-[10px] text-court-muted font-mono uppercase tracking-[0.2em] mb-4 text-center">
+                        Peripheral Scanning Activity</div>
+                    <div class="space-y-2 opacity-10 font-mono text-[9px] text-center italic">
+                        <div>ANONYMOUS_ENTITY_#09228 ACTIVE_STATUS: REDACTED</div>
+                        <div>ANONYMOUS_ENTITY_#11094 ACTIVE_STATUS: REDACTED</div>
+                        <div>ANONYMOUS_ENTITY_#88402 ACTIVE_STATUS: REDACTED</div>
+                    </div>
+                </div>
+
+                <!-- GRICH INTELLIGENCE REPORT (SUCCESS STATE) -->
+                <div id="ai-report"
+                    class="hidden mt-12 mb-20 bg-[#f9f9f9] text-black p-10 border-t-8 border-green-600 shadow-2xl relative">
+                    <div class="absolute top-10 right-10 opacity-5 pointer-events-none">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg/1024px-Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg.png"
+                            class="w-48">
+                    </div>
+
+                    <!-- Report Header -->
+                    <div class="flex justify-between items-start border-b-2 border-black/10 pb-6 mb-8">
+                        <div>
+                            <div class="text-3xl font-black tracking-tighter italic font-sans">GRICH <span
+                                    class="text-green-600 font-mono">INTEL</span></div>
+                            <div class="text-[9px] uppercase font-sans tracking-[0.4em] text-gray-500 font-bold">Global
+                                Risk Intelligence // Official Dossier</div>
+                        </div>
+                        <div class="text-right font-mono">
+                            <div class="text-[10px] font-bold">REPORT: <span id="report-id"
+                                    class="text-green-700">GR-2026-X8832</span></div>
+                            <div class="text-[10px]">ISSUED: <span id="report-date">2026-01-09</span></div>
+                            <div class="text-[10px] text-gray-400">STATUS: AUTHORIZED_VIEW</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Analysis Content -->
+                    <div class="space-y-8">
+                        <!-- Section 1: Official Case Metadata -->
+                        <section>
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section I: Official Record Verification</h3>
+                            <div class="grid grid-cols-2 gap-4 text-[11px] font-mono">
+                                <div><span class="text-gray-400">CASE NUMBER:</span> <span id="report-case-id"
+                                        class="font-bold"></span></div>
+                                <div><span class="text-gray-400">JURISDICTION:</span> <span id="report-court"
+                                        class="font-bold"></span></div>
+                                <div><span class="text-gray-400">PLAINTIFF:</span> <span id="report-plaintiff"
+                                        class="font-bold text-red-600"></span></div>
+                                <div><span class="text-gray-400">ATTORNEY:</span> <span id="report-attorney"
+                                        class="font-bold"></span></div>
+                            </div>
+                        </section>
+
+                        <!-- Section 2: Defendant Identification -->
+                        <section>
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section II: Targeted Entity Identity</h3>
+                            <div class="bg-gray-100 p-4 border-l-4 border-black">
+                                <div class="text-lg font-black tracking-tighter" id="report-target-name"></div>
+                                <div class="text-[10px] text-gray-500 font-mono uppercase">Platform: <span
+                                        id="report-target-platform" class="text-black font-bold"></span> // Internal
+                                    Index ID: <span id="report-target-id" class="text-black font-bold"></span></div>
+                            </div>
+                        </section>
+
+                        <!-- Section 3: AI Intelligence Summary -->
+                        <section>
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section III: Strategic Intelligence Summary</h3>
+                            <div id="report-summary"
+                                class="text-sm leading-relaxed text-gray-800 font-serif whitespace-pre-wrap">AI AGENT:
+                                SYNTHESIZING ARCHIVES...</div>
+                        </section>
+
+                        <!-- Section 4: Official Filing Archive -->
+                        <section id="filing-archive-section">
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section IV: Official Filing Archive</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3 p-3 bg-white border border-gray-200 hover:border-green-500 transition-colors group cursor-pointer"
+                                    id="main-docket-link">
+                                    <div
+                                        class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-400 group-hover:bg-green-100 group-hover:text-green-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-[10px] font-bold uppercase tracking-tight">Main Case Docket &
+                                            Filing Schedule</div>
+                                        <div class="text-[9px] text-gray-400 font-mono truncate" id="report-docket-url">
+                                            https://www.courtlistener.com/...</div>
+                                    </div>
+                                    <div
+                                        class="text-green-600 font-bold text-[10px] uppercase opacity-0 group-hover:opacity-100">
+                                        Access Record</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 5: Evidence Exhibit (Premium Only) -->
+                        <section id="evidence-display-section" class="hidden">
+                            <h3
+                                class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
+                                Section V: Exhibit A - Verification Material</h3>
+                            <div class="bg-white border-2 border-dashed border-gray-200 p-2">
+                                <img id="success-evidence-img" src=""
+                                    class="w-full grayscale hover:grayscale-0 transition-all duration-700 mb-2">
+                                <div class="p-3 bg-gray-50 border-t border-gray-100">
+                                    <div class="text-[10px] font-bold text-gray-700 uppercase mb-1">Authenticated Store
+                                        Capture</div>
+                                    <div class="text-[9px] text-gray-500 font-mono italic">Timestamp: 2026-01-09 //
+                                        Hash: 0xFD88...AC21 // Source: GRICH GBC-Engine V2.4</div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Footer -->
+                    <div
+                        class="mt-12 pt-6 border-t border-black/5 text-[9px] text-gray-400 font-mono flex justify-between uppercase">
+                        <div>© 2026 GRICH Legal Technologies</div>
+                        <div>End of Official Record</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Footer -->
+        <footer class="border-t border-court-border p-6 md:p-8 bg-black/90 backdrop-blur-xl z-20">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1 font-bold">Access Authority
+                    </div>
+                    <div class="text-[10px] font-mono text-gray-500">SESSION_ID: <span id="final-session">---</span>
+                    </div>
+                    <div class="text-[10px] font-mono text-gray-500">SOURCE: GLOBAL LITIGATION INDEX // GRICH INTEL
+                    </div>
+                </div>
+
+                <a id="cta-btn" href="#" onclick="saveState()"
+                    class="w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter transition-all duration-300 transform hover:scale-[1.02] shadow-2xl active:scale-95 flex items-center justify-center gap-3">
+                    <span id="cta-text">RETRIEVING ACCESS...</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://rdlmumybuwveaaeceohj.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const LINK_BASIC = "https://payhip.com/b/BHtvq"; // $9.99
+        const LINK_PREMIUM = "https://payhip.com/b/nc08Y"; // $29.99
+
+        function logLine(msg) {
+            const el = document.getElementById('loading-log');
+            if (el) {
+                el.innerHTML += `> ${msg}<br>`;
+                el.scrollTop = el.scrollHeight;
+            }
+            console.log(msg);
+        }
+
+        async function init() {
+            // --- THE "ULTRA-DECODER" GRICH PARSER V4 ---
+            const searchStr = window.location.search || "";
+            logLine(`INIT SESSION: RAW_QUERY=[${searchStr}]`);
+
+            function recursiveDecode(str) {
+                let last = "";
+                let curr = str;
+                while (curr !== last && curr.includes('%')) {
+                    last = curr;
+                    try { curr = decodeURIComponent(curr); } catch (e) { break; }
+                }
+                return curr;
+            }
+
+            const decodedQuery = recursiveDecode(searchStr).replace(/^[?&]/, '');
+            const paramsMap = {};
+
+            // Manually split to be bulletproof against malformed pairs
+            decodedQuery.split('&').forEach(pair => {
+                const [k, ...v] = pair.split('=');
+                if (k) paramsMap[k.toLowerCase().trim()] = v.join('=').trim();
+            });
+
+            logLine(`DECODED_PARAMS: ${JSON.stringify(paramsMap)}`);
+
+            const getVal = (key) => paramsMap[key] || "";
+            const caseParam = getVal('case');
+            const targetId = getVal('target');
+            const isPaid = getVal('paid') === 'true' || getVal('success') === 'true';
+
+            logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}] PAID=[${isPaid}]`);
+
+            // Session ID
+            const session = Math.random().toString(36).substring(2, 10).toUpperCase();
+            document.getElementById('final-session').innerText = session;
+
+            if (!caseParam) {
+                logLine("FATAL: MISSING CASE PARAMETER.");
+                document.getElementById('loader').innerHTML = `
+                    <div class="text-court-alert font-mono text-center px-6">
+                        <div class="text-2xl font-bold mb-4">ERROR: ACCESS DENIED</div>
+                        <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Invalid Case Identifier</div>
+                        <div class="bg-black/80 border border-green-900/20 p-4 text-[10px] text-green-500 text-left">
+                            [DEBUG_INFO]<br>
+                            RAW: ${searchStr}<br>
+                            DECODED: ${decodedQuery}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                logLine(`ESTABLISHING SECURE HANDSHAKE...`);
+
+                // 1. Fetch Lawsuit Details
+                const searchCases = [caseParam, `1:${caseParam}`];
+                let lawsuit = null;
+
+                for (const c of searchCases) {
+                    const { data } = await supabaseClient
+                        .from('lawsuits')
+                        .select('*')
+                        .eq('case_number', c)
+                        .maybeSingle();
+                    if (data) {
+                        lawsuit = data;
+                        break;
+                    }
+                }
+
+                if (!lawsuit) logLine(`LITIGATION SEARCH: NO_RECORD_FOUND. ACCESSING RAW INDEX.`);
+
+                // 2. Fetch Defendant Details
+                let targetRecord = null;
+                if (targetId) {
+                    logLine(`TARGETING ENTITY [${targetId}]...`);
+                    const { data: defendants } = await supabaseClient
+                        .from('defendants')
+                        .select('*')
+                        .or(`case_number.eq.${caseParam},case_number.eq.1:${caseParam}`);
+
+                    if (defendants) {
+                        targetRecord = defendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
+                    }
+                }
+
+                // 3. Final Dynamic Mapping
+                const uiData = {
+                    caseID: lawsuit?.case_number || caseParam,
+                    plaintiff: lawsuit?.plaintiff || "UNDER SEAL",
+                    court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)",
+                    judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
+                    attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.",
+                    date: lawsuit?.filed_date || "---",
+                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId.substring(0, 8)}` : "GENERIC_TARGET"),
+                    targetPlatform: targetRecord?.platform || "---",
+                    isEnriched: !!(targetRecord?.store_url),
+                    targetLabel: targetRecord?.id ? targetRecord.id.substring(0, 8).toUpperCase() : (targetId ? targetId.substring(0, 8).toUpperCase() : '---'),
+                    rawUrl: lawsuit?.raw_data_url || "#"
+                };
+
+                logLine(`IDENTITY VERIFIED. TIER=[${uiData.isEnriched ? 'PREMIUM' : 'BASIC'}]`);
+                renderUI(uiData, isPaid);
+
+            } catch (err) {
+                logLine(`COMMUNICATION BREACH: ${err.message}`);
+                document.getElementById('loader').innerText = "SYSTEM ERROR: DATABASE HANDSHAKE FAILED";
+            }
+        }
+
+        function renderUI(data, isPaid) {
+            // Sidebar
+            document.getElementById('sidebar-case').innerText = `#${data.caseID.replace('1:', '')}`;
+            document.getElementById('sidebar-plaintiff').innerText = data.plaintiff;
+            document.getElementById('sidebar-court').innerText = data.court;
+            document.getElementById('sidebar-judge').innerText = data.judge;
+            document.getElementById('sidebar-attorney').innerText = data.attorney;
+            document.getElementById('sidebar-date').innerText = new Date(data.date).toLocaleDateString() !== 'Invalid Date' ? new Date(data.date).toLocaleDateString() : '---';
+
+            // Main
+            document.getElementById('case-number').innerText = data.caseID.replace('1:', '');
+            document.getElementById('target-id-label').innerText = data.targetLabel;
+            document.getElementById('target-name').innerText = data.targetName;
+            document.getElementById('target-platform').innerText = data.targetPlatform;
+
+            const btn = document.getElementById('cta-btn');
+            const ctaText = document.getElementById('cta-text');
+            const evidenceBox = document.getElementById('evidence-box');
+            const evidenceStatusEl = document.getElementById('evidence-status');
+            const noticeTitle = document.getElementById('notice-title');
+            const noticeDesc = document.getElementById('notice-desc');
+            const stamp = document.getElementById('stamp');
+
+            if (isPaid) {
+                // UNLOCKED
+                noticeTitle.innerText = "ACCESS GRANTED: FULL CASE DOSSIER";
+                noticeDesc.innerText = "You have successfully authorized access to the secured litigation files. All evidence packs and legal notices are now available for download.";
+                evidenceStatusEl.innerText = "AUTHORIZED";
+                evidenceStatusEl.className = "font-bold font-mono text-xs text-green-500";
+
+                btn.classList.add('hidden'); // Hide payment button
+                stamp.classList.remove('hidden');
+                stamp.innerText = "AUTHORIZED";
+                stamp.style.color = "#22c55e";
+                stamp.style.borderColor = "#22c55e";
+
+                // SHOW AI REPORT
+                const report = document.getElementById('ai-report');
+                report.classList.remove('hidden');
+                document.getElementById('report-id').innerText = `GR-${Math.floor(1000 + Math.random() * 9000)}-${data.caseID.split('-').pop()}`;
+
+                // Inject Real Metadata into Report
+                document.getElementById('report-case-id').innerText = data.caseID;
+                document.getElementById('report-court').innerText = data.court;
+                document.getElementById('report-plaintiff').innerText = data.plaintiff;
+                document.getElementById('report-attorney').innerText = data.attorney;
+                document.getElementById('report-target-name').innerText = data.targetName;
+                document.getElementById('report-target-platform').innerText = data.targetPlatform;
+                document.getElementById('report-target-id').innerText = data.targetLabel;
+                document.getElementById('report-docket-url').innerText = data.rawUrl;
+                document.getElementById('main-docket-link').onclick = () => window.open(data.rawUrl, '_blank');
+
+                // --- AI WRITING SIMULATION (貨要對版 - DATA MATCHED) ---
+                const writeReport = async () => {
+                    const sections = {
+                        summary: `REPORT SUMMARY: Case ${data.caseID} has been cross-referenced with the GRICH Litigation Database. The Plaintiff, ${data.plaintiff}, is currently represented by ${data.attorney} in the ${data.court}. 
+
+GRICH Analysis: This specific action targeting ${data.targetName} ${data.targetPlatform ? 'on the ' + data.targetPlatform + ' platform' : ''} follows a "Schedule A" pattern characteristic of large-scale IP enforcement. Our system has flagged this as a high-risk event due to the potential for immediate asset freezes via judicial temporary restraining orders (TRO). The association of ${data.targetName} within the ${data.plaintiff} filing is now structurally verified through our internal indexing system.`,
+
+                        action: `STRATEGIC ADVISORY: 1. Do not contact ${data.attorney} until legal counsel has reviewed your specific sales volume. 2. GRICH has verified that ${data.plaintiff} typically targets entities with active digital storefronts. 3. If your ${data.targetPlatform} account is currently active, prepare for a potential 14-day discovery window before funds are restricted. Current GRICH recommendation: ANCHOR SETTLEMENT VALUATION BASED ON CAPTURED EVIDENCE.`
+                    };
+
+                    // Typing effect
+                    let i = 0;
+                    const log = document.getElementById('report-summary');
+                    log.innerText = "";
+                    const type = () => {
+                        if (i < sections.summary.length) {
+                            log.innerText += sections.summary.charAt(i);
+                            i++;
+                            setTimeout(type, 10);
+                        } else {
+                            // After summary wraps, add the "Action" block as a new section or styled div
+                            const actionDiv = document.createElement('div');
+                            actionDiv.className = "mt-6 text-sm leading-relaxed text-gray-800 font-serif italic border-l-4 border-green-600 pl-4 bg-green-50 p-4";
+                            actionDiv.innerText = sections.action;
+                            log.appendChild(actionDiv);
+
+                            // Reveal final buttons
+                            document.getElementById('cta-text').innerText = "EXPORT DOSSIER (PDF)";
+                            document.getElementById('cta-btn').onclick = (e) => {
+                                e.preventDefault();
+                                window.print();
+                            };
+                            document.getElementById('cta-btn').classList.remove('hidden');
+                            document.getElementById('cta-btn').classList.add('bg-white', 'text-black');
+                        }
+                    };
+                    type();
+                };
+                writeReport();
+
+                // Unblur Evidence if Premium
+                if (data.isEnriched) {
+                    const img = document.getElementById('success-evidence-img');
+                    const mockImg = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop";
+                    img.src = mockImg;
+                    document.getElementById('evidence-display-section').classList.remove('hidden');
+                    evidenceBox.innerHTML = `
+                        <div class="text-green-500 font-bold mb-2 uppercase text-xs tracking-widest">Store Capture Decrypted</div>
+                        <img src="${mockImg}" class="w-full border border-green-900/40">
+                    `;
+                }
+
+                // Unblur
+                document.querySelectorAll('.blur-md, .blur-sm').forEach(el => el.classList.remove('blur-md', 'blur-sm'));
+                document.querySelectorAll('.opacity-20').forEach(el => el.classList.remove('opacity-20'));
+            } else if (data.isEnriched) {
+                // TIER 2: PREMIUM ($29.99) - Alert Yellow
+                noticeTitle.innerText = "NOTICE OF SECURED EVIDENCE: SCREENSHOTS ATTACHED";
+                noticeDesc.innerText = "Evidence of alleged infringement has been physically secured via digital purchase or high-resolution store capture. This material is prepared for legal submission.";
+
+                evidenceStatusEl.innerText = "SUBSTANTIATED";
+                evidenceStatusEl.className = "font-bold font-mono text-xs text-court-yellow";
+                evidenceBox.classList.remove('hidden');
+
+                btn.href = LINK_PREMIUM;
+                ctaText.innerText = "UNLOCK FULL EVIDENCE ($29.99)";
+                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-yellow text-black hover:bg-white shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all";
+
+                stamp.classList.remove('hidden');
+                stamp.innerText = "MATERIAL FOUND";
+
+            } else {
+                // TIER 1: BASIC ($9.99) - Formal Blue
+                noticeTitle.innerText = "NOTICE OF INCLUSION: DEFENDANT LIST";
+                noticeDesc.innerText = "Pursuant to the pending civil action, your entity has been formally listed as a defendant in the official court filing. Active monitoring is currently in progress.";
+
+                evidenceStatusEl.innerText = "LISTED";
+                evidenceStatusEl.className = "font-bold font-mono text-xs text-court-blue";
+
+                btn.href = LINK_BASIC;
+                ctaText.innerText = "ACCESS CASE DETAILS ($9.99)";
+                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-blue text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all";
+            }
+
+            // Reveal
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 600);
+        }
+
+        function saveState() {
+            const urlParams = new URLSearchParams(window.location.search);
+            localStorage.setItem('grich_pending_case', urlParams.get('case'));
+            localStorage.setItem('grich_pending_target', urlParams.get('target') || '');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

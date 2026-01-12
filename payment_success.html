@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROCESSING...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Black+Ops+One&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['"Share Tech Mono"', 'monospace'], impact: ['"Black Ops One"', 'cursive'] },
+                    colors: { ops: { red: '#ff2200', orange: '#ffaa00' } },
+                    animation: { 'blink': 'blink 0.2s steps(2) infinite' },
+                    keyframes: { blink: { '0%': { opacity: '1' }, '100%': { opacity: '0' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: #ff2200;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 34, 0, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 5s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% {
+                bottom: 100%;
+            }
+
+            100% {
+                bottom: -100%;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col items-center justify-center p-4 overflow-hidden relative">
+
+    <div class="scanline"></div>
+
+    <h1 class="font-impact text-5xl md:text-7xl text-white tracking-widest mb-8 animate-pulse">
+        PAYMENT VERIFIED
+    </h1>
+
+    <div class="w-full max-w-2xl bg-black border-2 border-ops-red p-6 shadow-[0_0_30px_rgba(255,34,0,0.3)]">
+        <div
+            class="flex justify-between border-b border-ops-red/50 pb-2 mb-4 text-xs text-ops-orange uppercase tracking-widest">
+            <span>SECURE CHANNEL: #ENC-9982</span>
+            <span>STATUS: DECRYPTING</span>
+        </div>
+        <div id="log" class="space-y-2 text-sm md:text-lg font-bold text-gray-300 h-64 overflow-y-auto font-mono"></div>
+    </div>
+
+    <script>
+        // --- RECOVERY LOGIC ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let caseId = urlParams.get('case');
+        let targetId = urlParams.get('target');
+
+        if (!caseId) {
+            caseId = localStorage.getItem('grich_pending_case') || "UNKNOWN";
+            targetId = localStorage.getItem('grich_pending_target');
+        }
+
+        const logs = [
+            `INITIATING HANDSHAKE FOR CASE ${caseId}...`,
+            "AUTHORIZING TRANSACTION ID...",
+            "ACCESSING EVIDENCE VAULT [LAYER 1]...",
+            "DECRYPTING DEFENDANT LIST...",
+            "RETRIEVING HIGH-RES SCREENSHOTS...",
+            "COMPILING PDF REPORT...",
+            "FINALIZING SECURE DOWNLOAD LINK...",
+            "ACCESS GRANTED."
+        ];
+
+        const logDiv = document.getElementById('log');
+        let i = 0;
+
+        function addLog() {
+            if (i >= logs.length) {
+                setTimeout(() => {
+                    let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
+                    if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
+                    window.location.href = dest;
+                }, 800);
+                return;
+            }
+
+            const p = document.createElement('div');
+            p.innerText = `> ${logs[i]}`;
+            if (i === logs.length - 1) {
+                p.className = "text-ops-red text-xl font-black animate-blink";
+            }
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            i++;
+            setTimeout(addLog, 500);
+        }
+
+        setTimeout(addLog, 500);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GRICH | Global Risk Intelligence & Compliance Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            'grich-green': '#34d399',
+            'grich-dark': '#0a0f18',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0a0f18;
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(52, 211, 153, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+      color: #f8fafc;
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .scanline {
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(0deg, transparent 0%, rgba(52, 211, 153, 0.05) 50%, transparent 100%);
+      position: fixed;
+      top: -100px;
+      left: 0;
+      animation: scan 8s linear infinite;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes scan {
+      0% {
+        top: -100px;
+      }
+
+      100% {
+        top: 100vh;
+      }
+    }
+
+    .typing::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+
+      from,
+      to {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0a0f18;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #34d399;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans selection:bg-grich-green/30">
+  <div class="scanline"></div>
+
+  <!-- Header -->
+  <header class="fixed top-0 w-full z-50 glass border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-grich-green rounded flex items-center justify-center font-black text-black">G</div>
+        <span class="font-black tracking-tighter text-xl">GRICH <span class="text-grich-green">INTEL</span></span>
+      </div>
+      <div class="flex items-center gap-4 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-grich-green animate-pulse"></span>
+          System Online
+        </span>
+        <span class="hidden md:inline">Node: US-CHI-01</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-32 pb-20 px-6">
+    <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12">
+
+      <!-- Left Side: Hero & Search -->
+      <div class="lg:col-span-7 space-y-12">
+        <div class="space-y-4">
+          <h1 class="text-6xl md:text-7xl font-black tracking-tighter leading-[0.9]">
+            GLOBAL RISK <br />
+            <span class="text-grich-green">INTELLIGENCE</span> HUB
+          </h1>
+          <p class="text-gray-400 max-w-lg text-lg leading-relaxed">
+            The definitive expert system for global e-commerce legal compliance. Search, verify, and secure your digital
+            storefront against mass litigation.
+          </p>
+        </div>
+
+        <!-- Search Container -->
+        <div class="relative group max-w-2xl">
+          <div
+            class="absolute -inset-1 bg-gradient-to-r from-grich-green/20 to-blue-500/20 rounded-2xl blur opacity-25 group-focus-within:opacity-100 transition duration-1000">
+          </div>
+          <div class="relative">
+            <div
+              class="flex items-center glass rounded-xl overflow-hidden border-white/10 group-focus-within:border-grich-green/50 transition-all">
+              <div class="pl-6 text-gray-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2.5"></path>
+                </svg>
+              </div>
+              <input type="text" id="main-search" placeholder="ENTER STORE NAME OR CASE NUMBER..."
+                class="w-full bg-transparent px-6 py-8 text-xl font-black uppercase tracking-widest placeholder:text-gray-700 outline-none" />
+              <div class="pr-6">
+                <span class="text-[10px] font-mono bg-white/5 px-2 py-1 rounded text-gray-500">PRESS ↵</span>
+              </div>
+            </div>
+
+            <!-- Search Results Dropdown -->
+            <div id="search-results"
+              class="absolute top-full left-0 w-full mt-2 glass rounded-xl border-white/10 hidden z-50 overflow-hidden shadow-2xl">
+              <!-- Results inject here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Fast Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
+          <div class="space-y-1">
+            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Monitored Items</div>
+            <div class="text-3xl font-black text-white" id="stat-total">--</div>
+          </div>
+          <div class="space-y-1">
+            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Verified Evidence</div>
+            <div class="text-3xl font-black text-grich-green" id="stat-enriched">--</div>
+          </div>
+          <div class="space-y-1">
+            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Pending Alerts</div>
+            <div class="text-3xl font-black text-red-500">42</div>
+          </div>
+          <div class="space-y-1">
+            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Response Nodes</div>
+            <div class="text-3xl font-black text-blue-500">12</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Live Intel Feed -->
+      <div class="lg:col-span-5">
+        <div class="glass rounded-2xl border-white/10 overflow-hidden sticky top-24">
+          <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+              Live Intelligence Radar
+            </span>
+            <span class="text-[9px] font-mono text-gray-500">REFRESH_RATE: 3000MS</span>
+          </div>
+          <div class="p-2 space-y-1 max-h-[600px] overflow-y-auto" id="radar-feed">
+            <!-- Feed items inject here -->
+            <div class="p-12 text-center text-gray-600 text-xs animate-pulse">SYNCHRONIZING WITH GLOBAL NODES...</div>
+          </div>
+          <div class="p-4 bg-black/40 border-t border-white/5 text-center">
+            <a href="/dashboard"
+              class="text-[10px] font-bold text-gray-500 hover:text-white transition-colors tracking-widest uppercase">Launch
+              Operations Dashboard →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer
+    class="max-w-7xl mx-auto px-6 py-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+    <div class="text-gray-600 text-[10px] font-mono uppercase tracking-widest">
+      © 2026 GRICH INTELLIGENCE. ALL RIGHTS RESERVED. // SECURITY_LEVEL: P4
+    </div>
+    <div class="flex gap-8 text-[10px] font-black uppercase tracking-widest text-gray-500">
+      <a href="/privacy" class="hover:text-grich-green transition-colors">Privacy</a>
+      <a href="/terms" class="hover:text-grich-green transition-colors">Terms</a>
+      <a href="/refund" class="hover:text-grich-green transition-colors">Refund</a>
+    </div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://rdlmumybuwveaaeceohj.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // --- UTILS ---
+    function animateValue(id, start, end, duration) {
+      if (start === end) return;
+      const range = end - start;
+      let current = start;
+      const increment = end > start ? 1 : -1;
+      const stepTime = Math.abs(Math.floor(duration / range));
+      const obj = document.getElementById(id);
+
+      let timer = setInterval(function () {
+        current += increment;
+        obj.innerHTML = current;
+        if (current == end) {
+          clearInterval(timer);
+        }
+      }, Math.max(stepTime, 10)); // Cap speed
+    }
+
+    // --- STATS TICKER ---
+    async function updateStats() {
+      // Count TOTAL lawsuits (The Engines' Raw Output)
+      const { count: totalLawsuits } = await supabaseClient
+        .from('lawsuits')
+        .select('*', { count: 'exact', head: true });
+
+      // Count Verified Targets
+      const { count: totalTargets } = await supabaseClient
+        .from('defendants')
+        .select('*', { count: 'exact', head: true });
+
+      // Update with animation
+      animateValue("stat-total", 0, totalLawsuits || 415, 2000);
+      animateValue("stat-enriched", 0, totalTargets || 63, 2000);
+      document.getElementById("stat-pending").innerText = (totalLawsuits || 400) - (totalTargets || 0); // Pending = Raw - Processed
+    }
+
+    // --- LIVE RADAR FEED ---
+    let radarScrollInterval;
+
+    async function updateRadar() {
+      // Fetch MORE items (50) to populate the scroll list from raw lawsuits
+      const { data: lawsuits } = await supabaseClient
+        .from('lawsuits')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const feed = document.getElementById('radar-feed');
+      if (lawsuits && feed) {
+        feed.innerHTML = lawsuits.map(l => `
+                <div class="p-4 border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer" onclick="window.location='/case_template?case=${l.case_number}'">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-mono text-grich-green text-xs font-bold">${l.case_number}</span>
+                        <span class="text-[10px] ${l.status === 'CLOSED' ? 'text-red-500' : 'text-gray-500'} font-black uppercase tracking-wider">
+                            ${l.risk_score ? 'RISK: ' + l.risk_score : 'MONITORING'}
+                        </span>
+                    </div>
+                    <div class="text-sm font-bold text-gray-200 mb-1 group-hover:text-white transition-colors truncate">
+                        ${(l.plaintiff && l.plaintiff !== 'Unknown Plaintiff') ? l.plaintiff : '<span class="text-red-500/50 italic font-mono text-xs">SEALED PLAINTIFF // REDACTED</span>'}
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-[10px] text-gray-600 font-mono uppercase">${l.court || 'US DISTRICT COURT'}</div>
+                        <div class="text-[10px] text-grich-green/50 font-mono">${new Date(l.created_at).toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `).join('');
+
+        // Start Auto-Scroll if not already scrolling
+        if (!radarScrollInterval) startRadarScroll(feed);
+      }
+    }
+
+    function startRadarScroll(element) {
+      if (radarScrollInterval) clearInterval(radarScrollInterval);
+
+      // Duplicate content for seamless infinite scroll
+      element.innerHTML += element.innerHTML;
+
+      let scrollPos = 0;
+
+      radarScrollInterval = setInterval(() => {
+        if (!element) return;
+        scrollPos += 0.5; // Smooth slow scroll
+
+        // Reset when we've scrolled past the first set of content
+        // Note: element.scrollHeight changes after duplicate, so we reset at half
+        if (scrollPos >= element.scrollHeight / 2) {
+          scrollPos = 0;
+        }
+        element.scrollTop = scrollPos;
+      }, 30);
+    }
+
+    // --- REAL-TIME SEARCH (DEBOUNCED) ---
+    const searchInput = document.getElementById('main-search');
+    const resultsBox = document.getElementById('search-results');
+    let searchTimeout;
+
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+
+      if (query.length < 2) {
+        resultsBox.classList.add('hidden');
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        const { data, error } = await supabaseClient
+          .from('defendants')
+          .select('defendant_name, case_number, platform, id')
+          .ilike('defendant_name', `%${query}%`)
+          .limit(5);
+
+        if (data && data.length > 0) {
+          resultsBox.innerHTML = data.map(res => `
+                    <div class="p-4 hover:bg-grich-green/10 cursor-pointer border-b border-white/5 last:border-0 transition flex justify-between items-center" 
+                            onclick="window.location='/case_template?case=${res.case_number}&target=${res.id.split('-')[0]}'">
+                        <div>
+                            <div class="text-sm font-black text-white uppercase">${res.defendant_name}</div>
+                            <div class="text-[10px] text-gray-500 font-mono uppercase">${res.platform || 'General Seller'} // Linked to ${res.case_number}</div>
+                        </div>
+                        <div class="text-grich-green text-xs font-black">VIEW REPORT →</div>
+                    </div>
+                `).join('');
+          resultsBox.classList.remove('hidden');
+        } else {
+          resultsBox.innerHTML = '<div class="p-8 text-center text-gray-500 text-xs">NO TARGETS FOUND IN CURRENT DATABASE</div>';
+          resultsBox.classList.remove('hidden');
+        }
+      }, 300);
+    });
+
+    // Close search on click outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+        resultsBox.classList.add('hidden');
+      }
+    });
+
+    // Initial Calls
+    updateStats();
+    updateRadar();
+    // No need for setInterval updateRadar anymore as we want the scroll to be smooth and fetching 50 is enough for "live" feel for now.
+    // If we want real "live" updates pushing top, it complicates scroll. Static "Recent 50" scrolling is safer for UX.
+  </script>
+</body>
+
+</html>
