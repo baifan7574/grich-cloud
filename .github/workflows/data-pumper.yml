@@ -80,17 +80,18 @@ jobs:
           git config --global user.name 'Grich Auto-Pumper'
           git config --global user.email 'bot@grich.law'
 
-          # 强制拉取最新状态
-          git pull origin main --rebase || echo "No remote changes to merge"
+          # 确保 dist 文件夹被识别
+          git add -f dist/sitemap.xml || echo "No sitemap to add"
 
-          if [ -f "dist/sitemap.xml" ]; then
-            git add dist/sitemap.xml
-            if git diff --staged --quiet; then
-              echo "No data changes detected. Mission accomplished."
-            else
-              git commit -m "chore: auto-harvest legal data update [skip ci]"
-              git push origin main
-            fi
+          if git diff --staged --quiet; then
+            echo "✅ No data changes detected. System is in sync."
           else
-            echo "⚠️ Sitemap missing in dist/! Critical data failure."
+            echo "📝 Changes detected. Committing..."
+            git commit -m "chore: auto-harvest legal data update [skip ci]"
+            
+            # 使用更鲁棒的推送重试机制
+            for i in {1..5}; do
+              echo "Push attempt $i..."
+              git push origin main && break || (echo "Push failed, retrying in 5s..." && sleep 5 && git pull origin main --rebase)
+            done
           fi

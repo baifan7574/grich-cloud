@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Dependencies
 node_modules/
 .pnp
@@ -26,16 +25,8 @@ pnpm-debug.log*
 Thumbs.db
 
 # Cloudflare
-.wrangler/
-=======
-.env
-node_modules/
-dist/
-.wrangler/
-.DS_Store
 .idea/
 .vscode/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
->>>>>>> c805eb644462a92df45bdae3055cfe40b3bee77d
+
+# Allow sitemap in dist
+!dist/sitemap.xml
