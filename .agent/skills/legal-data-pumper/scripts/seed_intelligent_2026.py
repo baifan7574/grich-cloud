@@ -8,13 +8,13 @@ import os
 import re
 from datetime import datetime
 
-# 动态路径
+# 动态路径：从 scripts/ 向上跳 4 级到达项目根目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
-skills_dir = os.path.dirname(os.path.dirname(script_dir))
-agent_dir = os.path.dirname(skills_dir)
-grich_dir = os.path.dirname(agent_dir)
-project_root = os.path.dirname(grich_dir)
-env_path = os.path.join(grich_dir, '.env')
+project_root = os.path.abspath(os.path.join(script_dir, "../../../../"))
+env_path = os.path.join(project_root, '.env')
+
+print(f"📡 Project Root: {project_root}")
+print(f"📡 Environment Path: {env_path}")
 
 # 🎯 鲁棒性改进：优先从系统环境变量读取，支持自动化运行
 SUPABASE_URL = os.environ.get("PUBLIC_SUPABASE_URL")
