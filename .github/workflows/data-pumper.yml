@@ -1,53 +1,60 @@
-name: GRICH Data Pumper (24/7 Automation)
+name: GRICH Data Pumper (Verified SSR Automation)
 
 on:
   schedule:
-    - cron: "0 */4 * * *" # 每4小时运行一次
-  workflow_dispatch: # 允许手动触发
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
 
 permissions:
-  contents: write # 授予推送代码的权限
+  contents: write
 
 jobs:
-  pump:
+  automation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.9"
 
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install supabase python-dotenv requests
 
-      - name: Run Legal Data Pumper (Real Cases)
-        # 🎯 物理注入：直接使用已知合法的环境变量，规避 Secrets 缺失问题
+      - name: Exec Data Pumper (SOP Chapter 17)
         env:
           PUBLIC_SUPABASE_URL: "https://rdlmumybuwveaaeceohj.supabase.co"
           PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj"
         run: |
+          # 🎯 物理定位脚本，确保在 Actions 环境中执行
           python .agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Build Sitemap & Static Assets
+      - name: Install Node Dependencies (Force Install)
         run: |
-          npm install
+          npm install fs-extra dotenv @supabase/supabase-js
+
+      - name: Build Assets & Sitemap (SOP Chapter 7)
+        run: |
+          # 确保 dist 目录存在
+          mkdir -p dist
           node build.js
 
-      - name: Commit & Push Changes (Sitemap Update)
+      - name: Commit & Sync (SOP Chapter 8)
         run: |
-          git config --global user.name 'Grich Bot'
+          git config --global user.name 'Grich Deploy Bot'
           git config --global user.email 'bot@grich.law'
           git add dist/sitemap.xml
-          # 如果没有变化就跳过，不报错
-          git commit -m "chore: auto-update sitemap with new legal data [skip ci]" || echo "No changes to commit"
+          # [skip ci] 防止触发循环构建
+          git commit -m "chore: automated seo data harvest [skip ci]" || echo "No changes detected"
           git push origin main
