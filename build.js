@@ -3,11 +3,10 @@ const path = require('path');
 
 async function build() {
   try {
-    // 创建dist目录
     const distDir = path.join(__dirname, 'dist');
     await fs.ensureDir(distDir);
 
-    // 复制HTML文件
+    // 仅复制 HTML 文件到 dist
     const htmlFiles = await fs.readdir(__dirname);
     for (const file of htmlFiles) {
       if (path.extname(file) === '.html') {
@@ -15,26 +14,19 @@ async function build() {
           path.join(__dirname, file),
           path.join(distDir, file)
         );
-        console.log(`✅ 复制HTML: ${file}`);
+        console.log(`✅ Copying: ${file}`);
       }
     }
 
-    // ⚠️ 重要：functions/ 必须保留在根目录，与dist/平级
-    // Cloudflare Pages会自动识别根目录的functions/
-    console.log('📁 functions/ 保留在根目录（与dist/平级）');
-
-    // 🚀 生成 Sitemap
-    console.log('🗺️ 正在生成 Sitemap...');
-    try {
-      const { execSync } = require('child_process');
-      execSync('node scripts/generate_sitemap.js', { stdio: 'inherit' });
-    } catch (err) {
-      console.warn('⚠️ Sitemap 生成失败 (非致命错误):', err.message);
+    // 复制 sitemap.xml 如果在根目录存在
+    if (fs.existsSync(path.join(__dirname, 'sitemap.xml'))) {
+      await fs.copy(path.join(__dirname, 'sitemap.xml'), path.join(distDir, 'sitemap.xml'));
+      console.log('✅ Copying: sitemap.xml');
     }
 
-    console.log('🚀 构建完成 - pSEO结构就绪');
+    console.log('🚀 Build Success - Files copied to dist');
   } catch (error) {
-    console.error('❌ 构建失败:', error);
+    console.error('❌ Build Failed:', error);
     process.exit(1);
   }
 }
