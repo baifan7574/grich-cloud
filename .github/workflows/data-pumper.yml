@@ -1,6 +1,8 @@
 name: GRICH Data Pumper (Production Zero-Failure)
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "0 */4 * * *"
   workflow_dispatch:
