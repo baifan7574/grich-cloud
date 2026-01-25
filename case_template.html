@@ -712,10 +712,10 @@
             const brand = data.plaintiff.split(' ')[0] || 'BRAND';
             document.getElementById('case-brand').innerText = brand;
 
-            // 实时修改主标题为对抗模式
-            const mainHeader = document.querySelector('h1.text-4xl.md\\:text-6xl');
+            // 实时修改主标题为对抗模式 - 使用精准 ID
+            const mainHeader = document.getElementById('main-case-header');
             if (mainHeader) {
-                mainHeader.innerHTML = `${brand} <span class="text-white">v.</span> ${displayDefendant.toUpperCase()}`;
+                mainHeader.innerHTML = `<span class="text-court-yellow">${brand}</span> <span class="text-white">v.</span> ${displayDefendant.toUpperCase()}`;
             }
 
             document.getElementById('case-attorney').innerText = data.attorney;
