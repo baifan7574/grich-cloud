@@ -1,0 +1,46 @@
+name: GRICH Data Pumper (24/7 Automation)
+
+on:
+  schedule:
+    - cron: '0 */4 * * *' # 每4小时运行一次
+  workflow_dispatch:      # 允许手动触发
+
+jobs:
+  pump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install supabase python-dotenv requests
+
+      - name: Run Legal Data Pumper (Real Cases)
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          python .agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Build Sitemap & Static Assets
+        run: |
+          npm install
+          node build.js
+
+      - name: Commit & Push Changes (Sitemap Update)
+        run: |
+          git config --global user.name 'Grich Bot'
+          git config --global user.email 'bot@grich.law'
+          git add dist/sitemap.xml
+          git commit -m "chore: auto-update sitemap with new legal data [skip ci]" || echo "No changes to commit"
+          git push
