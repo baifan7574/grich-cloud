@@ -613,6 +613,7 @@
             const getVal = (key) => paramsMap[key] || "";
             const caseParam = getVal('case');
             const targetId = getVal('target');
+            const defendantParam = getVal('defendant'); // 🎯 NEW: 读取被告参数
             const isPaid = getVal('paid') === 'true' || getVal('success') === 'true';
 
             logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}] PAID=[${isPaid}]`);
@@ -681,7 +682,7 @@
                     judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
                     attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.",
                     date: lawsuit?.filed_date || "---",
-                    targetName: targetRecord?.defendant_name || (targetId ? `ID_${targetId.substring(0, 8)}` : "GENERIC_TARGET"),
+                    targetName: targetRecord?.defendant_name || defendantParam || (targetId ? `ID_${targetId.substring(0, 8)}` : "LOCATING TARGET..."),
                     targetPlatform: targetRecord?.platform || "---",
                     isEnriched: !!(targetRecord?.store_url),
                     targetLabel: targetRecord?.id ? targetRecord.id.substring(0, 8).toUpperCase() : (targetId ? targetId.substring(0, 8).toUpperCase() : '---'),
