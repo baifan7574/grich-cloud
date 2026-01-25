@@ -514,10 +514,20 @@ print(f"✅ 已归档: {new_location}")
 
 律所脚本：必须匹配对应的和解金历史数据。若匹配率低于 80%，标记为异常。
 
-3. 故障穿透指令
-自动报错诊断：一旦 GitHub Action 失败，AI 必须立即调用工具读取 workflow run logs，直接指出哪一行代码报错，严禁让用户去猜。
+技能 2：法律数据收割审计协议
+拒绝虚假成功：严禁仅凭代码推送到 GitHub 就宣布成功。必须核查 GitHub Actions 的 真实状态码。
 
-自愈尝试：AI 应当尝试修改 data-pumper.yml 配置，通过增加重试机制（Retry）或更换运行环境来解决超时问题。
+环境硬核自检：
+1. 脚本运行的第一步必须是检测 SUPABASE_URL 和 SUPABASE_KEY 是否存在。
+2. 如果不存在，必须立刻报错并停止，严禁谎称“环境自适应”。
+
+日志穿透核验：
+1. 如果运行失败（红叉），AI 必须自动读取 GitHub Action 的 Step Logs。
+2. 必须找出是哪一行 Python 代码报错（如 ModuleNotFoundError 或 AuthError）。
+
+物理结果核实：
+1. 抓取完成后，AI 必须通过工具查询 Supabase 数据库的 count。
+2. 如果数据库行数没有增加，即使脚本显示绿色，也视为失败。
 
 🛠️ 怎么写这个“抓取技能”的 MD 文件？
 我们要把**“自我审计”**刻进它的骨子里。请要求它把 .agent/skills/legal-data-pumper/SKILL.md 更新为以下内容：
