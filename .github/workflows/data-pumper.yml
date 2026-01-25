@@ -67,9 +67,15 @@ jobs:
           fi
 
       - name: 🏗️ Build Master Sitemap (SKILL 7.0)
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           npm install fs-extra dotenv @supabase/supabase-js
+          # 先运行 build.js 准备基础 dist 目录
           node build.js
+          # 再运行真正的 Sitemap 生成器更新数据
+          node scripts/generate_sitemap.js
 
       - name: 🔄 Self-Healing Sync (SKILL 3.0)
         run: |
