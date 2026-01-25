@@ -1,5 +1,5 @@
-// Cloudflare Pages Function: 根路径处理
-// 读取defendant参数并动态替换HTML内容
+// Cloudflare Pages Function: 服务端暴力注入
+// SEO强渲染 - 直接在HTML中插入defendant内容
 export async function onRequest(context) {
     const { request, next } = context;
     const url = new URL(request.url);
@@ -24,22 +24,35 @@ export async function onRequest(context) {
     // 读取HTML内容
     let html = await response.text();
 
-    // 动态替换Store Name（表格中的第一个被告）
-    // 匹配: <td class="p-3 font-bold text-black">任意内容</td>
-    html = html.replace(
-        /(<td class="p-3 font-bold text-black">)([^<]+)(<\/td>)/,
-        `$1${defendant}$2$3`
-    );
+    // 🔥 服务端暴力注入：直接往tbody里塞HTML
+    // 找到空的 <tbody id="defendants-list">
+    const tbodyPattern = /<tbody id="defendants-list">\s*<!-- Rows inserted by JS -->\s*<\/tbody>/;
 
-    // 替换Target Name
+    // 创建完整的表格行HTML
+    const injectedRow = `<tbody id="defendants-list">
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="p-3 font-mono text-gray-500">1</td>
+                            <td class="p-3 font-bold text-black">${defendant}</td>
+                            <td class="p-3 font-mono text-gray-700">N/A</td>
+                            <td class="p-3 text-red-600 font-black">CRITICAL</td>
+                        </tr>
+                        <!-- Rows inserted by JS -->
+                    </tbody>`;
+
+    // 替换空tbody为包含defendant的tbody
+    html = html.replace(tbodyPattern, injectedRow);
+
+    // 同时替换其他显示目标名的地方
+    // 替换 id="target-name"
     html = html.replace(
-        /(id="target-name"[^>]*>)([^<]*)(</,
+        /(id="target-name"[^>]*>)LOCATING TARGET\.\.\.(</,
         `$1${defendant}$3`
     );
 
+    // 替换 Section II 中的 id="report-target-name"
     html = html.replace(
-        /(id="report-target-name">)([^<]*)(</,
-        `$1${defendant}$3`
+        /(id="report-target-name"><\/div>)/,
+        `id="report-target-name">${defendant}</div>`
     );
 
     // 返回修改后的HTML
