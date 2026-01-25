@@ -33,20 +33,23 @@ jobs:
 
       - name: 🔍 Environment Pre-check (SKILL 1.0)
         env:
-          PUBLIC_SUPABASE_URL: "https://rdlmumybuwveaaeceohj.supabase.co"
-          PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj"
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           echo "Checking Database Connectivity..."
           if [ -z "$PUBLIC_SUPABASE_URL" ] || [ -z "$PUBLIC_SUPABASE_ANON_KEY" ]; then
-            echo "❌ ERROR: Database Credentials missing in Environment!"
+            echo "❌ ERROR: Database Credentials missing in GitHub Secrets!"
             exit 1
           fi
-          echo "✅ Database Channel Ready."
+          # 动态注入临时 .env 防止脚本物理检查失败
+          echo "PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}" >> .env
+          echo "✅ Database Channel Ready & Env File Created."
 
       - name: 🚀 Exec Dual-Script Harvest (SKILL 2.0)
         env:
-          PUBLIC_SUPABASE_URL: "https://rdlmumybuwveaaeceohj.supabase.co"
-          PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj"
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           PYTHONPATH: ${{ github.workspace }}
         run: |
           set -e
