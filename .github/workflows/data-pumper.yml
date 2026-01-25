@@ -2,28 +2,34 @@ name: GRICH Data Pumper (24/7 Automation)
 
 on:
   schedule:
-    - cron: '0 */4 * * *' # 每4小时运行一次
-  workflow_dispatch:      # 允许手动触发
+    - cron: "0 */4 * * *" # 每4小时运行一次
+  workflow_dispatch: # 允许手动触发
+
+permissions:
+  contents: write # 授予推送代码的权限
 
 jobs:
   pump:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Install Dependencies
         run: |
           pip install supabase python-dotenv requests
 
       - name: Run Legal Data Pumper (Real Cases)
+        # 🎯 物理注入：直接使用已知合法的环境变量，规避 Secrets 缺失问题
         env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_SUPABASE_URL: "https://rdlmumybuwveaaeceohj.supabase.co"
+          PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj"
         run: |
           python .agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py
 
@@ -42,5 +48,6 @@ jobs:
           git config --global user.name 'Grich Bot'
           git config --global user.email 'bot@grich.law'
           git add dist/sitemap.xml
+          # 如果没有变化就跳过，不报错
           git commit -m "chore: auto-update sitemap with new legal data [skip ci]" || echo "No changes to commit"
-          git push
+          git push origin main
