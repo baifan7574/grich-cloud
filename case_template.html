@@ -701,12 +701,23 @@
         }
 
         function renderUI(data, isPaid) {
+            // 🎯 SEO & 千人千面：同步修改浏览器标签页标题
+            const displayDefendant = data.targetName || "UNIDENTIFIED ENTITY";
+            document.title = `LITIGATION ALERT: ${displayDefendant} v. ${data.plaintiff} | GRICH Case Index`;
+
             // Alert Banner
             document.getElementById('alert-plaintiff').innerText = data.plaintiff;
 
-            // Header - Brand vs Counterfeits
+            // Header - 🎯 深度适配标题：[原告] v. [被告]
             const brand = data.plaintiff.split(' ')[0] || 'BRAND';
             document.getElementById('case-brand').innerText = brand;
+
+            // 实时修改主标题为对抗模式
+            const mainHeader = document.querySelector('h1.text-4xl.md\\:text-6xl');
+            if (mainHeader) {
+                mainHeader.innerHTML = `${brand} <span class="text-white">v.</span> ${displayDefendant.toUpperCase()}`;
+            }
+
             document.getElementById('case-attorney').innerText = data.attorney;
 
             // Sidebar
@@ -719,9 +730,11 @@
 
             // Main
             document.getElementById('case-number').innerText = data.caseID.replace('1:', '');
-            document.getElementById('target-id-label').innerText = data.targetLabel;
-            document.getElementById('target-name').innerText = data.targetName;
-            document.getElementById('target-platform').innerText = data.targetPlatform;
+            document.getElementById('target-id-label').innerText = data.targetLabel || `GR-${Math.random().toString(36).substring(7).toUpperCase()}`;
+            document.getElementById('target-name').innerText = displayDefendant;
+
+            // 🎯 深度适配：如果平台为空，则显示为“独立域名/多平台监测”
+            document.getElementById('target-platform').innerText = data.targetPlatform === '---' ? "Proprietary Infrastructure / Domain" : data.targetPlatform;
 
             const btn = document.getElementById('cta-btn');
             const ctaText = document.getElementById('cta-text');
