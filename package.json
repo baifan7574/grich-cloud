@@ -1,7 +1,12 @@
 {
-    "name": "static-site",
-    "version": "1.0.0",
-    "scripts": {
-        "build": "mkdir -p dist && cp *.html dist/"
-    }
+  "name": "grich-astro",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.91.1",
+    "dotenv": "^17.2.3",
+    "fs-extra": "^11.2.0"
+  }
 }

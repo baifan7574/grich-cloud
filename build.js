@@ -23,6 +23,15 @@ async function build() {
     // Cloudflare Pages会自动识别根目录的functions/
     console.log('📁 functions/ 保留在根目录（与dist/平级）');
 
+    // 🚀 生成 Sitemap
+    console.log('🗺️ 正在生成 Sitemap...');
+    try {
+      const { execSync } = require('child_process');
+      execSync('node scripts/generate_sitemap.js', { stdio: 'inherit' });
+    } catch (err) {
+      console.warn('⚠️ Sitemap 生成失败 (非致命错误):', err.message);
+    }
+
     console.log('🚀 构建完成 - pSEO结构就绪');
   } catch (error) {
     console.error('❌ 构建失败:', error);
