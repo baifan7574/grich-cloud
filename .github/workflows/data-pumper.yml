@@ -33,30 +33,30 @@ jobs:
 
       - name: 🔍 Environment Pre-check (SKILL 1.0)
         env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # 冗余注入：不管老板起什么名字，通通接通
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
         run: |
-          echo "Checking Database Connectivity..."
-          if [ -z "$PUBLIC_SUPABASE_URL" ] || [ -z "$PUBLIC_SUPABASE_ANON_KEY" ]; then
-            echo "❌ ERROR: Database Credentials missing in GitHub Secrets!"
+          echo "Checking Database Credentials..."
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "❌ ERROR: Database Secret not found! Please ensure 'SUPABASE_SERVICE_KEY' is set in GitHub Actions Secrets."
             exit 1
           fi
-          # 动态注入临时 .env 防止脚本物理检查失败
-          echo "PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
-          echo "PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}" >> .env
-          echo "✅ Database Channel Ready & Env File Created."
+          # 强制生成 .env 适配所有历史遗留脚本
+          echo "PUBLIC_SUPABASE_URL=$URL" > .env
+          echo "PUBLIC_SUPABASE_ANON_KEY=$KEY" >> .env
+          echo "SUPABASE_URL=$URL" >> .env
+          echo "SUPABASE_SERVICE_KEY=$KEY" >> .env
+          echo "✅ Env File Synchronized."
 
       - name: 🚀 Exec Dual-Script Harvest (SKILL 2.0)
         env:
           PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          PYTHONPATH: ${{ github.workspace }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/.agent/skills/legal-data-pumper/scripts
         run: |
           set -e
-          echo "Current Path: $(pwd)"
-          ls -R .agent/skills/legal-data-pumper/scripts/
-
-          echo "Starting Court Data Harvester..."
+          echo "Starting Master Harvester..."
           python ".agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py"
 
           echo "Starting Law Firm Sniper..."
