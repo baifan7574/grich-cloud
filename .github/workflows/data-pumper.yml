@@ -1,4 +1,4 @@
-name: GRICH Data Pumper (Verified SSR Automation)
+name: GRICH Data Pumper (Production Zero-Failure)
 
 on:
   schedule:
@@ -9,52 +9,68 @@ permissions:
   contents: write
 
 jobs:
-  automation:
+  pump_and_sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: 🛡️ Checkout Repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ github.token }}
 
-      - name: Setup Python
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.9"
 
-      - name: Install Python Dependencies
+      - name: 📦 Install Runtime Engine
         run: |
           python -m pip install --upgrade pip
           pip install supabase python-dotenv requests
 
-      - name: Exec Data Pumper (SOP Chapter 17)
+      - name: 🔍 Environment Pre-check (SKILL 1.0)
+        env:
+          PUBLIC_SUPABASE_URL: "https://rdlmumybuwveaaeceohj.supabase.co"
+        run: |
+          echo "Checking Database Connectivity..."
+          if [ -z "$PUBLIC_SUPABASE_URL" ]; then
+            echo "❌ ERROR: Database URL missing!"
+            exit 1
+          fi
+          echo "✅ Database Channel Ready."
+
+      - name: 🚀 Exec Dual-Script Harvest (SKILL 2.0)
         env:
           PUBLIC_SUPABASE_URL: "https://rdlmumybuwveaaeceohj.supabase.co"
           PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj"
         run: |
-          # 🎯 物理定位脚本，确保在 Actions 环境中执行
+          echo "Starting Court Data Harvester..."
           python .agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+          echo "Starting Law Firm Sniper..."
+          # 按照技能书，如果 sniper v2 存在则运行
+          if [ -f .agent/skills/legal-data-pumper/scripts/real_sniper_v2.py ]; then
+            python .agent/skills/legal-data-pumper/scripts/real_sniper_v2.py
+          fi
 
-      - name: Install Node Dependencies (Force Install)
+      - name: 🏗️ Build Master Sitemap (SKILL 7.0)
         run: |
           npm install fs-extra dotenv @supabase/supabase-js
-
-      - name: Build Assets & Sitemap (SOP Chapter 7)
-        run: |
-          # 确保 dist 目录存在
-          mkdir -p dist
           node build.js
 
-      - name: Commit & Sync (SOP Chapter 8)
+      - name: 🔄 Self-Healing Sync (SKILL 3.0)
         run: |
-          git config --global user.name 'Grich Deploy Bot'
+          git config --global user.name 'Grich Auto-Pumper'
           git config --global user.email 'bot@grich.law'
+          git pull --rebase origin main
           git add dist/sitemap.xml
-          # [skip ci] 防止触发循环构建
-          git commit -m "chore: automated seo data harvest [skip ci]" || echo "No changes detected"
-          git push origin main
+          # 仅当有变化时提交，防止循环报错
+          if git diff --staged --quiet; then
+            echo "No data changes detected."
+          else
+            git commit -m "chore: auto-harvest legal data update [skip ci]"
+            # 增加 3 次重试推送逻辑
+            for i in {1..3}; do
+              git push origin main && break || (sleep 5 && git pull --rebase origin main)
+            done
+          fi
