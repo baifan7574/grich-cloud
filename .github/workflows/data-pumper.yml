@@ -71,9 +71,11 @@ jobs:
           PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
         run: |
-          npm install fs-extra dotenv @supabase/supabase-js
+          npm install fs-extra dotenv @supabase/supabase-js googleapis
           node build.js
           node scripts/generate_sitemap.js || echo "⚠️ Sitemap warning (continued)"
+          # 主动向 Google 提交收录请求
+          node scripts/submit_google.js || echo "⚠️ Google submission skipped"
 
       - name: 🔄 Self-Healing Sync (SKILL 3.0)
         run: |
