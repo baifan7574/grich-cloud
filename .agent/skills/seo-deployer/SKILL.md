@@ -98,3 +98,12 @@
 全量覆盖：必须确保 jaxfamlaw.com 首页“雷达”里的每一个链接点进去后，源码中显示的都是真实的店名，而不是占位符。
 
 GitHub 红叉治理：在解决“源码显示”问题前，AI 必须优先解决 GitHub Actions 的 认证错误 (Authentication)，必须让红叉变绿。
+
+第 16 章：强制性数据映射与源码审计协议
+拒绝参数依赖：禁止通过 URL 中的 &defendant= 获取数据。必须实现 ?case= -> Database Query -> HTML Injection 的全流程。
+
+源码零容忍：如果在源码中搜索不到店名，或者出现 "LOCATING" 字符，禁止汇报“成功”。
+
+Action 强关联：只要 GitHub Actions 还是红叉，禁止进行任何前端展示优化。先修“进货渠道”，再修“柜台”。
+
+物理证据链：AI 必须主动提供 view-source 级别的字符串匹配报告。

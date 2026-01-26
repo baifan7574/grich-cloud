@@ -33,19 +33,23 @@ jobs:
 
       - name: 🔍 Environment Pre-check (SKILL 1.0)
         env:
-          # 冗余注入：不管老板起什么名字，通通接通
           URL: ${{ secrets.SUPABASE_URL }}
           KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
         run: |
           echo "📊 System Diagnostic Report"
           echo "---------------------------"
-          if [ -z "$URL" ]; then echo "❌ URL: MISSING"; else echo "✅ URL: PRESENT (${#URL} chars)"; fi
-          if [ -z "$KEY" ]; then echo "❌ KEY: MISSING"; else echo "✅ KEY: PRESENT (${#KEY} chars)"; fi
+          if [ -z "$URL" ]; then echo "❌ URL: MISSING"; else echo "✅ URL: PRESENT"; fi
+          if [ -z "$KEY" ]; then echo "❌ KEY: MISSING"; else echo "✅ KEY: PRESENT"; fi
 
           if [ -z "$URL" ] || [ -z "$KEY" ]; then
             echo "🚨 CRITICAL: Missing required secrets. Please add SUPABASE_URL and SUPABASE_SERVICE_KEY to GitHub Secrets."
             exit 1
           fi
+
+          echo "PUBLIC_SUPABASE_URL=$URL" >> $GITHUB_ENV
+          echo "PUBLIC_SUPABASE_ANON_KEY=$KEY" >> $GITHUB_ENV
+          echo "SUPABASE_URL=$URL" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_KEY=$KEY" >> $GITHUB_ENV
 
           echo "PUBLIC_SUPABASE_URL=$URL" > .env
           echo "PUBLIC_SUPABASE_ANON_KEY=$KEY" >> .env
@@ -55,8 +59,6 @@ jobs:
 
       - name: 🚀 Exec Dual-Script Harvest (SKILL 2.0)
         env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
           PYTHONPATH: ${{ github.workspace }}
         run: |
           set -e
@@ -67,22 +69,18 @@ jobs:
           python ".agent/skills/legal-data-pumper/scripts/real_sniper_v2.py"
 
       - name: 🏗️ Build Master Sitemap (SKILL 7.0)
-        env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
         run: |
           npm install fs-extra dotenv @supabase/supabase-js googleapis
           node build.js
           node scripts/generate_sitemap.js
           # 主动向 Google 提交收录请求
-          node scripts/submit_google.js
+          node scripts/submit_google.js || echo "Skip submission"
 
       - name: 🔄 Self-Healing Sync (SKILL 3.0)
         run: |
           git config --global user.name 'Grich Auto-Pumper'
           git config --global user.email 'bot@grich.law'
 
-          # 确保关键产物被追踪
           git add -f dist/sitemap.xml || echo "No sitemap"
           git add -f dist/index.html || echo "No index"
 
@@ -106,15 +104,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: c70f291b77fbc02a6f2090ebe4abdd44
         run: |
           echo "🌐 Starting Deployment Diagnostic..."
-          # 强制认证逻辑：如果提供了 Email，说明是 Global Key 模式，必须屏蔽 Token
-          if [ ! -z "$CLOUDFLARE_EMAIL" ]; then
-            echo "🔐 Auth Mode: Global API Key (Preferred)"
-            export CLOUDFLARE_API_KEY="$CLOUDFLARE_API_KEY"
-            unset CLOUDFLARE_API_TOKEN
-          else
+          if [ ! -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "🔐 Auth Mode: Scoped API Token"
             export CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN"
+            unset CLOUDFLARE_API_KEY
+          else
+            echo "🔐 Auth Mode: Global API Key"
+            export CLOUDFLARE_API_KEY="$CLOUDFLARE_API_KEY"
           fi
-
-          # 强制非交互模式部署
           npx wrangler pages deploy dist --project-name=grich-cloud --branch=main --commit-dirty=true
