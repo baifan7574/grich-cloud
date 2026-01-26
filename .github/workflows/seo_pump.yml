@@ -1,42 +1,45 @@
 name: Auto SEO Pump
 
 on:
-    schedule:
-        - cron: "0 18 * * *" # 每天北京时间凌晨2点 (UTC 18:00)
-    workflow_dispatch: # 允许手动触发
+  schedule:
+    - cron: "0 18 * * *" # 每天北京时间凌晨2点 (UTC 18:00)
+  workflow_dispatch: # 允许手动触发
+
+permissions:
+  contents: write
 
 jobs:
-    seo-pump:
-        runs-on: ubuntu-latest
+  seo-pump:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v3
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-            - name: Setup Node
-              uses: actions/setup-node@v3
-              with:
-                  node-version: "18"
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-            - name: Install Dependencies
-              run: npm install @supabase/supabase-js googleapis
+      - name: Install Dependencies
+        run: npm install @supabase/supabase-js googleapis
 
-            - name: Generate Fresh Sitemap
-              env:
-                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-                  SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-              run: node scripts/generate_sitemap.js
+      - name: Generate Fresh Sitemap
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: node scripts/generate_sitemap.js
 
-            - name: Push Sitemap to Cloudflare
-              # 这一步通过 git commit 自动触发 Cloudflare Pages 的构建
-              run: |
-                  git config --global user.name "SEO Bot"
-                  git config --global user.email "bot@jaxfamlaw.com"
-                  git add public/sitemap.xml
-                  git commit -m "chore(seo): auto-update sitemap [skip ci]" || echo "No changes to commit"
-                  git push
+      - name: Push Sitemap to Cloudflare
+        # 这一步通过 git commit 自动触发 Cloudflare Pages 的构建
+        run: |
+          git config --global user.name "SEO Bot"
+          git config --global user.email "bot@jaxfamlaw.com"
+          git add public/sitemap.xml
+          git commit -m "chore(seo): auto-update sitemap [skip ci]" || echo "No changes to commit"
+          git push
 
-            - name: Ping Google Indexing API
-              env:
-                  GOOGLE_JSON_KEY: ${{ secrets.GOOGLE_JSON_KEY }}
-              run: node scripts/submit_google.js
+      - name: Ping Google Indexing API
+        env:
+          GOOGLE_JSON_KEY: ${{ secrets.GOOGLE_JSON_KEY }}
+        run: node scripts/submit_google.js
