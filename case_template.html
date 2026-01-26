@@ -791,13 +791,15 @@
                 btn.classList.add('hidden'); // Hide payment button
                 stamp.classList.remove('hidden');
                 stamp.innerText = "AUTHORIZED";
-                stamp.style.color = "#22c55e";
                 stamp.style.borderColor = "#22c55e";
 
-                // SHOW AI REPORT
+                // SHOW AI REPORT IMMEDIATELY
                 const report = document.getElementById('ai-report');
                 report.classList.remove('hidden');
+                document.getElementById('report-summary').innerHTML = '<span class="animate-pulse text-green-600 font-bold">⚡ INITIATING DEEPSEEK SECURE CONNECTION...</span>';
+
                 document.getElementById('report-id').innerText = `GR-${Math.floor(1000 + Math.random() * 9000)}-${data.caseID.split('-').pop()}`;
+
 
                 // Inject Real Metadata into Report
                 document.getElementById('report-case-id').innerText = data.caseID;

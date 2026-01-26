@@ -97,8 +97,13 @@
             if (i >= logs.length) {
                 setTimeout(() => {
                     let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
-                    if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
+                    if (targetId) {
+                        dest += `&target=${encodeURIComponent(targetId)}`;
+                        // Also pass as defendant param to ensure names populate if ID lookup fails
+                        dest += `&defendant=${encodeURIComponent(targetId)}`;
+                    }
                     window.location.href = dest;
+
                 }, 800);
                 return;
             }
