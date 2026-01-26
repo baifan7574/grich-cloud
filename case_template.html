@@ -676,10 +676,15 @@
 
                 logLine(`FOUND ${allDefendants ? allDefendants.length : 0} DEFENDANTS`);
 
-                // 3. Find specific target if targetId provided
+                // 3. Find specific target if targetId provided, otherwise pick the first one
                 let targetRecord = null;
-                if (targetId && allDefendants) {
-                    targetRecord = allDefendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
+                if (allDefendants && allDefendants.length > 0) {
+                    if (targetId) {
+                        targetRecord = allDefendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
+                    }
+                    if (!targetRecord) {
+                        targetRecord = allDefendants[0]; // 🎯 这里的核心修复：如果没有 targetID，就拿第一个
+                    }
                 }
 
                 // 4. Final Dynamic Mapping
