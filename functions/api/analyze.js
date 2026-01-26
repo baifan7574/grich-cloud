@@ -70,14 +70,14 @@ export async function onRequestPost(context) {
                     { role: "user", content: `CONTEXT: ${enrichedContext}.\nTASK: Generate the ${brand} Defense Memorandum immediately.` }
                 ],
                 stream: false,
-                temperature: 1.3 // High creativity to ensure "expert inferences" instead of "I don't know"
+                temperature: 0.7 // Balanced for consistency
             })
         });
 
         if (!response.ok) {
             const errText = await response.text();
             console.error('DeepSeek API Error:', errText);
-            return new Response(JSON.stringify({ error: `AI Provider Error: ${response.status}` }), { status: 502 });
+            return new Response(JSON.stringify({ error: `DeepSeek Error: ${errText} (Status: ${response.status})` }), { status: 502 });
         }
 
         const data = await response.json();
