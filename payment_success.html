@@ -71,12 +71,27 @@
     <script>
         // --- RECOVERY LOGIC ---
         const urlParams = new URLSearchParams(window.location.search);
-        let caseId = urlParams.get('case');
-        let targetId = urlParams.get('target');
+        // Chapter 25: Immutable Parameter Chain - STRICT MODE
+        const caseId = urlParams.get('case');
+        const targetId = urlParams.get('target');
+        const defendantParam = urlParams.get('defendant');
+
+        const logDiv = document.getElementById('log');
 
         if (!caseId) {
-            caseId = localStorage.getItem('grich_pending_case') || "UNKNOWN";
-            targetId = localStorage.getItem('grich_pending_target');
+            // CRITICAL HALT: No Parameter, No Jump.
+            document.querySelector('h1').innerText = "SESSION ERROR";
+            document.querySelector('h1').className = "text-red-600 font-mono text-4xl mb-8";
+            logDiv.innerHTML = `
+                <div class="text-red-500 font-mono text-xs">
+                    FATAL_ERROR: MISSING_CASE_IDENTIFIER<br>
+                    ------------------------------------<br>
+                    The payment return URL is invalid. We cannot link this transaction to a specific lawsuit.<br>
+                    Please contact support with your Transaction ID.<br><br>
+                    DEBUG_RAW: ${window.location.search}
+                </div>
+            `;
+            throw new Error("HALT: Missing Case ID");
         }
 
         const logs = [
@@ -90,20 +105,21 @@
             "ACCESS GRANTED."
         ];
 
-        const logDiv = document.getElementById('log');
         let i = 0;
 
         function addLog() {
             if (i >= logs.length) {
                 setTimeout(() => {
-                    let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
-                    if (targetId) {
-                        dest += `&target=${encodeURIComponent(targetId)}`;
-                        // Also pass as defendant param to ensure names populate if ID lookup fails
-                        dest += `&defendant=${encodeURIComponent(targetId)}`;
-                    }
-                    window.location.href = dest;
+                    // Force Pass-Through (Chapter 25)
+                    const params = new URLSearchParams();
+                    params.set('case', caseId);
+                    params.set('paid', 'true');
+                    if (targetId) params.set('target', targetId);
+                    if (defendantParam) params.set('defendant', defendantParam);
 
+                    const dest = `case_template.html?${params.toString()}`;
+                    console.log(`[JUMP] Redirecting to: ${dest}`);
+                    window.location.href = dest;
                 }, 800);
                 return;
             }
@@ -119,6 +135,7 @@
             i++;
             setTimeout(addLog, 500);
         }
+
 
         setTimeout(addLog, 500);
     </script>
