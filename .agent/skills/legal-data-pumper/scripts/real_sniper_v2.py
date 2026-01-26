@@ -14,20 +14,29 @@ agent_dir = os.path.dirname(skills_dir)
 grich_dir = os.path.dirname(agent_dir)
 env_path = os.path.join(grich_dir, '.env')
 
-env_vars = {}
-try:
-    with open(env_path, 'r', encoding='utf-8-sig') as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
-except Exception as e:
-    print(f"❌ 环境文件读取错误: {e}")
-    exit(1)
+# 🎯 优先从系统环境变量读取
+SUPABASE_URL = os.environ.get("PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
 
-SUPABASE_URL = env_vars.get("PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = env_vars.get("PUBLIC_SUPABASE_ANON_KEY")
+if not SUPABASE_URL or not SUPABASE_KEY:
+    env_vars = {}
+    try:
+        if os.path.exists(env_path):
+            with open(env_path, 'r', encoding='utf-8-sig') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        env_vars[key.strip()] = value.strip()
+        
+        SUPABASE_URL = SUPABASE_URL or env_vars.get("PUBLIC_SUPABASE_URL")
+        SUPABASE_KEY = SUPABASE_KEY or env_vars.get("PUBLIC_SUPABASE_ANON_KEY")
+    except Exception as e:
+        print(f"⚠️ 环境文件读取异常: {e}")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("❌ 错误: 未能在环境变量或 .env 中找到 Supabase 配置！")
+    exit(1)
 
 LAWSUITS_URL = f"{SUPABASE_URL}/rest/v1/lawsuits"
 DEFENDANTS_URL = f"{SUPABASE_URL}/rest/v1/defendants"

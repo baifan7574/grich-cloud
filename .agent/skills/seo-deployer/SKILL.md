@@ -38,12 +38,14 @@
     - 若配置文件报错，必须具备“推倒重来”的能力，自主生成正确的 `wrangler.toml` 或 `worker.js`。
 3. **环境自适应**：AI 应当利用已获取的 Token 权限，通过 `wrangler whoami` 或 `wrangler pages project list` 自行探测线上环境现状，无需用户提供背景。
 4. **终极交付导向**：AI 的唯一指标是【线上 URL 渲染成功】。在尝试所有技术路径（包括修改配置、重写入口脚本、切换部署命令）失败前，严禁报告“卡住”。
+
 # AI 行为准则 (Agent Rules)
 
 1. **上下文优先**: 在开始回复前，**必须**先检查 `status.md` 以了解当前项目进度的最新状态。
 2. **技能合规**: 在修改代码前，**必须**参考 `.agent/skills/` 下的相关技能，确保修改符合既定标准。
 3. **自我更新**: 每次完成重要里程碑后，**必须** 更新 `status.md`，以便下一个 AI 窗口能无缝衔接。
 4. **中文回复**: 始终使用中文与用户沟通。
+
 ### 第6章：动态渲染核心 (Dynamic Rendering Core)
 1.  **URL 拦截逻辑**：
     -   Cloudflare Worker (`index.js`) 必须监听所有请求。
@@ -54,50 +56,36 @@
 3.  **数据兜底**：
     -   若 URL 没有参数，显示默认的“通用警告页”。
     -   若数据库查无此人，显示“未检测到风险”但推荐购买防护服务的页面。
+
 ### 第7章：SEO 强渲染法则 (SEO Hard-Rendering Protocol)
 1.  **拒绝等待客户端**：严禁依赖 Client-side JavaScript (如 `fetch` 或 `document.createElement`) 来渲染核心 SEO 关键词（如被告名、案号）。爬虫不会等待 JS 执行。
 2.  **暴力注入 (Force Injection)**：
     -   当 HTML 容器（如 `<tbody id="defendants-list">`）为空时，Worker 必须使用 `element.setInnerContent()` 方法，直接将预生成的 HTML 字符串插入该容器。
     -   不要试图“替换”不存在的内容，而是直接“填充”内容。
 3.  **优先级原则**：服务器端注入的内容 (Server-Side Injected) 优先级永远高于客户端加载的内容。
-1. 核心商业目标 (The Core Mission)
-拒绝对等化：严禁生成内容重复、千篇一律的页面。
 
-真实性优先：所有页面内容必须根据 URL 参数（case, defendant）实时关联数据库。
+### 第 11 章：流量增长与索引协议 (Indexing & Matrix)
+1. **收录优先级 (Sitemap Multiplier)**：每抓取一条数据，必须生成对应的 URL。格式：`/case_template.html?case=[案号]&defendant=[店名]`。
+2. **内链收割矩阵**：首页雷达必须保持最近 50+ 条真实案件内链，强行引导爬虫下钻详情页。
 
-收钱逻辑：页面必须通过展示**“真实的案件细节”**（法院、律师、历史数据）建立信任，引导用户支付 $29.99。
+### 第 12 章：线上数据全路径一致性审计 (QA Audit)
+1. **源码零容忍红线**：线上 HTML 指标严禁出现 `LOCATING TARGET...` 占位符。若源码检查发现此占位符，视为技术性崩溃。
+2. **物理证据强制化**：AI 汇报成功前，必须模拟访问详情页。
+    - **标准 A**：被告名称必须在 HTML 首屏源码中 100% 存在。
+    - **标准 B**：案情摘要必须由 Supabase 数据真实填充，禁止使用 Mock 数据混日子。
+3. **源码核验命令**：AI 必须使用 `curl` 抓取源码，并物理搜索关键词（案号、被告名），证明数据已穿透。
 
-2. 技术架构红线 (Technical Guardrails)
-构建指令：默认使用 exit 0 构建模式。代码在本地/开发端生成 dist，Cloudflare 仅作为高速分发节点。
+### 第 13 章：搜索引擎即时索引协议 (Indexing Service)
+1. **自动化入口**：脚本必须在每次抓取结束后，自动将 sitemap.xml 提交给 Google Search Console API。
+2. **URL 构造审查**：严禁生成无效链接。AI 必须核对 sitemap 里的参数格式是否与数据库查询格式 100% 匹配。
 
-动态渲染协议：
+第 14 章：物理数据落地守则 (Physical Data Injection)
+核心技术要求：禁止使用客户端 JavaScript (fetch/useEffect) 进行核心 SEO 数据填充。必须强制使用 Cloudflare HTMLRewriter。
 
-首选：使用 JavaScript (CSR) 配合 Supabase API 实现实时注入。
+零容忍红线：
 
-SEO 补丁：脚本必须在页面加载的第一时间修改 document.title 和 meta-description，确保 Google 爬虫抓取到唯一的页面指纹。
+如果在 curl 抓取的源码中，<title> 标签包含 "LEGAL NOTICE" 或任何通用占位符，判定为 【三级故障】。
 
-数据流向：URL 参数 -> JS 解析 -> 访问 Supabase -> 实时替换 DOM 元素（ID 如 target-name, case-id, court-name）。
+必须实现：在 HTML 离开 Cloudflare 服务器前，店名和案号必须已经被“硬编码”进源码。
 
-3. pSEO 自动化守则 (The pSEO Rules)
-模具唯一性：维持一个核心 HTML 模板（如 case_template.html），通过逻辑衍生出无限个虚拟页面。
-
-Sitemap 自动关联：每当“技能 2”抓取到新数据存入数据库，本技能必须能够自动生成/更新 sitemap.xml，引导爬虫访问新链接。
-
-失败降级策略：若数据库查询为空，页面应显示“实时分析中...”或引导用户手动提交案号，禁止显示错误代码或空白页面。
-
-第八章：验收审计协议 (Audit & Verification Protocol)
-禁止幻觉汇报：AI 严禁根据本地构建成功即宣布“部署完成”。必须通过 Cloudflare API 或物理访问 URL 确认线上版本已更新。
-
-物理指纹核验：
-
-每次部署后，AI 必须生成一个随机字符串（如 VERIFY_TAG_123）写入代码。
-
-AI 必须亲自通过工具读取线上页面，确认能看到这个 VERIFY_TAG。
-
-参数穿透测试：
-
-必须测试 ?defendant=Nike 是否成功替换 Store Name。
-
-必须测试 ?case=123 是否成功从 Supabase 抓取到对应法院。
-
-若源码检查失败，必须自动进入故障排除模式，禁止向老板汇报成功。
+验证闭环：AI 必须使用内置工具执行 fetch 并搜索关键词。搜索不到，不准推送。

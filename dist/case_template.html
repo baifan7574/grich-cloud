@@ -602,19 +602,27 @@
             const decodedQuery = recursiveDecode(searchStr).replace(/^[?&]/, '');
             const paramsMap = {};
 
-            // Manually split to be bulletproof against malformed pairs
             decodedQuery.split('&').forEach(pair => {
                 const [k, ...v] = pair.split('=');
                 if (k) paramsMap[k.toLowerCase().trim()] = v.join('=').trim();
             });
 
-            logLine(`DECODED_PARAMS: ${JSON.stringify(paramsMap)}`);
-
             const getVal = (key) => paramsMap[key] || "";
             const caseParam = getVal('case');
             const targetId = getVal('target');
-            const defendantParam = getVal('defendant'); // 🎯 NEW: 读取被告参数
+            const defendantParam = getVal('defendant');
             const isPaid = getVal('paid') === 'true' || getVal('success') === 'true';
+
+            // 🎯 核心优化：在请求数据库之前，先用 URL 数据填满页面，消除 "LOCATING"
+            if (defendantParam) {
+                document.getElementById('target-name').innerText = defendantParam.toUpperCase();
+                document.title = `LAW NOTICE: ${defendantParam.toUpperCase()} v. PENDING | GRICH`;
+            }
+            if (caseParam) {
+                const cleanCase = caseParam.replace('1:', '');
+                document.getElementById('case-number').innerText = cleanCase;
+                document.getElementById('sidebar-case').innerText = `#${cleanCase}`;
+            }
 
             logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}] PAID=[${isPaid}]`);
 

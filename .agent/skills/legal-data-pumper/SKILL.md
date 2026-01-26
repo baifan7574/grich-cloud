@@ -552,3 +552,45 @@ print(f"✅ 已归档: {new_location}")
 抓取完成后，AI 必须通过工具查询 Supabase 数据库的 count。
 
 如果数据库行数没有增加，即使脚本显示绿色，也视为失败。
+
+第一章：禁止幻觉汇报
+
+红灯即失败：严禁根据“代码已推送到 Git”判定成功。只要 Cloudflare 状态不是“Success”，或 GitHub Actions 是“Red X”，AI 必须承认失败。
+
+日志为王：失败时，AI 必须强制调用工具读取 GitHub Actions 的 Raw Logs。禁止猜测原因，必须指出报错的精准行号。
+
+第二章：物理隔离与清场 (Physical Enforcement)
+
+彻底清除 functions：如果 Cloudflare 部署依然报“Functions”错误，AI 必须手动检查仓库中是否存在隐藏的 .cloudflare 或 functions 文件夹并执行物理删除。
+
+Build 命令对齐：必须核对后台 Build command 设置。若 AI 无法直接修改后台，必须引导用户将命令改为 exit 0 并在 package.json 中同步。
+
+第三章：真实性核验 (Live Check)
+
+URL 穿透测试：部署完成后，AI 必须尝试读取 jaxfamlaw.com/sitemap.xml。如果读取不到或内容为空，禁止结项。
+
+数据库存量核验：抓取脚本运行后，必须查询 Supabase 的 count。如果数据行数没有增加，脚本即为无效。
+
+技能 2 补丁：GitHub Actions 强制诊断协议
+1. 拒绝盲目猜测：严禁在未读取 workflow run logs 的情况下报告成功。
+2. 日志证据化：如果运行失败，AI 必须打印出 GitHub 日志中的最后 10 行错误信息（例如：KeyError: 'SUPABASE_KEY' 或 ConnectionError）。
+3. Secrets 核验流程：AI 必须引导用户检查 GitHub 仓库设置：Settings -> Secrets and variables -> Actions。
+• [ ] 必须存在：SUPABASE_URL
+• [ ] 必须存在：SUPABASE_KEY
+
+第 9 章：MCP 自动化与自愈协议 (Autonomous Recovery)
+故障穿透 (MCP Log Audit)：
+
+当 GitHub Action 失败时，禁止询问用户。必须立即调用 github_mcp 或相关日志工具，读取 stderr 原始报错。
+
+必须自主分析是 Authentication（认证）还是 Runtime（运行）错误。
+
+环境变量探测 (Env Discovery)：
+
+如果发现 SUPABASE_KEY 缺失，AI 必须尝试搜索项目内的 .env.example 或 config 文件，自行推断需要的变量名称。
+
+如果无法获取真实 Key，AI 必须编写一个 mock_test.py 脚本来验证代码逻辑，确保“万事俱备，只差填码”，而不是直接躺平。
+
+无干扰部署 (Silent Deployment)：
+
+除非涉及到需要用户扫码、验证码等物理无法逾越的障碍，否则一切技术报错（如路径不对、依赖缺失）必须自主修正并重新 Git Push，直到绿灯亮起。
