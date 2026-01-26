@@ -918,10 +918,36 @@
                             }
                         };
 
-                        // 🎯 FORCE HIDE RAW SOURCES (User Request):
-                        // Hide Section IV (Filing Archive) context if it exists
+                        type(); // 🎯 IMPORTANT: Start the typewriter effect!
+
+                        // 🎯 FORCE HIDE RAW SOURCES & GREEN ELEMENTS (User Request):
+                        // Hide Section IV (Filing Archive)
                         const archiveSection = document.getElementById('filing-archive-section');
                         if (archiveSection) archiveSection.style.display = 'none';
+
+                        // 🎯 SIMULATED PRINT STYLING:
+                        // Make the report look like a white paper legal doc (Memo Style)
+                        const reportEl = document.getElementById('ai-report');
+                        if (reportEl) {
+                            reportEl.classList.remove('border-green-600', 'bg-[#f9f9f9]');
+                            reportEl.classList.add('bg-white', 'border-black');
+                            reportEl.style.fontFamily = '"Times New Roman", Times, serif';
+                        }
+
+                        // Remove Green from Headers in the report
+                        document.querySelectorAll('#ai-report h3').forEach(h3 => {
+                            h3.classList.remove('text-green-700', 'border-green-100');
+                            h3.classList.add('text-black', 'border-black');
+                            h3.style.letterSpacing = '0.05em'; // Professional tracking
+                        });
+
+                        // Hide "GRICH INTEL" Logo and messy header parts if they look "web-like"
+                        // But keep the Text Header
+                        const reportHeaderGreen = document.querySelector('#ai-report .text-green-600');
+                        if (reportHeaderGreen) reportHeaderGreen.classList.remove('text-green-600'); // Make it black
+
+                        const reportId = document.getElementById('report-id');
+                        if (reportId) reportId.classList.remove('text-green-700'); // Make it black
 
                     } catch (err) {
                         console.error("AI Gen Error:", err);
