@@ -4,12 +4,12 @@ const fs = require('fs');
 const path = require('path');
 
 // 配置 Supabase
-const supabaseUrl = process.env.PUBLIC_SUPABASE_URL || "https://rdlmumybuwveaaeceohj.supabase.co";
-const supabaseKey = process.env.PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
+const supabaseUrl = process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL || "https://rdlmumybuwveaaeceohj.supabase.co";
+const supabaseKey = process.env.SUPABASE_KEY || process.env.PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const DOMAIN = "https://jaxfamlaw.com";
-const OUTPUT_FILE = path.join(__dirname, '../dist/sitemap.xml');
+const OUTPUT_FILE = path.join(__dirname, '../public/sitemap.xml');
 
 async function generateSitemap() {
     console.log("🚀 开始生成 Sitemap...");
