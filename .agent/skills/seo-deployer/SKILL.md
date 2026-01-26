@@ -146,3 +146,52 @@ Action 强关联：只要 GitHub Actions 还是红叉，禁止进行任何前端
 • [ ] 源码中搜索 ($29.99) 必须有结果。
 • [ ] 源码中搜索 https://payhip.com/b/BHtvq 必须有结果。
 • [ ] 源码中搜索 ICON-OFFICIAL-MARKETPLACE 必须有结果。
+
+第 19 章：DeepSeek 智能合规报告生成协议 (The AI Brain)
+核心逻辑：利用 DeepSeek 将“生冷数据”转化为“高价报告”。
+
+19.1 实时生成机制：
+
+禁止使用静态模板。系统必须在用户支付成功后，通过 API 实时将该案件的 defendant、plaintiff、court 字段喂给 DeepSeek。
+
+19.2 报告专业维度：
+
+报告必须包含：[法律风险评级]、[类似案件和解金预估]、[紧急应对动作建议]。
+
+Prompt 要求：要求 DeepSeek 扮演“具有 10 年经验的跨境法律合规官”，语言风格必须专业、客观、不谄媚。
+
+19.3 物理交付路径：
+
+生成后的报告必须以 HTML 或 PDF 格式即时展示在 /success?order_id=... 页面，并同步备份至 Supabase。
+
+第 20 章：全自动 pSEO 流量收割协议 (The Loudspeaker)
+核心逻辑：让 Google 在 24 小时内抓取并收录你的 10 万个页面。
+
+20.1 动态地图 (Sitemap) 自动化：
+
+每次数据抓取脚本运行后，必须自动更新 sitemap.xml。
+
+地图规格：包含所有 case_template.html?case=... 格式的 URL。
+
+20.2 Google Indexing API “拍脸”提交：
+
+脚本必须在生成新 URL 后，第一时间通过 submit_google.js 调用 Google 搜索控制台 API，强迫爬虫进场收录。
+
+20.3 内链矩阵 (Internal Link Matrix)：
+
+在首页“情报雷达”中，不仅显示文字，必须确保 <a> 标签指向对应的详情页，方便爬虫完成全站穿透。
+
+第 21 章：支付后链路审计与闭环 (The Conversion Audit)
+核心逻辑：确保每一笔 $29.99 都能换来一份满意的报告。
+
+21.1 支付回跳校验：
+
+AI 必须核对 Payhip 的 Webhook 或成功回跳 URL。只要支付完成，必须立刻解锁报告生成权限。
+
+21.2 “空包”防御机制：
+
+如果在生成报告时，数据库中的 defendants 字段为空，AI 必须启动“备用抓取”，实时去法院补齐数据，严禁给用户展示空报告。
+
+21.3 转化漏斗监控：
+
+自动记录“页面访问 -> 点击支付 -> 支付成功”的转化率。若转化率低于 1%，AI 必须自检：是否按钮样式出了问题？是否价格显示有误？

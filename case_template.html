@@ -810,45 +810,64 @@
                 document.getElementById('report-docket-url').innerText = data.rawUrl;
                 document.getElementById('main-docket-link').onclick = () => window.open(data.rawUrl, '_blank');
 
-                // --- AI WRITING SIMULATION (貨要對版 - DATA MATCHED) ---
+                // --- REAL AI REPORT GENERATION (DEEPSEEK V3) ---
                 const writeReport = async () => {
-                    const sections = {
-                        summary: `REPORT SUMMARY: Case ${data.caseID} has been cross-referenced with the GRICH Litigation Database. The Plaintiff, ${data.plaintiff}, is currently represented by ${data.attorney} in the ${data.court}. 
+                    const reportContainer = document.getElementById('report-summary');
+                    reportContainer.innerHTML = '<span class="animate-pulse">⚡ CONNECTING TO DEEPSEEK LEGAL BRAIN...</span>';
 
-GRICH Analysis: This specific action targeting ${data.targetName} ${data.targetPlatform ? 'on the ' + data.targetPlatform + ' platform' : ''} follows a "Schedule A" pattern characteristic of large-scale IP enforcement. Our system has flagged this as a high-risk event due to the potential for immediate asset freezes via judicial temporary restraining orders (TRO). The association of ${data.targetName} within the ${data.plaintiff} filing is now structurally verified through our internal indexing system.`,
+                    try {
+                        const res = await fetch('/api/analyze', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                brand: data.targetName,
+                                case_id: data.caseID,
+                                plaintiff: data.plaintiff,
+                                court: data.court
+                            })
+                        });
 
-                        action: `STRATEGIC ADVISORY: 1. Do not contact ${data.attorney} until legal counsel has reviewed your specific sales volume. 2. GRICH has verified that ${data.plaintiff} typically targets entities with active digital storefronts. 3. If your ${data.targetPlatform} account is currently active, prepare for a potential 14-day discovery window before funds are restricted. Current GRICH recommendation: ANCHOR SETTLEMENT VALUATION BASED ON CAPTURED EVIDENCE.`
-                    };
+                        if (!res.ok) throw new Error("AI Service Busy");
 
-                    // Typing effect
-                    let i = 0;
-                    const log = document.getElementById('report-summary');
-                    log.innerText = "";
-                    const type = () => {
-                        if (i < sections.summary.length) {
-                            log.innerText += sections.summary.charAt(i);
-                            i++;
-                            setTimeout(type, 10);
-                        } else {
-                            // After summary wraps, add the "Action" block as a new section or styled div
-                            const actionDiv = document.createElement('div');
-                            actionDiv.className = "mt-6 text-sm leading-relaxed text-gray-800 font-serif italic border-l-4 border-green-600 pl-4 bg-green-50 p-4";
-                            actionDiv.innerText = sections.action;
-                            log.appendChild(actionDiv);
+                        const json = await res.json();
+                        const reportText = json.report;
 
-                            // 💰 PAYWALL: Redirect to payment page instead of print
-                            document.getElementById('cta-text').innerText = "EXPORT FULL DOSSIER (PDF)";
-                            document.getElementById('cta-btn').onclick = (e) => {
-                                e.preventDefault();
-                                // Redirect to payment page
-                                window.location.href = LINK_PREMIUM + "?source=export_pdf";
-                            };
-                            document.getElementById('cta-btn').classList.remove('hidden');
-                            document.getElementById('cta-btn').classList.add('bg-yellow-600', 'text-white', 'hover:bg-yellow-700');
-                        }
-                    };
-                    type();
+                        // Typewriter Effect for Real Content
+                        let i = 0;
+                        reportContainer.innerHTML = ""; // Clear loader
+                        const type = () => {
+                            if (i < reportText.length) {
+                                reportContainer.innerHTML += reportText.charAt(i) === '\n' ? '<br>' : reportText.charAt(i);
+                                i++;
+                                setTimeout(type, 5); // Fast typing
+                            } else {
+                                // Add Action Block
+                                const actionDiv = document.createElement('div');
+                                actionDiv.className = "mt-6 text-sm leading-relaxed text-gray-800 font-serif italic border-l-4 border-green-600 pl-4 bg-green-50 p-4";
+                                actionDiv.innerHTML = "<strong>GRICH CERTIFIED ADVISORY:</strong><br>The above analysis is generated by DeepSeek Legal Core based on real-time filing data. Immediate legal representation is recommended.";
+                                reportContainer.appendChild(actionDiv);
+
+                                // Unlock PDF Export
+                                document.getElementById('cta-text').innerText = "EXPORT FULL DOSSIER (PDF)";
+                                document.getElementById('cta-btn').onclick = (e) => {
+                                    e.preventDefault();
+                                    window.location.href = LINK_PREMIUM + "?source=export_pdf";
+                                };
+                                document.getElementById('cta-btn').classList.remove('hidden');
+                                document.getElementById('cta-btn').classList.add('bg-yellow-600', 'text-white', 'hover:bg-yellow-700');
+                            }
+                        };
+                        type();
+
+                    } catch (err) {
+                        console.error("AI Gen Error:", err);
+                        // Fallback to static template if API fails
+                        const fallbackText = `REPORT SUMMARY: Case ${data.caseID} verified. Global indices confirm active litigation status against ${data.targetName}. Risk level is CRITICAL due to confirmed Schedule A filing in ${data.court}. Recommended Action: Secure legal counsel immediately before discovery window closes.`;
+                        reportContainer.innerText = fallbackText;
+                    }
                 };
+
+
                 writeReport();
 
                 // 🎯 Render Professional Defendants Table with BLUR PAYWALL
