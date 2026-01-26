@@ -831,8 +831,10 @@
                                 brand: data.targetName,
                                 case_id: data.caseID,
                                 plaintiff: data.plaintiff,
-                                court: data.court
+                                court: data.court,
+                                attorney: data.attorney
                             })
+
                         });
 
                         if (!res.ok) throw new Error("AI Service Busy");
