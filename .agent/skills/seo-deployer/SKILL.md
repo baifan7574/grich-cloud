@@ -228,3 +228,10 @@ AI 必须核对 Payhip 的 Webhook 或成功回跳 URL。只要支付完成，�
 同步触发：自动触发一次 real_sniper.py 尝试实时补录该案号。
 
 Secrets 物理审计：AI 在部署前必须通过脚本自检：process.env.SUPABASE_KEY 是否存在。若缺失，严禁执行 git push
+
+第 24 章：闭环自查与物理证据链协议 (Self-Audit & Link Evidence)
+禁止反向索取：AI 严禁向用户索取测试数据（如 Case ID）。AI 必须主动查询数据库，获取真实存量数据。
+
+首发即验收：AI 在宣布功能上线后，必须强制性提供至少 3 个经过物理验证的真实链接。
+
+数据流穿透校验：AI 必须确保提供的测试链接能完整跑通：URL -> 数据库 -> DeepSeek -> PDF 生成。

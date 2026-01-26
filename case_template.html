@@ -605,6 +605,16 @@
                 return curr;
             }
 
+            function predictLawFirm(plaintiff) {
+                if (!plaintiff) return "PLAINTIFF COUNSEL";
+                const p = plaintiff.toUpperCase();
+                if (p.includes("NIKE") || p.includes("LUXOTTICA") || p.includes("OAKLEY")) return "GREER, BURNS & CRAIN, LTD.";
+                if (p.includes("ZARA") || p.includes("LULULEMON")) return "HUGHES SOCOL PIERS RESNICK & DYM, LTD.";
+                if (p.includes("SAW")) return "THE SLADKUS LAW GROUP";
+                return "INTELLECTUAL PROPERTY COUNSEL OF RECORD";
+            }
+
+
             const decodedQuery = recursiveDecode(searchStr).replace(/^[?&]/, '');
             const paramsMap = {};
 
@@ -721,8 +731,9 @@
                     plaintiff: lawsuit?.plaintiff || "UNDER SEAL",
                     court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)",
                     judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
-                    attorney: lawsuit?.law_firm || "GREER, BURNS & CRAIN, LTD.",
+                    attorney: lawsuit?.law_firm || predictLawFirm(lawsuit?.plaintiff),
                     date: lawsuit?.filed_date || "---",
+
                     targetName: targetRecord?.defendant_name || defendantParam || (targetId ? `ID_${targetId.substring(0, 8)}` : "---"),
 
                     targetPlatform: targetRecord?.platform || "---",
