@@ -97,3 +97,12 @@ jobs:
               git push origin main && break || (echo "Push failed, retrying in 5s..." && sleep 5 && git pull origin main --rebase)
             done
           fi
+
+      - name: 🌐 Deploy to Cloudflare Pages (SKILL 8.0)
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: c70f291b77fbc02a6f2090ebe4abdd44
+          projectName: jaxfamlaw
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
