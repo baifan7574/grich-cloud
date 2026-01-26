@@ -475,11 +475,12 @@
                                         <div class="text-[10px] font-bold uppercase tracking-tight">Main Case Docket &
                                             Filing Schedule</div>
                                         <div class="text-[9px] text-gray-400 font-mono truncate" id="report-docket-url">
-                                            https://www.courtlistener.com/...</div>
+                                            [REDACTED // PROPRIETARY SOURCE]
+                                        </div>
                                     </div>
                                     <div
                                         class="text-green-600 font-bold text-[10px] uppercase opacity-0 group-hover:opacity-100">
-                                        Access Record</div>
+                                        Verified</div>
                                 </div>
                             </div>
                         </section>
@@ -864,8 +865,9 @@
                 document.getElementById('report-target-name').innerText = data.targetName;
                 document.getElementById('report-target-platform').innerText = data.targetPlatform;
                 document.getElementById('report-target-id').innerText = data.targetLabel;
-                document.getElementById('report-docket-url').innerText = data.rawUrl;
-                document.getElementById('main-docket-link').onclick = () => window.open(data.rawUrl, '_blank');
+                document.getElementById('report-docket-url').innerText = "[REDACTED]";
+                document.getElementById('main-docket-link').onclick = null; // Disable click
+                document.getElementById('main-docket-link').style.cursor = 'default';
 
                 // --- REAL AI REPORT GENERATION (DEEPSEEK V3) ---
                 const writeReport = async () => {
