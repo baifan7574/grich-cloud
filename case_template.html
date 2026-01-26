@@ -928,33 +928,32 @@
                             </div>
                         `;
                     }
-                }
-            };
+                };
 
 
-            writeReport();
+                writeReport();
 
-            // 🎯 Render Professional Defendants Table with BLUR PAYWALL
-            if (data.allDefendants && data.allDefendants.length > 0) {
-                const defendantsSection = document.getElementById('defendants-list-section');
-                const defendantsList = document.getElementById('defendants-list');
-                const defendantsCount = document.getElementById('defendants-count');
-                const tableContainer = document.getElementById('defendants-table-container');
+                // 🎯 Render Professional Defendants Table with BLUR PAYWALL
+                if (data.allDefendants && data.allDefendants.length > 0) {
+                    const defendantsSection = document.getElementById('defendants-list-section');
+                    const defendantsList = document.getElementById('defendants-list');
+                    const defendantsCount = document.getElementById('defendants-count');
+                    const tableContainer = document.getElementById('defendants-table-container');
 
-                defendantsSection.classList.remove('hidden');
-                defendantsCount.innerText = data.allDefendants.length;
+                    defendantsSection.classList.remove('hidden');
+                    defendantsCount.innerText = data.allDefendants.length;
 
-                // 💰 PAYWALL: Show first 3, blur the rest
-                const freeLimit = 3;
-                const hiddenCount = data.allDefendants.length - freeLimit;
+                    // 💰 PAYWALL: Show first 3, blur the rest
+                    const freeLimit = 3;
+                    const hiddenCount = data.allDefendants.length - freeLimit;
 
-                // Generate table rows
-                const rows = data.allDefendants.map((def, index) => {
-                    const riskLevel = index < 5 ? 'CRITICAL' : (index < 10 ? 'HIGH' : 'MEDIUM');
-                    const riskColor = index < 5 ? 'text-red-600 font-black' : (index < 10 ? 'text-orange-600 font-bold' : 'text-yellow-600');
-                    const isBlurred = index >= freeLimit;
+                    // Generate table rows
+                    const rows = data.allDefendants.map((def, index) => {
+                        const riskLevel = index < 5 ? 'CRITICAL' : (index < 10 ? 'HIGH' : 'MEDIUM');
+                        const riskColor = index < 5 ? 'text-red-600 font-black' : (index < 10 ? 'text-orange-600 font-bold' : 'text-yellow-600');
+                        const isBlurred = index >= freeLimit;
 
-                    return `
+                        return `
                             <tr class="border-b border-gray-200 hover:bg-gray-50 ${isBlurred ? 'blurred-row' : ''}">
                                 <td class="p-3 font-mono text-gray-500">${index + 1}</td>
                                 <td class="p-3 font-bold text-black">${def.defendant_name}</td>
@@ -962,26 +961,26 @@
                                 <td class="p-3 ${riskColor}">${riskLevel}</td>
                              </tr>
                         `;
-                }).join('');
+                    }).join('');
 
-                defendantsList.innerHTML = rows;
+                    defendantsList.innerHTML = rows;
 
-                // Add blur effect CSS and unlock overlay
-                if (hiddenCount > 0) {
-                    const style = document.createElement('style');
-                    style.textContent = `
+                    // Add blur effect CSS and unlock overlay
+                    if (hiddenCount > 0) {
+                        const style = document.createElement('style');
+                        style.textContent = `
                             .blurred-row {
                                 filter: blur(5px);
                                 pointer-events: none;
                                 user-select: none;
                             }
                         `;
-                    document.head.appendChild(style);
+                        document.head.appendChild(style);
 
-                    // Add unlock overlay
-                    const overlay = document.createElement('div');
-                    overlay.className = 'absolute inset-0 bg-gradient-to-b from-transparent via-yellow-50/80 to-yellow-100/95 flex items-center justify-center z-10';
-                    overlay.innerHTML = `
+                        // Add unlock overlay
+                        const overlay = document.createElement('div');
+                        overlay.className = 'absolute inset-0 bg-gradient-to-b from-transparent via-yellow-50/80 to-yellow-100/95 flex items-center justify-center z-10';
+                        overlay.innerHTML = `
                             <div class="text-center p-8 bg-white/90 backdrop-blur-sm border-4 border-yellow-500 rounded-lg shadow-2xl max-w-md">
                                 <div class="text-6xl mb-4">🔒</div>
                                 <div class="text-2xl font-black text-gray-900 mb-2">LOCKED DATA</div>
@@ -1000,60 +999,60 @@
                                 </div>
                             </div>
                         `;
-                    tableContainer.style.position = 'relative';
-                    tableContainer.appendChild(overlay);
+                        tableContainer.style.position = 'relative';
+                        tableContainer.appendChild(overlay);
+                    }
                 }
-            }
 
-            // Unblur Evidence if Premium
-            if (data.isEnriched) {
-                const img = document.getElementById('success-evidence-img');
-                const mockImg = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop";
-                img.src = mockImg;
-                document.getElementById('evidence-display-section').classList.remove('hidden');
-                evidenceBox.innerHTML = `
+                // Unblur Evidence if Premium
+                if (data.isEnriched) {
+                    const img = document.getElementById('success-evidence-img');
+                    const mockImg = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop";
+                    img.src = mockImg;
+                    document.getElementById('evidence-display-section').classList.remove('hidden');
+                    evidenceBox.innerHTML = `
                         <div class="text-green-500 font-bold mb-2 uppercase text-xs tracking-widest">Store Capture Decrypted</div>
                         <img src="${mockImg}" class="w-full border border-green-900/40">
                     `;
+                }
+
+                // Unblur
+                document.querySelectorAll('.blur-md, .blur-sm').forEach(el => el.classList.remove('blur-md', 'blur-sm'));
+                document.querySelectorAll('.opacity-20').forEach(el => el.classList.remove('opacity-20'));
+            } else if (data.isEnriched) {
+                // TIER 2: PREMIUM ($29.99) - Alert Yellow
+                noticeTitle.innerText = "NOTICE OF SECURED EVIDENCE: SCREENSHOTS ATTACHED";
+                noticeDesc.innerText = "Evidence of alleged infringement has been physically secured via digital purchase or high-resolution store capture. This material is prepared for legal submission.";
+
+                evidenceStatusEl.innerText = "SUBSTANTIATED";
+                evidenceStatusEl.className = "font-bold font-mono text-xs text-court-yellow";
+                evidenceBox.classList.remove('hidden');
+
+                btn.href = LINK_PREMIUM;
+                ctaText.innerText = "ACCESS CASE DETAILS ($29.99)";
+                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-yellow text-black hover:bg-white shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all";
+
+                stamp.classList.remove('hidden');
+                stamp.innerText = "MATERIAL FOUND";
+
+            } else {
+                // TIER 1: BASIC ($9.99) - Formal Blue
+                noticeTitle.innerText = "NOTICE OF INCLUSION: DEFENDANT LIST";
+                noticeDesc.innerText = "Pursuant to the pending civil action, your entity has been formally listed as a defendant in the official court filing. Active monitoring is currently in progress.";
+
+                evidenceStatusEl.innerText = "LISTED";
+                evidenceStatusEl.className = "font-bold font-mono text-xs text-court-blue";
+
+                btn.href = LINK_PREMIUM;
+                ctaText.innerText = "ACCESS CASE DETAILS ($29.99)";
+                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-blue text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all";
             }
 
-            // Unblur
-            document.querySelectorAll('.blur-md, .blur-sm').forEach(el => el.classList.remove('blur-md', 'blur-sm'));
-            document.querySelectorAll('.opacity-20').forEach(el => el.classList.remove('opacity-20'));
-        } else if (data.isEnriched) {
-            // TIER 2: PREMIUM ($29.99) - Alert Yellow
-            noticeTitle.innerText = "NOTICE OF SECURED EVIDENCE: SCREENSHOTS ATTACHED";
-            noticeDesc.innerText = "Evidence of alleged infringement has been physically secured via digital purchase or high-resolution store capture. This material is prepared for legal submission.";
 
-            evidenceStatusEl.innerText = "SUBSTANTIATED";
-            evidenceStatusEl.className = "font-bold font-mono text-xs text-court-yellow";
-            evidenceBox.classList.remove('hidden');
-
-            btn.href = LINK_PREMIUM;
-            ctaText.innerText = "ACCESS CASE DETAILS ($29.99)";
-            btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-yellow text-black hover:bg-white shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all";
-
-            stamp.classList.remove('hidden');
-            stamp.innerText = "MATERIAL FOUND";
-
-        } else {
-            // TIER 1: BASIC ($9.99) - Formal Blue
-            noticeTitle.innerText = "NOTICE OF INCLUSION: DEFENDANT LIST";
-            noticeDesc.innerText = "Pursuant to the pending civil action, your entity has been formally listed as a defendant in the official court filing. Active monitoring is currently in progress.";
-
-            evidenceStatusEl.innerText = "LISTED";
-            evidenceStatusEl.className = "font-bold font-mono text-xs text-court-blue";
-
-            btn.href = LINK_PREMIUM;
-            ctaText.innerText = "ACCESS CASE DETAILS ($29.99)";
-            btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-blue text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all";
-        }
-
-
-        // Reveal
-        setTimeout(() => {
-            document.getElementById('loader').style.display = 'none';
-        }, 600);
+            // Reveal
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 600);
         }
 
         async function generatePDF(data, reportText) {
