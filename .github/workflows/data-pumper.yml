@@ -61,10 +61,10 @@ jobs:
         run: |
           set -e
           echo "🛰️ Launching Court Data Harvester..."
-          python ".agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py" || echo "⚠️ Harvester warning (continued)"
+          python ".agent/skills/legal-data-pumper/scripts/seed_intelligent_2026.py"
 
           echo "🎯 Launching Law Firm Sniper..."
-          python ".agent/skills/legal-data-pumper/scripts/real_sniper_v2.py" || echo "⚠️ Sniper warning (continued)"
+          python ".agent/skills/legal-data-pumper/scripts/real_sniper_v2.py"
 
       - name: 🏗️ Build Master Sitemap (SKILL 7.0)
         env:
@@ -73,17 +73,18 @@ jobs:
         run: |
           npm install fs-extra dotenv @supabase/supabase-js googleapis
           node build.js
-          node scripts/generate_sitemap.js || echo "⚠️ Sitemap warning (continued)"
+          node scripts/generate_sitemap.js
           # 主动向 Google 提交收录请求
-          node scripts/submit_google.js || echo "⚠️ Google submission skipped"
+          node scripts/submit_google.js
 
       - name: 🔄 Self-Healing Sync (SKILL 3.0)
         run: |
           git config --global user.name 'Grich Auto-Pumper'
           git config --global user.email 'bot@grich.law'
 
-          # 确保 dist 文件夹被识别
-          git add -f dist/sitemap.xml || echo "No sitemap to add"
+          # 确保关键产物被追踪
+          git add -f dist/sitemap.xml || echo "No sitemap"
+          git add -f dist/index.html || echo "No index"
 
           if git diff --staged --quiet; then
             echo "✅ No data changes detected. System is in sync."
@@ -91,32 +92,29 @@ jobs:
             echo "📝 Changes detected. Committing..."
             git commit -m "chore: auto-harvest legal data update [skip ci]"
             
-            # 使用更鲁棒的推送重试机制
             for i in {1..5}; do
               echo "Push attempt $i..."
-              git push origin main && break || (echo "Push failed, retrying in 5s..." && sleep 5 && git pull origin main --rebase)
+              git push origin main && break || (echo "Push failed, retrying..." && sleep 5 && git pull origin main --rebase)
             done
           fi
 
       - name: 🌐 Deploy to Cloudflare Pages (SKILL 8.0)
         env:
           CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: c70f291b77fbc02a6f2090ebe4abdd44
         run: |
           echo "🌐 Starting Deployment Diagnostic..."
-          if [ -z "$CLOUDFLARE_EMAIL" ]; then
-            echo "✅ Mode: Scoped Token (API_TOKEN)"
-            # Ensure only TOKEN is set for wrangler
-            unset CLOUDFLARE_EMAIL
-            unset CLOUDFLARE_API_KEY
-          else
-            echo "✅ Mode: Global Key (EMAIL + API_KEY)"
-            # Ensure API_TOKEN is unset so wrangler uses EMAIL/KEY
+          # 强制认证逻辑：如果提供了 Email，说明是 Global Key 模式，必须屏蔽 Token
+          if [ ! -z "$CLOUDFLARE_EMAIL" ]; then
+            echo "🔐 Auth Mode: Global API Key (Preferred)"
+            export CLOUDFLARE_API_KEY="$CLOUDFLARE_API_KEY"
             unset CLOUDFLARE_API_TOKEN
+          else
+            echo "🔐 Auth Mode: Scoped API Token"
+            export CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN"
           fi
 
-          # 执行部署
-          npx wrangler pages deploy dist --project-name=grich-cloud --branch=main --commit-dirty=true || { echo "❌ Deployment failed!"; exit 1; }
-          echo "🎉 System synchronize complete."
+          # 强制非交互模式部署
+          npx wrangler pages deploy dist --project-name=grich-cloud --branch=main --commit-dirty=true

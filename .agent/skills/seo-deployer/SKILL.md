@@ -89,3 +89,12 @@
 必须实现：在 HTML 离开 Cloudflare 服务器前，店名和案号必须已经被“硬编码”进源码。
 
 验证闭环：AI 必须使用内置工具执行 fetch 并搜索关键词。搜索不到，不准推送。
+
+第 15 章：数据库穿透与真实数据映射协议 (Real-Data Mapping)
+拒绝 URL 依赖：中间件禁止仅依赖 &defendant= 参数。
+
+案号检索逻辑：中间件必须通过案号 ?case=，物理连接 Supabase 数据库，查询该案号对应的 target_name。
+
+全量覆盖：必须确保 jaxfamlaw.com 首页“雷达”里的每一个链接点进去后，源码中显示的都是真实的店名，而不是占位符。
+
+GitHub 红叉治理：在解决“源码显示”问题前，AI 必须优先解决 GitHub Actions 的 认证错误 (Authentication)，必须让红叉变绿。
