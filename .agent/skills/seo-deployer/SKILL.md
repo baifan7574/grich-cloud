@@ -129,3 +129,20 @@ Action 强关联：只要 GitHub Actions 还是红叉，禁止进行任何前端
 拒绝“伪动态”加载：禁止使用“SYSTEM STATUS: RESOLVING...”等延迟加载动画来展示核心数据。
 
 即时渲染标准：所有从数据库抓取的被告名、案号、法院信息，必须在 HTML 离开服务器的那一刻就已经是最终状态。严禁先展示占位符再通过脚本替换。
+
+### 第 18 章：商业变现唯一真理协议 (Financial Integrity Protocol)
+1. **价格标签硬核化**：禁止以任何变量形式展示价格。按钮文字必须硬编码为：`ACCESS CASE DETAILS ($29.99)`。禁止出现 $9.99 或其他任何错误金额。
+2. **物理剔除 RESOLVING**：禁止在 HTML 模板中使用任何包含 "RESOLVING"、"LOADING" 或 "INITIALIZING" 字样的占位符。页面生成的瞬间，必须展示真实被告数据，严禁出现等待动画。
+3. **源码可检索性审计**：在宣布“成功”前，AI 必须自检：
+    - [ ] 源码中搜索 `($29.99)` 必须有结果。
+    - [ ] 源码中搜索 `https://payhip.com/b/BHtvq` 必须有结果。
+    - [ ] 源码中搜索 `ICON-OFFICIAL-MARKETPLACE` 必须有结果。
+
+
+第 18 章：商业变现唯一真理协议 (Financial Integrity Protocol)
+1. 价格标签硬核化：禁止以任何变量形式展示价格。按钮文字必须硬编码为：ACCESS CASE DETAILS ($29.99)。禁止出现 $9.99 或其他任何错误金额。
+2. 物理剔除 RESOLVING：禁止在 HTML 模板中使用任何包含 "RESOLVING"、"LOADING" 或 "INITIALIZING" 字样的占位符。页面生成的瞬间，必须展示真实被告数据，严禁出现等待动画。
+3. 源码可检索性审计：在宣布“成功”前，AI 必须自检：
+• [ ] 源码中搜索 ($29.99) 必须有结果。
+• [ ] 源码中搜索 https://payhip.com/b/BHtvq 必须有结果。
+• [ ] 源码中搜索 ICON-OFFICIAL-MARKETPLACE 必须有结果。
