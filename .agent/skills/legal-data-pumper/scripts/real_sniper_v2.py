@@ -216,26 +216,30 @@ def insert_case_and_defendants(case_info, sample_defendants=None):
             }
             
             try:
-                # 检查重复
-                # 注意：案号可能带 1: 也可能不带
+                # 检查重复 (Loose Check)
                 clean_case = case_info['case_number'].replace('1:', '')
-                case_clause = f"or(case_number.eq.{case_info['case_number']},case_number.eq.1:{clean_case})"
-                check_url = f"{DEFENDANTS_URL}?{case_clause}&defendant_name=eq.{defendant}"
+                # 构造更宽松的查询
+                check_url = f"{DEFENDANTS_URL}?select=id&defendant_name=eq.{defendant}&or=(case_number.eq.{case_info['case_number']},case_number.eq.{clean_case},case_number.eq.1:{clean_case})"
                 exists = requests.get(check_url, headers=HEADERS, timeout=10)
                 
                 if exists.status_code == 200 and len(exists.json()) > 0:
+                    # print(f"   ⏭️ 被告 {defendant} 已存在") 
                     continue  # 跳过重复
                 
                 response = requests.post(DEFENDANTS_URL, headers=HEADERS, json=defendant_data)
                 if response.status_code in [200, 201]:
                     success_count += 1
+                else:
+                     print(f"   ❌ 插入失败 {defendant}: {response.status_code} - {response.text}")
+
             except Exception as e:
-                pass
+                print(f"   ❌ 异常: {e}")
         
         if success_count > 0:
             print(f"   ✅ 成功插入 {success_count} 个被告")
         else:
-            print(f"   ⏭️ 被告已存在或插入失败")
+            print(f"   ⚠️ 本轮无新数据插入 (可能全部已存在)")
+
 
 print("\n🔍 执行数据插入...")
 print("="*70)
