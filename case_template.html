@@ -1085,42 +1085,71 @@
 
 
             // Header
-            doc.setFillColor(20, 20, 20);
-            doc.rect(0, 0, 210, 40, 'F');
-            doc.setTextColor(255, 255, 255);
+            // Header (Clean, Professional Legal Style)
+            doc.setTextColor(0, 0, 0); // Black text only
             doc.setFont("times", "bold");
-            doc.setFontSize(22);
-            doc.text("GRICH LEGAL INTELLIGENCE", 20, 20);
+            doc.setFontSize(18);
+            doc.text("PRIVILEGED & CONFIDENTIAL // LEGAL MEMORANDUM", 20, 20);
+
             doc.setFontSize(10);
-            doc.text("OFFICIAL DEFENSE MEMORANDUM // PRIVILEGED & CONFIDENTIAL", 20, 30);
+            doc.setFont("times", "normal");
+            doc.text("PREPARED BY: GRICH LEGAL INTELLIGENCE CORE", 20, 26);
+            doc.text(`DATE: ${new Date().toLocaleDateString()}`, 20, 31);
 
-            // Case Info
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(12);
-            doc.text(`CASE NO: ${data.caseID}`, 20, 50);
-            doc.text(`JURISDICTION: ${data.court}`, 20, 56);
-            doc.text(`PLAINTIFF: ${data.plaintiff}`, 20, 62);
-            doc.text(`TARGET DEFENDANT: ${data.targetName}`, 20, 68);
+            // Double Line Separator
+            doc.setDrawColor(0, 0, 0);
+            doc.setLineWidth(0.5);
+            doc.line(20, 36, 190, 36);
+            doc.line(20, 38, 190, 38);
 
-            // Line
-            doc.setDrawColor(200, 0, 0);
-            doc.setLineWidth(1);
-            doc.line(20, 75, 190, 75);
+            // Case Metadata Grid
+            doc.setFont("times", "bold");
+            doc.setFontSize(11);
+
+            doc.text(`CASE NUMBER:`, 20, 50);
+            doc.setFont("times", "normal");
+            doc.text(data.caseID, 60, 50);
+
+            doc.setFont("times", "bold");
+            doc.text(`JURISDICTION:`, 20, 56);
+            doc.setFont("times", "normal");
+            doc.text(data.court, 60, 56);
+
+            doc.setFont("times", "bold");
+            doc.text(`PLAINTIFF:`, 20, 62);
+            doc.setFont("times", "normal");
+            doc.text(data.plaintiff, 60, 62);
+
+            doc.setFont("times", "bold");
+            doc.text(`TARGET DEFENDANT:`, 20, 68);
+            doc.setFont("times", "normal");
+            doc.text(data.targetName, 60, 68);
+
+            doc.setFont("times", "bold");
+            doc.text(`OPPOSING COUNSEL:`, 20, 74);
+            doc.setFont("times", "normal");
+            doc.text(data.attorney, 60, 74);
+
+            // Single Line Separator for Body
+            doc.setLineWidth(0.5);
+            doc.line(20, 82, 190, 82);
 
             // AI Content Body
             doc.setFont("times", "normal");
             doc.setFontSize(11);
 
             // Sanitize and wrap text
+            // Using splitTextToSize to handle multi-line text properly
             const cleanText = reportText.replace(/\*/g, '').replace(/#/g, '');
             const splitText = doc.splitTextToSize(cleanText, 170);
 
-            doc.text(splitText, 20, 85);
+            let yPos = 92;
+            doc.text(splitText, 20, yPos);
 
-            // Footer Stamp
-            doc.setTextColor(200, 200, 200);
-            doc.setFontSize(40);
-            doc.text("GRICH VERIFIED", 50, 250, null, 30);
+            // Footer Stamp (Watermark style, but professional)
+            doc.setTextColor(200, 200, 200); // Light Erasure Gray
+            doc.setFontSize(30);
+            doc.text("GRICH VERIFIED // ATTORNEY EYES ONLY", 30, 260, null, 30);
 
             doc.save(`GRICH_Defense_Memo_${data.caseID}.pdf`);
 
