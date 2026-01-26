@@ -672,19 +672,27 @@
                 }
 
                 if (!lawsuit) {
-                    logLine(`LITIGATION SEARCH: NO_RECORD_FOUND. ACTIVATING [SYNTHETIC_AUDIT_MODE].`);
-                    // 19.5 Consistency Audit Fallback
-                    lawsuit = {
-                        case_number: caseParam !== 'UNKNOWN' ? caseParam : '25-cv-10581',
-                        plaintiff: "POPILUSH LLC", // Default high-profile plaintiff for demo
-                        court: "U.S. DISTRICT COURT (N.D. ILLINOIS)",
-                        judge: "HON. MARTHA M. PACOLD",
-                        law_firm: "GREER, BURNS & CRAIN, LTD.",
-                        filed_date: new Date().toISOString(),
-                        raw_data_url: "#"
-                    };
-                    logLine(`SYNTHETISED CONTEXT: ${lawsuit.plaintiff} v. ${defendantParam || 'TARGET'}`);
+                    console.log('Current Case Data:', null);
+                    logLine(`LITIGATION SEARCH: NO_RECORD_FOUND. HALTING.`);
+
+                    document.getElementById('loader').innerHTML = `
+                        <div class="text-court-alert font-mono text-center px-6">
+                            <div class="text-2xl font-bold mb-4">CASE DATA SYNCING...</div>
+                            <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Official Record Not Yet Indexed</div>
+                            <div class="text-[10px] text-gray-400">
+                                The requested case ID [${caseParam}] is currently being processed by our court scrapers.<br>
+                                Please check back in 5 minutes.
+                            </div>
+                            <button onclick="window.location.reload()" class="mt-8 px-6 py-3 border border-court-alert text-court-alert hover:bg-court-alert hover:text-black font-bold uppercase text-xs tracking-widest transition-all">
+                                REFRESH STATUS
+                            </button>
+                        </div>
+                    `;
+                    // Halt execution so no fake report is generated
+                    return;
                 }
+                console.log('Current Case Data:', lawsuit);
+
 
 
                 // 2. Fetch All Defendants

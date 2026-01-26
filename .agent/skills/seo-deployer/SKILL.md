@@ -210,3 +210,21 @@ AI 必须核对 Payhip 的 Webhook 或成功回跳 URL。只要支付完成，�
 21.3 转化漏斗监控：
 
 自动记录“页面访问 -> 点击支付 -> 支付成功”的转化率。若转化率低于 1%，AI 必须自检：是否按钮样式出了问题？是否价格显示有误？
+
+第 22 章：物理资产审计与零幻觉部署协议 (Physical Audit Protocol)
+严禁硬编码数据：禁止使用 if (!lawsuit) { lawsuit = ... } 这种写死数据的逻辑。如果数据库为空，AI 必须报错并修复抓取脚本，严禁造假。
+
+部署证明义务：AI 在宣布修复后，必须提供最新的 GitHub Commit Hash（提交记录哈希值）以及 Cloudflare Deployment URL。
+
+第三方库引用校验：若使用 jsPDF 等第三方库，必须在 HTML 头部显式引用 CDN 链接，严禁在未加载库的情况下调用函数。
+
+第 23 章：实时数据映射与零泛型协议 (Real-Time Mapping Integrity)
+数据强关联 (Case-to-Data Anchor)：禁止生成任何“通用报告”或“演示报告”。报告内容必须强制包含该案号对应的原告（Plaintiff）和被告（Defendant）的真实名称。
+
+空值熔断逻辑：若数据库查询结果为空，系统禁止通过 AI 自动填充“通用背景”。必须执行以下动作：
+
+报错拦截：提示“Case Data Not Found”，并引导用户联系客服手动补充。
+
+同步触发：自动触发一次 real_sniper.py 尝试实时补录该案号。
+
+Secrets 物理审计：AI 在部署前必须通过脚本自检：process.env.SUPABASE_KEY 是否存在。若缺失，严禁执行 git push
