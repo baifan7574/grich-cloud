@@ -11,11 +11,32 @@ async function submitSitemap() {
 
     const SITEMAP_URL = 'https://jaxfamlaw.com/sitemap.xml';
     const AUTH_FILE = path.join(__dirname, 'google-service-account.json');
+    const ENV_CREDENTIALS = process.env.GOOGLE_JSON_KEY;
 
-    if (!fs.existsSync(AUTH_FILE)) {
-        console.warn('⚠️ 未检测到 google-service-account.json，尝试使用环境变量方式提交...');
-        // 如果没有 Service Account，退而求其次使用简单的 HTTP Ping
-        // 虽然 Google 已不再推荐 Ping 方式，但作为兜底逻辑保留
+    let authConfig = null;
+
+    if (ENV_CREDENTIALS) {
+        console.log('🔑 检测到 GOOGLE_JSON_KEY 环境变量，使用内存凭证...');
+        try {
+            authConfig = {
+                credentials: JSON.parse(ENV_CREDENTIALS),
+                scopes: ['https://www.googleapis.com/auth/webmasters.readonly', 'https://www.googleapis.com/auth/webmasters']
+            };
+        } catch (e) {
+            console.error('❌ 环境变量 JSON 解析失败');
+        }
+    }
+
+    if (!authConfig && fs.existsSync(AUTH_FILE)) {
+        console.log('📂 检测到本地 Key 文件，使用文件凭证...');
+        authConfig = {
+            keyFile: AUTH_FILE,
+            scopes: ['https://www.googleapis.com/auth/webmasters.readonly', 'https://www.googleapis.com/auth/webmasters']
+        };
+    }
+
+    if (!authConfig) {
+        console.warn('⚠️ 未检测到有效凭证 (Env/File)，尝试降级为 Ping...');
         try {
             const fetch = (await import('node-fetch')).default;
             const res = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`);
@@ -31,11 +52,7 @@ async function submitSitemap() {
     }
 
     try {
-        const auth = new google.auth.GoogleAuth({
-            keyFile: AUTH_FILE,
-            scopes: ['https://www.googleapis.com/auth/webmasters.readonly', 'https://www.googleapis.com/auth/webmasters'],
-        });
-
+        const auth = new google.auth.GoogleAuth(authConfig);
         const searchconsole = google.searchconsole({ version: 'v1', auth });
 
         // 提交 Sitemap
@@ -44,10 +61,11 @@ async function submitSitemap() {
             feedpath: SITEMAP_URL,
         });
 
-        console.log(`✅ 成功向 Search Console 提交: ${SITEMAP_URL} (Level 2: Active)`);
+        console.log(`✅ [SUCCESS] 成功向 Search Console 提交: ${SITEMAP_URL}`);
+        console.log(`📡 Google 索引爬虫已被激活。请密切关注 "Discovered pages" 数据。`);
     } catch (error) {
         console.error('❌ Google API 提交错误:', error.message);
-        console.log('💡 请确保 Google Service Account 已在 Search Console 中被添加为“所有者”或“完全控制者”。');
+        console.log('💡 常见原因：Service Account 未在 Search Console 中添加为 "Owner"。');
     }
 }
 
