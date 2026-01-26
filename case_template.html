@@ -1025,8 +1025,15 @@
             const originalText = document.getElementById('cta-text').innerText;
             document.getElementById('cta-text').innerText = "GENERATING PDF...";
 
-            const { jsPDF } = window.jspdf;
+            // Jspdf safety load
+            const { jsPDF } = window.jspdf || window;
+            if (!jsPDF) {
+                alert("PDF Engine Loading... Please try again in 3 seconds.");
+                window.location.reload();
+                return;
+            }
             const doc = new jsPDF();
+
 
             // Header
             doc.setFillColor(20, 20, 20);
