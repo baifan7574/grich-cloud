@@ -357,8 +357,9 @@
                 </div>
 
                 <!-- GRICH INTELLIGENCE REPORT (SUCCESS STATE) -->
-                <div id="ai-report"
-                    class="hidden mt-12 mb-20 bg-[#f9f9f9] text-black p-10 border-t-8 border-green-600 shadow-2xl relative">
+                <div id="ai-report" style="display:none"
+                    class="mt-12 mb-20 bg-[#f9f9f9] text-black p-10 border-t-8 border-green-600 shadow-2xl relative">
+
                     <div class="absolute top-10 right-10 opacity-5 pointer-events-none">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg/1024px-Seal_of_the_United_States_District_Court_for_the_Northern_District_of_Illinois.svg.png"
                             class="w-48">
@@ -795,7 +796,12 @@
 
                 // SHOW AI REPORT IMMEDIATELY
                 const report = document.getElementById('ai-report');
-                report.classList.remove('hidden');
+                if (report) {
+                    report.style.display = 'block';
+                    report.classList.remove('hidden'); // Just in case
+                    console.log('✅ AI REPORT UNHIDDEN');
+                }
+
                 document.getElementById('report-summary').innerHTML = '<span class="animate-pulse text-green-600 font-bold">⚡ INITIATING DEEPSEEK SECURE CONNECTION...</span>';
 
                 document.getElementById('report-id').innerText = `GR-${Math.floor(1000 + Math.random() * 9000)}-${data.caseID.split('-').pop()}`;
