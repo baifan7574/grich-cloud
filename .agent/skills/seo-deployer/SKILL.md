@@ -242,3 +242,10 @@ Secrets 物理审计：AI 在部署前必须通过脚本自检：process.env.SUP
 参数绝对优先：系统必须优先读取 URL 中的 ?case= 参数。若参数缺失，禁止跳转，必须留在成功页并提示用户“正在获取订单关联案件，请稍后”。
 
 物理透传校验：AI 必须确保从“支付按钮点击”到“支付平台回跳”再到“报告生成”，case 变量在每一个物理 URL 中都必须存在。
+
+第 26 章：研报引擎状态可视化协议 (Status Visibility)
+拒绝静默失败：严禁在 DeepSeek 生成失败时显示空白页面。必须在屏幕上用大字显示：“AI ENGINE ERROR: [具体报错信息]”。
+
+CDN 物理存在性校验：AI 必须确保 case_template.html 头部包含 <script src="...jspdf..."></script>。严禁在未引入库的情况下调用 PDF 函数。
+
+触发指令锁定：系统必须检测 paid=true 参数。若该参数存在但未触发报告，AI 必须自检 generate-report.js 的接口通配符设置。
