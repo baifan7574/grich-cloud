@@ -709,9 +709,29 @@
                 renderUI(uiData, isPaid);
 
             } catch (err) {
+                console.error("Database Error:", err);
                 logLine(`COMMUNICATION BREACH: ${err.message}`);
-                document.getElementById('loader').innerText = "SYSTEM ERROR: DATABASE HANDSHAKE FAILED";
+
+                // 优雅降级：如果数据库连接失败，但 SSR 已经注入了数据，就不显示全屏错误
+                const ssrName = document.getElementById('target-name').innerText;
+                if (ssrName && ssrName !== '...' && ssrName !== 'LOCATING TARGET...') {
+                    logLine("SSR DATA PRESERVED. RENDERING OFFLINE MODE.");
+                    document.getElementById('loader').style.display = 'none'; // 强制关闭 Loading
+                } else {
+                    document.getElementById('loader').innerHTML = `
+                        <div class="text-court-alert font-mono text-center px-6">
+                            <div class="text-xl font-bold mb-4">SECURE CONNECTION FAILED</div>
+                            <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Retrying Verification...</div>
+                            <div class="text-[10px] text-gray-600">
+                                Please check your network connection.<br>
+                                Error: ${err.message || 'Handshake Timeout'}
+                            </div>
+                            <button onclick="window.location.reload()" class="mt-4 px-4 py-2 border border-gray-600 text-xs hover:bg-white hover:text-black">RETRY CONNECTION</button>
+                        </div>
+                    `;
+                }
             }
+
         }
 
         function renderUI(data, isPaid) {
