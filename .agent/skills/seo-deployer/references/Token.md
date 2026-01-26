@@ -16,3 +16,7 @@ CLOUDFLARE\_EMAIL:baifan7574@gmail.com
 
 CLOUDFLARE\_API\_KEY:69e5dc3505d1f288a82f23d5c1b8899756fae
 
+
+
+payhip29.99:   https://payhip.com/b/nc08Y 
+
