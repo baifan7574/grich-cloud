@@ -127,14 +127,34 @@ async def process_page(page, target):
         print(f"   ❌ 扫描失败: {e}")
 
 async def main():
-    print("🚀 启动律所猎手 (Law Firm Hunter)...")
+    print("🚀 启动律所猎手 (Law Firm Hunter) - Stealth Mode...")
     async with async_playwright() as p:
         # 使用 Chrome 浏览器，无头模式
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        # args 添加防检测参数
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                '--disable-blink-features=AutomationControlled',
+                '--no-sandbox',
+                '--disable-setuid-sandbox'
+            ]
         )
+        
+        # 上下文配置：忽略 HTTPS 错误，自定义 User-Agent
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            ignore_https_errors=True,
+            viewport={'width': 1920, 'height': 1080}
+        )
+        
         page = await context.new_page()
+
+        # 注入 webdriver 屏蔽脚本
+        await page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+        """)
 
         for target in TARGETS:
             await process_page(page, target)
