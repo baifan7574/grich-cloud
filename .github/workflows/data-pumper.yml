@@ -28,8 +28,9 @@ jobs:
       - name: 📦 Install Runtime Engine
         run: |
           python -m pip install --upgrade pip
-          pip install supabase python-dotenv requests feedparser beautifulsoup4
-          pip show requests supabase feedparser
+          pip install supabase python-dotenv requests feedparser beautifulsoup4 playwright
+          playwright install chromium
+          pip show requests supabase playwright
 
       - name: 🔍 Environment Pre-check (SKILL 1.0)
         env:
@@ -57,13 +58,21 @@ jobs:
           echo "SUPABASE_SERVICE_KEY=$KEY" >> .env
           echo "✅ Production Pipeline Primed."
 
-      - name: 🚀 Exec Sentinel RSS Harvest (Real-Time)
+      - name: 🚀 Exec Sentinel RSS Harvest (Script A - Radar)
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           set -e
           echo "🛰️ Launching Sentinel RSS Scanner..."
           python ".agent/skills/legal-data-pumper/scripts/seed_sentinel_rss.py"
+
+      - name: 🏹 Exec Law Firm Hunter (Script B - Sniper)
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -e
+          echo "🔫 Launching Law Firm Hunter (Playwright)..."
+          python ".agent/skills/legal-data-pumper/scripts/seed_hunter_lawfirms.py"
 
       - name: 🏗️ Build Master Sitemap (SKILL 7.0)
         run: |
