@@ -58,13 +58,13 @@ jobs:
           echo "SUPABASE_SERVICE_KEY=$KEY" >> .env
           echo "✅ Production Pipeline Primed."
 
-      - name: 🚀 Exec Sentinel RSS Harvest (Script A - Radar)
+      - name: 🚀 Exec Sentinel Harvest (Script A - Justia)
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           set -e
-          echo "🛰️ Launching Sentinel RSS Scanner..."
-          python ".agent/skills/legal-data-pumper/scripts/seed_sentinel_rss.py"
+          echo "🛰️ Launching Sentinel Justia Scanner..."
+          python ".agent/skills/legal-data-pumper/scripts/seed_sentinel_justia.py"
 
       - name: 🏹 Exec Law Firm Hunter (Script B - Sniper)
         env:
