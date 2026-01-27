@@ -21,15 +21,15 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 TARGETS = [
     {
         "firm": "GBC",
-        "url": "https://gbc.law/cases", # 需根据实际可访问 URL 调整，GBC 常用 gbc.law
-        "selector": "a[href*='cases']", # 泛用选择器
+        "url": "https://gbcinfringement.com/", 
+        "selector": "a[href*='case'], table tr",
         "priority": "High"
     },
     {
         "firm": "HSP",
-        "url": "https://hsp.law/service-of-process/", # 常见 HSP 公示页
+        "url": "https://hspdirect.com/cases/",
         "selector": ".case-item, table tr",
-        "priority": "Medium"
+        "priority": "High"
     },
     {
         "firm": "Keith",
@@ -39,7 +39,7 @@ TARGETS = [
     },
     {
         "firm": "EPS",
-        "url": "https://epslaw.com/active-cases/",  # 需验证
+        "url": "https://epslaw.com/notices/",
         "selector": "table tr",
         "priority": "Medium"
     }
