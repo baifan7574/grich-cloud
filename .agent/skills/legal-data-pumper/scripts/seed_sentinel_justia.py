@@ -28,20 +28,8 @@ TARGET_URL = "https://dockets.justia.com/search?courts=ilnd&cases=civil&nos=840"
 print(f"📡 启动哨兵 (Sentinel) - 监控源: {TARGET_URL}")
 
 def fetch_justia_cases():
-    print("📥 访问 Justia Dockets (Stealth Mode)...")
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '"Windows"',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1'
-    }
+    print("📥 访问 Justia Dockets (Stealth Mode + Random UA)...")
+    headers = get_random_headers()
     
     try:
         resp = requests.get(TARGET_URL, headers=headers, timeout=20)
@@ -125,23 +113,95 @@ def save_to_supabase(case_data):
         print(f"❌ 入库失败: {e}")
         return False
 
+import random
+import feedparser
+
+# ... (Imports remain the same, ensure feedparser is imported)
+
+def get_random_headers():
+    user_agents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0'
+    ]
+    return {
+        'User-Agent': random.choice(user_agents),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'DNT': '1',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1'
+    }
+
+def fetch_rss_fallback():
+    print("🔄 此路不通，切换 B 计划: CourtListener RSS (N.D. Illinois)...")
+    rss_url = "https://www.courtlistener.com/dockets/rss/?court=ilnd"
+    cases = []
+    try:
+        feed = feedparser.parse(rss_url)
+        if not feed.entries:
+            print("⚠️ RSS 返回空 (可能是网络问题或无新案件)")
+            return []
+            
+        print(f"📡 RSS 收到 {len(feed.entries)} 条更新")
+        for entry in feed.entries:
+            # RSS entry title format often: "1:23-cv-12345 - Plaintiff v. Defendant"
+            # Or just case name. We need to parse carefully.
+            title = entry.title
+            link = entry.link
+            
+            # Simple Regex for case number
+            case_match = re.search(r'\d{1,2}:\d{2}-cv-\d{3,5}', title)
+            if case_match:
+                case_no = case_match.group(0)
+                # Cleaning title to get case name
+                case_name = title.replace(case_no, '').strip(' -')
+                cases.append({
+                    "case_number": case_no,
+                    "case_name": case_name,
+                    "url": link,
+                    "date": datetime.now().strftime("%Y-%m-%d")
+                })
+    except Exception as e:
+        print(f"❌ RSS Fallback Failed: {e}")
+        
+    return cases
+
 def main_pipeline():
-    # 1. 抓取 Justia
+    # 1. 尝试 Justia (Stealth Mode)
     cases = fetch_justia_cases()
     
-    # 2. 如果 Justia 失败，尝试 fallback (这里可以放 Google Search 逻辑)
+    # 2. 如果 Justia 失败 (403 或 空)，立即启动 RSS 备用方案
     if not cases:
-        print("⚠️ Justia 返回空，尝试 Google Search API (Fallback)...")
-        # TODO: 接入 Serper 作为备选
+        print("⚠️ Justia 抓取未获数据 (被拦截或无更新)，启动 fallback...")
+        cases = fetch_rss_fallback()
     
+    # 3. 入库处理
     new_cases_count = 0
-    for case in cases:
-        if save_to_supabase(case):
-            new_cases_count += 1
-            
+    if cases:
+        print(f"📦 准备处理 {len(cases)} 个案件...")
+        for case in cases:
+            if save_to_supabase(case):
+                new_cases_count += 1
+    
+    # 4. 真实性审计 (Real Audit)
     print("\n" + "="*50)
-    print(f"🎉 流程结束. 新入库案件: {new_cases_count}")
+    print(f"📊 最终审计结果: 发现 {len(cases)} | 入库 {new_cases_count}")
     print("="*50)
+
+    if len(cases) == 0:
+        print("🚨 CRITICAL ERROR: ZERO DATA CAPTURED")
+        print("❌ 严禁提交空数据欺骗系统！")
+        raise Exception("Zero Data Captured - Pipeline Aborted")
+    
+    if new_cases_count == 0 and len(cases) > 0:
+         print("⚠️ 数据已获得但全部重复，视为任务成功 (Success with Warning)")
+    elif new_cases_count > 0:
+         print("✅ 任务圆满完成 (Mission Success)")
 
 if __name__ == "__main__":
     main_pipeline()

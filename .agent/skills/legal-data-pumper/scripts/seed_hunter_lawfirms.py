@@ -25,7 +25,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 TARGETS = [
     {
         "firm": "GBC",
-        "url": "https://gbcinfringement.com/", 
+        "url": "https://www.gbcinfringement.com/", 
         "selector": "a[href*='case'], table tr",
         "priority": "High"
     },
@@ -54,9 +54,21 @@ CASE_PATTERN = r"(\d{1,2}:\d{2}-cv-\d{3,5})" # 匹配 1:26-cv-00123
 
 async def process_page(page, target):
     print(f"🕵️ 正在扫描: {target['firm']} - {target['url']}")
+    
+    # Retry Logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            await page.goto(target['url'], timeout=60000, wait_until="domcontentloaded")
+            break # Success
+        except Exception as e:
+            if attempt == max_retries - 1:
+                print(f"   ❌ [Final Fail] 无法访问 {target['firm']}: {e}")
+                return 0 # Fail this target
+            print(f"   ⚠️ [Retry {attempt+1}/{max_retries}] 连接失败，3秒后重试...")
+            await asyncio.sleep(3)
+    
     try:
-        await page.goto(target['url'], timeout=30000, wait_until="networkidle")
-        
         # 获取页面文本用于正则提取
         content = await page.content()
         
@@ -64,77 +76,71 @@ async def process_page(page, target):
         found_cases = set(re.findall(CASE_PATTERN, content))
         print(f"   -> 发现 {len(found_cases)} 个潜在案号")
         
+        caseload_count = 0
         for case_no in found_cases:
-            # 2. 关联逻辑：检查是否在我们的数据库中 (由 Sentinel 发现的)
-            # 或者直接 Upsert (既然在律所官网发现了，那肯定是该律所代理的)
-            
+            # 2. 关联逻辑
             print(f"      -> 处理案号: {case_no}")
             
-            # (A) 更新 Law Firm 信息 (如果数据库里是 Unknown)
-            # 首先检查案件是否存在
+            # (A) 更新 Law Firm 信息
             res = supabase.table('lawsuits').select('*').eq('case_number', case_no).execute()
             
             if len(res.data) > 0:
-                # 案件存在，更新 Law Firm
                 current_firm = res.data[0].get('law_firm')
                 if current_firm != target['firm']:
                     print(f"         📝 更新律所: {current_firm} -> {target['firm']}")
                     supabase.table('lawsuits').update({'law_firm': target['firm']}).eq('case_number', case_no).execute()
+                caseload_count += 1
             else:
-                # 案件不存在，创建新案件 (Hunter 也能发现新案子)
                 print(f"         🆕 发现新案 (从律所官网): {case_no}")
                 payload = {
                     "case_number": case_no,
                     "plaintiff": "Unknown (Hunter Discovered)",
                     "law_firm": target['firm'],
-                    "court": "N.D. Illinois", # 假设大多是 ILND，后续可优化
+                    "court": "N.D. Illinois",
                     "status": "Active (Firm Website)",
                     "filed_date": datetime.now().strftime("%Y-%m-%d"),
                     "raw_data_url": target['url'],
                     "risk_score": 95
                 }
-                supabase.table('lawsuits').insert(payload).execute()
+                try:
+                    supabase.table('lawsuits').insert(payload).execute()
+                    caseload_count += 1
+                except Exception as insert_err:
+                     print(f"         ❌ Insert Error: {insert_err}")
 
-            # (B) 尝试抓取被告 (简易版：寻找附近的 Store Name)
-            # 这是一个复杂的任务，通常需要针对每个网站写具体的解析器
-            # V1 版本：我们先提取案号附近的链接文本，看是否像 PDF 或 Shop Name
-            
-            # 寻找该案号附近的 PDF 链接
-            # XPath: 查找包含案号文本的元素，然后找它旁边的 'a' 标签
-            # 这是一个启发式尝试
+            # (B) 尝试抓取被告 (简易版)
             try:
-                # 查找包含案号的链接
                 links = await page.locator(f"a:has-text('{case_no}')").all()
                 for link in links:
                     href = await link.get_attribute('href')
                     if href and '.pdf' in href:
                         print(f"         📎 发现 PDF 证据: {href}")
-                        # 可以在这里做 PDF 解析 (V2)
-                        
-                        # 存一个特殊的被告占位符，引导用户去下载 PDF
                         defendant_payload = {
                             "case_number": case_no,
                             "defendant_name": "See Attached Schedule A (PDF)",
-                            "store_url": href, # 把 PDF 链接存在 store_url
+                            "store_url": href,
                             "platform": "PDF Document",
                             "source": f"{target['firm']} Website"
                         }
-                        # 插入被告 (忽略重复)
                         try:
                             supabase.table('defendants').insert(defendant_payload).execute()
                         except:
-                            pass # 忽略重复
+                            pass
             except Exception as e:
-                print(f"         ⚠️ 被告提取跳过: {e}")
+                pass # Silent fail on PDF
+                
+        return caseload_count
 
     except Exception as e:
-        print(f"   ❌ 扫描失败: {e}")
+        print(f"   ❌ 解析失败: {e}")
+        return 0
 
 async def main():
     print("🚀 启动律所猎手 (Law Firm Hunter) - Stealth Mode...")
+    
+    total_harvested = 0
+    
     async with async_playwright() as p:
-        # 使用 Chrome 浏览器，无头模式
-        # args 添加防检测参数
         browser = await p.chromium.launch(
             headless=True,
             args=[
@@ -144,7 +150,6 @@ async def main():
             ]
         )
         
-        # 上下文配置：忽略 HTTPS 错误，自定义 User-Agent
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             ignore_https_errors=True,
@@ -153,7 +158,6 @@ async def main():
         
         page = await context.new_page()
 
-        # 注入 webdriver 屏蔽脚本
         await page.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined
@@ -161,11 +165,22 @@ async def main():
         """)
 
         for target in TARGETS:
-            await process_page(page, target)
+            count = await process_page(page, target)
+            total_harvested += count
         
         await browser.close()
     
-    print("✅ 猎捕完成。")
+    print("\n" + "="*50)
+    print(f"📊 猎杀统计: 总计处理 {total_harvested} 个案件")
+    print("="*50)
+    
+    if total_harvested == 0:
+        print("🚨 CRITICAL: NO TARGETS ACQUIRED")
+        # In Sniper (Law Firm) mode, it's possible no firm has posted updates TODAY.
+        # But if ALL sites failed to load, it's an error.
+        # We'll rely on the logs to distinguish, but simply failing CI might be too harsh if it's just a slow news day.
+        # However, user demanded 'Strict Audit'.
+        raise Exception("Sniper Mission Failed - 0 Targets Found")
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -55,6 +55,20 @@ async function submitSitemap() {
         const auth = new google.auth.GoogleAuth(authConfig);
         const searchconsole = google.searchconsole({ version: 'v1', auth });
 
+        // 提交 Sitemap 前的安全检查 (Quality Gate)
+        // 读取 Sitemap 文件来计算 URL 数量
+        const fs = require('fs');
+        const sitemapContent = fs.readFileSync(path.join(__dirname, '../public/sitemap.xml'), 'utf-8');
+        const urlCount = (sitemapContent.match(/<loc>/g) || []).length;
+
+        console.log(`📊 Sitemap URL Count: ${urlCount}`);
+
+        if (urlCount < 10) {
+            console.warn("⚠️ Sitemap URL count is too low (< 10). Aborting submission to protect SEO reputation.");
+            console.warn("🚫 [ABORTED] 防止空数据提交给 Google。");
+            return;
+        }
+
         // 提交 Sitemap
         await searchconsole.sitemaps.submit({
             siteUrl: 'https://jaxfamlaw.com/',
