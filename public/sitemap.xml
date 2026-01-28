@@ -2646,12 +2646,6 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445</loc>
-        <lastmod>2026-01-18</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
         <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00463</loc>
         <lastmod>2026-01-15</lastmod>
         <changefreq>weekly</changefreq>
@@ -2660,6 +2654,12 @@
     <url>
         <loc>https://jaxfamlaw.com/case_template.html?case=2%3A26-cv-00123</loc>
         <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445</loc>
+        <lastmod>2026-01-18</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -3175,46 +3175,6 @@
     </url>
     <url>
         <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00484&amp;defendant=wholesale-discount-center.com</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=marshall-outlet-usa.com</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=marshall-headphones-deal.top</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=AliExpress%20Seller%3A%20MarshallDirect</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=eBay%3A%20VintageMarshallParts</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=Amazon%20Store%3A%20MarshallGearPro</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=marshall-amp-sale.net</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=major-headphones-discount.com</loc>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template.html?case=1%3A26-cv-00445&amp;defendant=rock-style-marshall.shop</loc>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
