@@ -5,9 +5,14 @@ import os
 from datetime import datetime
 from supabase import create_client, Client
 
-# 1. 环境配置
-# 1. 环境配置
-# (load_dotenv removed for CI/CD strict compliance)
+# 1. 环境配置 (CI/CD optimized, optional local .env loading)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+except Exception:
+    pass
 SUPABASE_URL = os.environ.get("PUBLIC_SUPABASE_URL") or os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("PUBLIC_SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_KEY")
 
@@ -94,7 +99,7 @@ def save_to_supabase(case_data):
         "case_number": case_data['case_number'],
         "plaintiff": plaintiff,
         "court": "N.D. Illinois",
-        "law_firm": "Unknown", # 等待 Hunter 补全
+        "brand_name": "Unknown", # Use brand_name as placeholder or fallback
         "filed_date": case_data['date'],
         "status": "New Filing",
         "raw_data_url": case_data['url'],

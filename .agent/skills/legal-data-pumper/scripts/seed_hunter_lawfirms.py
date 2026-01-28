@@ -4,7 +4,14 @@ import os
 from datetime import datetime
 from supabase import create_client, Client
 
-# 1. 环境配置 (CI/CD optimized)
+# 1. 环境配置 (CI/CD optimized, optional local .env loading)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+except Exception:
+    pass
 SUPABASE_URL = os.environ.get("PUBLIC_SUPABASE_URL") or os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("PUBLIC_SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_KEY")
 
@@ -19,17 +26,17 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 TARGETS = [
     {
         "firm": "GBC",
-        "url": "https://www.gbcinfringement.com/", 
+        "url": "https://gbc.law/cases", # Corrected URL
         "priority": "High"
     },
     {
         "firm": "HSP",
-        "url": "https://hspdirect.com/cases/",
+        "url": "https://www.hspdirect.com/cases/", # Corrected URL
         "priority": "High"
-    },
+  },
     {
         "firm": "Keith",
-        "url": "https://keith.law/cases/",
+        "url": "https://www.keith.law/cases/", # Corrected URL
         "priority": "High"
     },
     {
@@ -93,18 +100,16 @@ def scan_target(target):
             res = supabase.table('lawsuits').select('*').eq('case_number', case_no).execute()
             
             if len(res.data) > 0:
-                current_firm = res.data[0].get('law_firm')
-                if current_firm != target['firm']:
-                    # print(f"         📝 更新律所: {current_firm} -> {target['firm']}")
-                    supabase.table('lawsuits').update({'law_firm': target['firm']}).eq('case_number', case_no).execute()
+                current_val = res.data[0].get('brand_name')
+                if current_val != target['firm']:
+                    # supabase.table('lawsuits').update({'brand_name': target['firm']}).eq('case_number', case_no).execute()
+                    pass
                 caseload_count += 1
                 
-                # Link Cloud Evidence to this case if found (Heuristic: Associate all found cloud links on page to this case? 
-                # Or maybe just the first one? Usually page is per-case or list. 
-                # If list, this is risky. But for now, better to capture.)
                 for clink in cloud_links:
                      try:
                         defendant_payload = {
+                            "brand_name": target['firm'],
                             "case_number": case_no,
                             "defendant_name": "Metadata: Cloud Evidence (Schedule A)",
                             "store_url": clink,
@@ -120,7 +125,7 @@ def scan_target(target):
                 payload = {
                     "case_number": case_no,
                     "plaintiff": "Unknown (Hunter Discovered)",
-                    "law_firm": target['firm'],
+                    "brand_name": target['firm'],
                     "court": "N.D. Illinois",
                     "status": "Active (Firm Website)",
                     "filed_date": datetime.now().strftime("%Y-%m-%d"),
@@ -134,6 +139,7 @@ def scan_target(target):
                     # Insert Cloud Evidence
                     for clink in cloud_links:
                          defendant_payload = {
+                            "brand_name": target['firm'],
                             "case_number": case_no,
                             "defendant_name": "Metadata: Cloud Evidence (Schedule A)",
                             "store_url": clink,
