@@ -2,11 +2,9 @@
 // Needs to fetch real case data from Supabase to prove 'Full Auto Combat Mode'
 // Usage: node scripts/get_real_cases.js
 
-try {
-    require('dotenv').config();
-} catch (e) {
-    // ignore
-}
+// Grich Real Sniper Tool
+// Needs to fetch real case data from Supabase to prove 'Full Auto Combat Mode'
+// Usage: node scripts/get_real_cases.js
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL || "https://rdlmumybuwveaaeceohj.supabase.co";

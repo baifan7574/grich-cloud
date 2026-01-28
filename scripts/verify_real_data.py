@@ -1,12 +1,8 @@
 import os
 import json
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+from supabase import create_client, Client
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except Exception:
-    pass
+# (load_dotenv removed for CI/CD strict compliance)
 
 SUPABASE_URL = os.environ.get("PUBLIC_SUPABASE_URL") or os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("PUBLIC_SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_KEY")
