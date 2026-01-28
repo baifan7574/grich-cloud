@@ -1,15 +1,15 @@
-name: Auto SEO Pump
+name: Auto SEO Pump (Combat Version)
 
 on:
   schedule:
-    - cron: "0 18 * * *" # 每天北京时间凌晨2点 (UTC 18:00)
-  workflow_dispatch: # 允许手动触发
+    - cron: "0 */6 * * *" # 每 6 小时触发一次云端接力
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  seo-pump:
+  seo-relay:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,37 +24,27 @@ jobs:
       - name: Install Dependencies
         run: npm install @supabase/supabase-js googleapis
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-
-      - name: Harvest Real Legal Data
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          COURTLISTENER_TOKEN: ${{ secrets.COURTLISTENER_TOKEN }}
-        run: |
-          python -m pip install --upgrade pip
-          pip install supabase python-dotenv requests feedparser
-          python .agent/skills/legal-data-pumper/scripts/seed_verified_real_cases.py
-
       - name: Generate Fresh Sitemap
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_KEY }}
         run: node scripts/generate_sitemap.js
 
       - name: Push Sitemap to Cloudflare
-        # 这一步通过 git commit 自动触发 Cloudflare Pages 的构建
         run: |
           git config --global user.name "SEO Bot"
           git config --global user.email "bot@jaxfamlaw.com"
           git add public/sitemap.xml
-          git commit -m "chore(seo): auto-update sitemap [skip ci]" || echo "No changes to commit"
+          git commit -m "chore(seo): auto-update sitemap from local capture [skip ci]" || echo "No changes to commit"
           git push
 
-      - name: Ping Google Indexing API
+      - name: Relay to Google Indexing API
         env:
-          GOOGLE_JSON_KEY: ${{ secrets.GOOGLE_JSON_KEY }}
-        run: node scripts/submit_google.js
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_JSON_KEY }}
+        run: |
+          # 动态创建密钥文件（如果 secret 是内容）
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > google_key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=google_key.json
+          node scripts/google_indexing_pump.js
