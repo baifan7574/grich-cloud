@@ -116,6 +116,7 @@ def save_to_supabase(case_data):
 
 import random
 import feedparser
+from datetime import timedelta
 
 # ... (Imports remain the same, ensure feedparser is imported)
 
@@ -148,7 +149,8 @@ def fetch_courtlistener_rss():
     # 但用户也说 "直接让脚本使用 CourtListener RSS/API 作为第一优先级"。
     # RSS 对于实时监控够用了。
     
-    rss_url = "https://www.courtlistener.com/dockets/rss/?court=ilnd"
+    # RECAP RSS is the most active and public feed
+    rss_url = "https://www.courtlistener.com/recap/rss/court/ilnd/"
     cases = []
     
     token = os.environ.get("COURTLISTENER_TOKEN")
@@ -198,10 +200,10 @@ def fetch_courtlistener_api(token):
     # 备用 API 方案
     url = "https://www.courtlistener.com/api/rest/v3/search/"
     params = {
-        'q': 'trademark',
-        'court': 'ilnd',
-        'order_by': 'dateFiled desc',
-        'type': 'r' # r=recap (dockets)
+        'q': 'trademark infringement "Schedule A"',
+        'type': 'd', # d=dockets
+        'filed_after': (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'),
+        'order_by': 'date_filed desc'
     }
     headers = {'Authorization': f'Token {token}'}
     try:
