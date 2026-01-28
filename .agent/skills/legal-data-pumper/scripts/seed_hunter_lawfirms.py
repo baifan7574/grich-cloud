@@ -14,6 +14,7 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+
 # 2. 目标律所监控列表
 TARGETS = [
     {
@@ -46,6 +47,26 @@ def get_headers():
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
     }
 
+def find_cloud_links(content):
+    """
+    Search for Sharepoint, OneDrive, Google Drive links which often contain Schedule A (Defendant List).
+    """
+    cloud_patterns = [
+        r'https://[\w\.-]*sharepoint\.com[:\w\./\?=&%-]*',
+        r'https://[\w\.-]*1drv\.ms[:\w\./\?=&%-]*',
+        r'https://[\w\.-]*drive\.google\.com[:\w\./\?=&%-]*',
+        r'https://[\w\.-]*docs\.google\.com[:\w\./\?=&%-]*',
+        r'https://[\w\.-]*dropbox\.com[:\w\./\?=&%-]*',
+        r'https://[\w\.-]*box\.com[:\w\./\?=&%-]*'
+    ]
+    
+    found_links = set()
+    for pattern in cloud_patterns:
+        matches = re.findall(pattern, content)
+        for m in matches:
+            found_links.add(m)
+    return list(found_links)
+
 def scan_target(target):
     print(f"🕵️ 扫描 (Light Mode): {target['firm']} - {target['url']}")
     try:
@@ -55,6 +76,13 @@ def scan_target(target):
             return 0
             
         content = resp.text
+        
+        # 1. Capture Cloud Links (The "Sniper 2" Logic)
+        cloud_links = find_cloud_links(content)
+        if cloud_links:
+            print(f"   ☁️ 发现云端文档 ({len(cloud_links)}): {cloud_links}")
+            
+        # 2. Extract Cases
         found_cases = set(re.findall(CASE_PATTERN, content))
         print(f"   -> 发现 {len(found_cases)} 个潜在案号")
         
@@ -67,9 +95,26 @@ def scan_target(target):
             if len(res.data) > 0:
                 current_firm = res.data[0].get('law_firm')
                 if current_firm != target['firm']:
-                    print(f"         📝 更新律所: {current_firm} -> {target['firm']}")
+                    # print(f"         📝 更新律所: {current_firm} -> {target['firm']}")
                     supabase.table('lawsuits').update({'law_firm': target['firm']}).eq('case_number', case_no).execute()
                 caseload_count += 1
+                
+                # Link Cloud Evidence to this case if found (Heuristic: Associate all found cloud links on page to this case? 
+                # Or maybe just the first one? Usually page is per-case or list. 
+                # If list, this is risky. But for now, better to capture.)
+                for clink in cloud_links:
+                     try:
+                        defendant_payload = {
+                            "case_number": case_no,
+                            "defendant_name": "Metadata: Cloud Evidence (Schedule A)",
+                            "store_url": clink,
+                            "platform": "Cloud Storage",
+                            "source": f"{target['firm']} Cloud Link"
+                        }
+                        supabase.table('defendants').insert(defendant_payload).execute()
+                     except:
+                        pass
+
             else:
                 print(f"         🆕 发现新案: {case_no}")
                 payload = {
@@ -85,6 +130,18 @@ def scan_target(target):
                 try:
                     supabase.table('lawsuits').insert(payload).execute()
                     caseload_count += 1
+                    
+                    # Insert Cloud Evidence
+                    for clink in cloud_links:
+                         defendant_payload = {
+                            "case_number": case_no,
+                            "defendant_name": "Metadata: Cloud Evidence (Schedule A)",
+                            "store_url": clink,
+                            "platform": "Cloud Storage",
+                            "source": f"{target['firm']} Cloud Link"
+                         }
+                         supabase.table('defendants').insert(defendant_payload).execute()
+
                 except Exception as e:
                     pass
 
@@ -95,7 +152,7 @@ def scan_target(target):
         return 0
 
 def main():
-    print("🚀 启动律所猎手 (Law Firm Hunter) - Light Request Mode...")
+    print("🚀 启动律所猎手 (Law Firm Hunter) - Light Request Mode (w/ Cloud Parsing)...")
     total = 0
     requests.packages.urllib3.disable_warnings() # Suppress SSL warnings
 
@@ -106,9 +163,6 @@ def main():
     print(f"📊 猎杀统计: 总计处理 {total} 个案件")
     print("="*50)
     
-    # Hunter is auxiliary, so we don't necessarily fail the pipeline if it finds nothing, 
-    # as long as Sentinel found something. 
-    # But if user wants strict audit everywhere:
     if total == 0:
          print("⚠️ Hunter 未发现新数据 (可能律所今日无更新或反爬拦截)")
 
