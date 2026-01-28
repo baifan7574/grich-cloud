@@ -51,7 +51,7 @@ except Exception as e:
 
 print("\n=== 👥 最新被告 (Defendants) ===")
 try:
-    res = supabase.table('defendants').select('*').order('created_at', desc=True).limit(5).execute()
+    res = supabase.table('defendants').select('*').limit(5).execute()
     defendants = res.data
     if not defendants:
         print("⚠️ 暂无被告数据 (可能还没抓到 PDF 或解析失败)")
