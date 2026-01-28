@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
+try { require('dotenv').config(); } catch (e) { }
 
 // 注意：此脚本需要 googleapis 库
 // npm install googleapis

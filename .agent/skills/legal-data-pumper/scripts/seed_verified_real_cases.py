@@ -15,22 +15,28 @@ skills_dir = os.path.dirname(os.path.dirname(script_dir))  # skills/
 agent_dir = os.path.dirname(skills_dir)  # .agent/
 grich_dir = os.path.dirname(agent_dir)  # grich-astro/
 project_root = os.path.dirname(grich_dir)  # 项目根目录
-env_path = os.path.join(grich_dir, '.env')
 
-env_vars = {}
+# 尝试安全加载 .env (本地开发用)
 try:
-    with open(env_path, 'r', encoding='utf-8-sig') as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
-except Exception as e:
-    print(f"❌ 环境文件读取错误: {e}")
-    exit(1)
+    from dotenv import load_dotenv
+    # 优先尝试在当前目录或 grich-astro 目录寻找 .env
+    env_path = os.path.join(grich_dir, '.env')
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+    else:
+        load_dotenv() # Fallback to default search
+except ImportError:
+    pass
 
-SUPABASE_URL = env_vars.get("PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = env_vars.get("PUBLIC_SUPABASE_ANON_KEY")
+# 直接从环境变量读取 (CI/CD 优先)
+SUPABASE_URL = os.getenv("PUBLIC_SUPABASE_URL") or os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("PUBLIC_SUPABASE_ANON_KEY") or os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("⚠️ Warning: Missing Supabase credentials in environment variables.")
+    # 不要在这里 exit，除非真的没法往下跑。
+    # 但如果是 CI 环境没配好 Secret，这里确实会挂，但至少报错信息更明确
+    pass
 
 REST_URL = f"{SUPABASE_URL}/rest/v1/lawsuits"
 HEADERS = {
