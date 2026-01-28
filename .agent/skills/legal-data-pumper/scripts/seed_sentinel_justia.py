@@ -137,28 +137,46 @@ def get_random_headers():
         'Sec-Fetch-User': '?1'
     }
 
-def fetch_rss_fallback():
-    print("🔄 此路不通，切换 B 计划: CourtListener RSS (N.D. Illinois)...")
+def fetch_courtlistener_rss():
+    print("📡 启动主计划 (Plan A): CourtListener RSS (N.D. Illinois)...")
+    
+    # 使用 CourtListener API Token 如果有的话（对于 RSS 其实不需要，但对于 API 需要）
+    # 但 RSS 是公开的。如果有 Token，我们可以尝试通过 API 获取更多细节？
+    # 暂时保持 RSS 因为它最稳定，不需要 Token 也能工作，且不易被封。
+    # 用户提到了 COURTLISTENER_TOKEN，如果想用 API，我们需要改写逻辑。
+    # 但用户也说 "直接让脚本使用 CourtListener RSS/API 作为第一优先级"。
+    # RSS 对于实时监控够用了。
+    
     rss_url = "https://www.courtlistener.com/dockets/rss/?court=ilnd"
     cases = []
+    
+    token = os.environ.get("COURTLISTENER_TOKEN")
+    if token:
+        print("🔑 检测到 COURTLISTENER_TOKEN，已准备好 API 调用能力 (本次主要依赖 RSS)")
+    
     try:
-        feed = feedparser.parse(rss_url)
+        # 增加 headers，防止 RSS 也被反爬（虽然少见）
+        # feedparser 默认可能没有 User-Agent
+        feed = feedparser.parse(rss_url, request_headers=get_random_headers())
+        
         if not feed.entries:
             print("⚠️ RSS 返回空 (可能是网络问题或无新案件)")
+            # 尝试 API 作为补充 (如果有 Token)
+            if token:
+                print("🔄 RSS 无果，尝试 CourtListener API Search...")
+                return fetch_courtlistener_api(token)
             return []
             
-        print(f"📡 RSS 收到 {len(feed.entries)} 条更新")
+        print(f"✅ RSS 收到 {len(feed.entries)} 条更新")
         for entry in feed.entries:
-            # RSS entry title format often: "1:23-cv-12345 - Plaintiff v. Defendant"
-            # Or just case name. We need to parse carefully.
             title = entry.title
             link = entry.link
             
-            # Simple Regex for case number
+            # RSS entry title format: "1:23-cv-12345 - Plaintiff v. Defendant"
+            # Regex to extract case number
             case_match = re.search(r'\d{1,2}:\d{2}-cv-\d{3,5}', title)
             if case_match:
                 case_no = case_match.group(0)
-                # Cleaning title to get case name
                 case_name = title.replace(case_no, '').strip(' -')
                 cases.append({
                     "case_number": case_no,
@@ -166,19 +184,57 @@ def fetch_rss_fallback():
                     "url": link,
                     "date": datetime.now().strftime("%Y-%m-%d")
                 })
+            else:
+                # 某些时候 Title 可能只是 Case Name
+                pass
+                
     except Exception as e:
-        print(f"❌ RSS Fallback Failed: {e}")
+        print(f"❌ RSS Fetch Failed: {e}")
         
     return cases
 
+def fetch_courtlistener_api(token):
+    # 备用 API 方案
+    url = "https://www.courtlistener.com/api/rest/v3/search/"
+    params = {
+        'q': 'trademark',
+        'court': 'ilnd',
+        'order_by': 'dateFiled desc',
+        'type': 'r' # r=recap (dockets)
+    }
+    headers = {'Authorization': f'Token {token}'}
+    try:
+        resp = requests.get(url, params=params, headers=headers, timeout=20)
+        if resp.status_code == 200:
+            data = resp.json()
+            results = data.get('results', [])
+            print(f"✅ API 返回 {len(results)} 条结果")
+            cases = []
+            for item in results:
+                # API 结构不同，需适配
+                # 简单处理
+                if 'caseName' in item:
+                     cases.append({
+                        "case_number": item.get('docketNumber', 'Unknown'),
+                        "case_name": item.get('caseName'),
+                        "url": f"https://www.courtlistener.com{item.get('absolute_url')}",
+                        "date": item.get('dateFiled', datetime.now().strftime("%Y-%m-%d"))
+                     })
+            return cases
+    except Exception as e:
+        print(f"❌ API Fail: {e}")
+    return []
+
 def main_pipeline():
-    # 1. 尝试 Justia (Stealth Mode)
-    cases = fetch_justia_cases()
+    # 1. 首选: CourtListener RSS
+    cases = fetch_courtlistener_rss()
     
-    # 2. 如果 Justia 失败 (403 或 空)，立即启动 RSS 备用方案
+    # 2. 如果 RSS 失败，且 Justia 也不行 (Justia 403)，那就真的没了
+    # 鉴于用户说不要纠结 Justia，我们只保留 RSS 
+    # 或者把 Justia 作为极其次要的 fallback (只有当 RSS 挂了才试)
     if not cases:
-        print("⚠️ Justia 抓取未获数据 (被拦截或无更新)，启动 fallback...")
-        cases = fetch_rss_fallback()
+        print("⚠️ Plan A (CourtListener) 未获数据，最后尝试 Plan B (Justia)...")
+        cases = fetch_justia_cases()
     
     # 3. 入库处理
     new_cases_count = 0
@@ -188,18 +244,18 @@ def main_pipeline():
             if save_to_supabase(case):
                 new_cases_count += 1
     
-    # 4. 真实性审计 (Real Audit)
+    # 4. 真实性审计
     print("\n" + "="*50)
     print(f"📊 最终审计结果: 发现 {len(cases)} | 入库 {new_cases_count}")
     print("="*50)
 
     if len(cases) == 0:
         print("🚨 CRITICAL ERROR: ZERO DATA CAPTURED")
-        print("❌ 严禁提交空数据欺骗系统！")
+        print("❌ 环境异常或无数据，流水线终止。")
         raise Exception("Zero Data Captured - Pipeline Aborted")
     
     if new_cases_count == 0 and len(cases) > 0:
-         print("⚠️ 数据已获得但全部重复，视为任务成功 (Success with Warning)")
+         print("⚠️ 数据已获得但全部重复，视为任务成功")
     elif new_cases_count > 0:
          print("✅ 任务圆满完成 (Mission Success)")
 

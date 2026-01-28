@@ -33,9 +33,10 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          COURTLISTENER_TOKEN: ${{ secrets.COURTLISTENER_TOKEN }}
         run: |
           python -m pip install --upgrade pip
-          pip install supabase python-dotenv requests
+          pip install supabase python-dotenv requests feedparser
           python .agent/skills/legal-data-pumper/scripts/seed_verified_real_cases.py
 
       - name: Generate Fresh Sitemap
