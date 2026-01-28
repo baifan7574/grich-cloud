@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from supabase import create_client, Client
 
-# 1. 环境配置 (无需 load_dotenv，直接 os.getenv)
+# 1. 环境配置 (CI/CD optimized)
 SUPABASE_URL = os.environ.get("PUBLIC_SUPABASE_URL") or os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("PUBLIC_SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_KEY")
 
