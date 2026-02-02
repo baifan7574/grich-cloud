@@ -75,10 +75,11 @@ async function generateSitemap() {
 
     // 5. 添加动态被告链接 (pSEO 核心)
     // ✅ 确保所有 URL 统一使用 HTTPS + 无后缀格式
+    // 🐞 FIX: 必须使用 &amp; 转义符号，否则 XML 解析会报错 "EntityRef: expecting ';'"
     for (const def of defendants) {
         if (!def.defendant_name) continue;
         const caseNum = def.case_number || '12-cv-4316'; // Fallback
-        const url = `${DOMAIN}/case_template?case=${encodeURIComponent(caseNum)}&defendant=${encodeURIComponent(def.defendant_name)}`;
+        const url = `${DOMAIN}/case_template?case=${encodeURIComponent(caseNum)}&amp;defendant=${encodeURIComponent(def.defendant_name)}`;
         xml += `    <url>
         <loc>${url}</loc>
         <changefreq>weekly</changefreq>
