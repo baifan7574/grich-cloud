@@ -12,7 +12,8 @@ export async function onRequestPost(context) {
         // --- INTELLIGENCE ROUTING ---
         // Priority 1: DeepSeek (Top Tier Legal Logic)
         // Priority 2: Gemini (Google Infrastructure Fallback)
-        const dsKey = env.DEEPSEEK_API_KEY;
+        // Support both standard naming and user's 'DSAPI' shorthand
+        const dsKey = env.DEEPSEEK_API_KEY || env.DSAPI;
         const geminiKey = env.GEMINI_API_KEY;
         
         let provider = dsKey ? "DEEPSEEK" : (geminiKey ? "GEMINI" : "NONE");
