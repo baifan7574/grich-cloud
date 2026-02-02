@@ -12,6 +12,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // ✅ 确保使用 HTTPS，避免 GSC "Page with redirect" 错误
 const DOMAIN = "https://jaxfamlaw.com";
 const OUTPUT_FILE = path.join(__dirname, '../public/sitemap.xml');
+const OUTPUT_FILE_DIST = path.join(__dirname, '../dist/sitemap.xml');
 
 async function generateSitemap() {
     console.log("🚀 开始生成 Sitemap...");
@@ -96,8 +97,18 @@ async function generateSitemap() {
     }
 
     fs.writeFileSync(OUTPUT_FILE, xml);
-    console.log(`🎉 Sitemap 生成完毕! 文件大小: ${(xml.length / 1024).toFixed(2)} KB`);
+    console.log(`🎉 Public Sitemap 生成完毕! 文件大小: ${(xml.length / 1024).toFixed(2)} KB`);
     console.log(`📁 输出路径: ${OUTPUT_FILE}`);
+
+    // ✅ SKILL.md 第 37 章补丁: 同时写入 dist 目录，确保 Cloudflare Pages 部署最新版
+    const outputDistDir = path.dirname(OUTPUT_FILE_DIST);
+    if (!fs.existsSync(outputDistDir)) {
+        fs.mkdirSync(outputDistDir, { recursive: true });
+    }
+    fs.writeFileSync(OUTPUT_FILE_DIST, xml);
+    console.log(`🎉 Dist Sitemap 生成完毕! (Cloudflare 部署源)`);
+    console.log(`📁 输出路径: ${OUTPUT_FILE_DIST}`);
+
     console.log(`✅ 已剔除所有 .html 后缀，统一使用 HTTPS`);
 
     // 7. 统计信息
