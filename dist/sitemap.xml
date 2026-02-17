@@ -1501,6 +1501,12 @@
         <priority>0.8</priority>
     </url>
     <url>
+        <loc>https://jaxfamlaw.com/case_template?case=0%3A25-cv-61935</loc>
+        <lastmod>2025-09-25</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
         <loc>https://jaxfamlaw.com/case_template?case=4%3A2019cv04577</loc>
         <lastmod>2026-01-05</lastmod>
         <changefreq>weekly</changefreq>
@@ -1923,6 +1929,12 @@
     <url>
         <loc>https://jaxfamlaw.com/case_template?case=1%3A2023cv22204</loc>
         <lastmod>2026-01-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://jaxfamlaw.com/case_template?case=0%3A25-cv-61924</loc>
+        <lastmod>2025-09-25</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -5997,18 +6009,6 @@
     <url>
         <loc>https://jaxfamlaw.com/case_template?case=1%3A24-cv-00484</loc>
         <lastmod>2024-02-20</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template?case=5%3A26-cv-01158</loc>
-        <lastmod>2026-02-06</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://jaxfamlaw.com/case_template?case=4%3A25-cv-04088</loc>
-        <lastmod>2025-05-12</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
