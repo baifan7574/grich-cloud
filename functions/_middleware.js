@@ -24,8 +24,10 @@ export async function onRequest(context) {
         const headers = { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` };
 
         try {
-            // 1. 获取主要的案件记录
-            const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?case_number=eq.${encodeURIComponent(caseParam)}&select=*&limit=1`;
+            // 1. 获取主要的案件记录 (使用更稳健的案号匹配)
+            const cleanCaseParam = caseParam.trim();
+            const orClause = `case_number.eq.${encodeURIComponent(cleanCaseParam)},case_number.eq.1:${encodeURIComponent(cleanCaseParam)}`;
+            const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?or=(${orClause})&select=*&limit=1`;
             const lawsuitResponse = await fetch(lawsuitQuery, { headers });
             
             if (!lawsuitResponse.ok) throw new Error(`Supabase 案件抓取失败: ${lawsuitResponse.status}`);
