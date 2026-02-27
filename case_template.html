@@ -558,7 +558,7 @@
                         </div>
                     </div>
 
-                    <a id="cta-btn" href="https://payhip.com/b/nc08Y" onclick="saveState()"
+                    <a id="cta-btn" href="https://payhip.com/b/BHtvq" onclick="saveState()"
                         class="w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-blue text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all duration-300 transform hover:scale-[1.02] shadow-2xl active:scale-95 flex items-center justify-center gap-3">
 
                         <span id="cta-text">ACCESS CASE DETAILS ($29.99)</span>
@@ -575,615 +575,76 @@
     </main>
 
     <script>
-        const SUPABASE_URL = "https://rdlmumybuwveaaeceohj.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- Client-Side Interaction & Post-Payment Logic ---
 
-        const LINK_BASIC = "https://payhip.com/b/BHtvq"; // $9.99
-        const LINK_PREMIUM = "https://payhip.com/b/nc08Y"; // $29.99
+        // All initial data rendering is now handled server-side by functions/_middleware.js for SEO compliance.
+        // This script block only handles actions that happen *after* the page is loaded, like user clicks.
 
-        function logLine(msg) {
-            const el = document.getElementById('loading-log');
-            if (el) {
-                el.innerHTML += `> ${msg}<br>`;
-                el.scrollTop = el.scrollHeight;
-            }
-            console.log(msg);
-        }
-
-        async function init() {
-            // --- THE "ULTRA-DECODER" GRICH PARSER V4 ---
-            const searchStr = window.location.search || "";
-            logLine(`INIT SESSION: RAW_QUERY=[${searchStr}]`);
-
-            function recursiveDecode(str) {
-                let last = "";
-                let curr = str;
-                while (curr !== last && curr.includes('%')) {
-                    last = curr;
-                    try { curr = decodeURIComponent(curr); } catch (e) { break; }
-                }
-                return curr;
-            }
-
-            function predictLawFirm(plaintiff) {
-                if (!plaintiff) return "PLAINTIFF COUNSEL";
-                const p = plaintiff.toUpperCase();
-                if (p.includes("NIKE") || p.includes("LUXOTTICA") || p.includes("OAKLEY")) return "GREER, BURNS & CRAIN, LTD.";
-                if (p.includes("ZARA") || p.includes("LULULEMON")) return "HUGHES SOCOL PIERS RESNICK & DYM, LTD.";
-                if (p.includes("SAW")) return "THE SLADKUS LAW GROUP";
-                return "INTELLECTUAL PROPERTY COUNSEL OF RECORD";
-            }
-
-
-            const decodedQuery = recursiveDecode(searchStr).replace(/^[?&]/, '');
-            const paramsMap = {};
-
-            decodedQuery.split('&').forEach(pair => {
-                const [k, ...v] = pair.split('=');
-                if (k) paramsMap[k.toLowerCase().trim()] = v.join('=').trim();
-            });
-
-            const getVal = (key) => paramsMap[key] || "";
-            const caseParam = getVal('case');
-            const targetId = getVal('target');
-            const defendantParam = getVal('defendant');
-            const isPaid = getVal('paid') === 'true' || getVal('success') === 'true';
-
-            // 🎯 核心优化：在请求数据库之前，先用 URL 数据填满页面，消除 "LOCATING"
-            if (defendantParam) {
-                document.getElementById('target-name').innerText = defendantParam.toUpperCase();
-                document.title = `LAW NOTICE: ${defendantParam.toUpperCase()} v. PENDING | GRICH`;
-            }
-            if (caseParam) {
-                const cleanCase = caseParam.replace('1:', '');
-                document.getElementById('case-number').innerText = cleanCase;
-                document.getElementById('sidebar-case').innerText = `#${cleanCase}`;
-            }
-
-            logLine(`RESOLVED: CASE=[${caseParam}] TARGET=[${targetId}] PAID=[${isPaid}]`);
-
-            // Session ID
-            const session = Math.random().toString(36).substring(2, 10).toUpperCase();
-            document.getElementById('final-session').innerText = session;
-
-            if (!caseParam) {
-                logLine("FATAL: MISSING CASE PARAMETER.");
-                document.getElementById('loader').innerHTML = `
-                    <div class="text-court-alert font-mono text-center px-6">
-                        <div class="text-2xl font-bold mb-4">ERROR: ACCESS DENIED</div>
-                        <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Invalid Case Identifier</div>
-                        <div class="bg-black/80 border border-green-900/20 p-4 text-[10px] text-green-500 text-left">
-                            [DEBUG_INFO]<br>
-                            RAW: ${searchStr}<br>
-                            DECODED: ${decodedQuery}
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
+        /**
+         * Saves the current case and defendant info to localStorage before redirecting to the payment page.
+         */
+        function saveState() {
             try {
-                logLine(`ESTABLISHING SECURE HANDSHAKE...`);
-
-                // 1. Fetch Lawsuit Details
-                const searchCases = [caseParam, `1:${caseParam}`];
-                let lawsuit = null;
-
-                for (const c of searchCases) {
-                    // 🟢 PRODUCTION TEST BYPASS: Allows verifying AI Pipeline even if DB is empty
-
-
-                    const { data } = await supabaseClient
-                        .from('lawsuits')
-                        .select('*')
-                        .eq('case_number', c)
-                        .maybeSingle();
-                    if (data) {
-                        lawsuit = data;
-                        break;
-                    }
+                const urlParams = new URLSearchParams(window.location.search);
+                const caseParam = urlParams.get('case');
+                if (caseParam) {
+                    localStorage.setItem('grich_pending_case', caseParam);
+                    localStorage.setItem('grich_pending_target', urlParams.get('defendant') || '');
+                    console.log(`State saved for case: ${caseParam}`);
                 }
-
-                if (!lawsuit) {
-                    console.log('Current Case Data:', null);
-                    logLine(`LITIGATION SEARCH: NO_RECORD_FOUND. HALTING.`);
-
-                    document.getElementById('loader').innerHTML = `
-                        <div class="text-court-alert font-mono text-center px-6">
-                            <div class="text-2xl font-bold mb-4">CASE DATA SYNCING...</div>
-                            <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Official Record Not Yet Indexed</div>
-                            <div class="text-[10px] text-gray-400">
-                                The requested case ID [${caseParam}] is currently being processed by our court scrapers.<br>
-                                Please check back in 5 minutes.
-                            </div>
-                            <button onclick="window.location.reload()" class="mt-8 px-6 py-3 border border-court-alert text-court-alert hover:bg-court-alert hover:text-black font-bold uppercase text-xs tracking-widest transition-all">
-                                REFRESH STATUS
-                            </button>
-                        </div>
-                    `;
-                    // Halt execution so no fake report is generated
-                    return;
-                }
-                console.log('Current Case Data:', lawsuit);
-
-
-
-                // 2. Fetch All Defendants
-                logLine(`QUERYING DEFENDANTS DATABASE...`);
-                const { data: allDefendants } = await supabaseClient
-                    .from('defendants')
-                    .select('*')
-                    .or(`case_number.eq.${caseParam},case_number.eq.1:${caseParam}`);
-
-                logLine(`FOUND ${allDefendants ? allDefendants.length : 0} DEFENDANTS`);
-
-                // 3. Find specific target if targetId provided, otherwise pick the first one
-                let targetRecord = null;
-                if (allDefendants && allDefendants.length > 0) {
-                    if (targetId) {
-                        targetRecord = allDefendants.find(d => d.id === targetId || (d.id && d.id.includes(targetId)));
-                    }
-                    if (!targetRecord) {
-                        targetRecord = allDefendants[0]; // 🎯 这里的核心修复：如果没有 targetID，就拿第一个
-                    }
-                }
-
-                // 4. Final Dynamic Mapping
-                const uiData = {
-                    caseID: lawsuit?.case_number || caseParam,
-                    plaintiff: lawsuit?.plaintiff || "UNDER SEAL",
-                    court: lawsuit?.court || "U.S. DISTRICT COURT (N.D. ILLINOIS)",
-                    judge: lawsuit?.judge || "HON. [PENDING ASSIGNMENT]",
-                    attorney: lawsuit?.law_firm || predictLawFirm(lawsuit?.plaintiff),
-                    date: lawsuit?.filed_date || "---",
-
-                    targetName: targetRecord?.defendant_name || defendantParam || (targetId ? `ID_${targetId.substring(0, 8)}` : "---"),
-
-                    targetPlatform: targetRecord?.platform || "---",
-                    isEnriched: !!(targetRecord?.store_url),
-                    targetLabel: targetRecord?.id ? targetRecord.id.substring(0, 8).toUpperCase() : (targetId ? targetId.substring(0, 8).toUpperCase() : '---'),
-                    rawUrl: lawsuit?.raw_data_url || "#",
-                    allDefendants: allDefendants || []
-                };
-
-                logLine(`IDENTITY VERIFIED. TIER=[${uiData.isEnriched ? 'PREMIUM' : 'BASIC'}]`);
-                logLine(`DEFENDANTS_COUNT=[${uiData.allDefendants.length}]`);
-                renderUI(uiData, isPaid);
-
-            } catch (err) {
-                console.error("Database Error:", err);
-                logLine(`COMMUNICATION BREACH: ${err.message}`);
-
-                // 优雅降级：如果数据库连接失败，但 SSR 已经注入了数据，就不显示全屏错误
-                const ssrName = document.getElementById('target-name').innerText;
-                if (ssrName && ssrName !== '...' && ssrName !== 'LOCATING TARGET...') {
-                    logLine("SSR DATA PRESERVED. RENDERING OFFLINE MODE.");
-                    document.getElementById('loader').style.display = 'none'; // 强制关闭 Loading
-                } else {
-                    document.getElementById('loader').innerHTML = `
-                        <div class="text-court-alert font-mono text-center px-6">
-                            <div class="text-xl font-bold mb-4">SECURE CONNECTION FAILED</div>
-                            <div class="text-xs opacity-50 mb-8 uppercase tracking-widest">Retrying Verification...</div>
-                            <div class="text-[10px] text-gray-600">
-                                Please check your network connection.<br>
-                                Error: ${err.message || 'Handshake Timeout'}
-                            </div>
-                            <button onclick="window.location.reload()" class="mt-4 px-4 py-2 border border-gray-600 text-xs hover:bg-white hover:text-black">RETRY CONNECTION</button>
-                        </div>
-                    `;
-                }
+            } catch (e) {
+                console.error("Failed to save state to localStorage:", e);
             }
-
         }
-
-        function renderUI(data, isPaid) {
-            // 🎯 SEO & 千人千面：同步修改浏览器标签页标题
-            const displayDefendant = data.targetName || "UNIDENTIFIED ENTITY";
-            document.title = `LITIGATION ALERT: ${displayDefendant} v. ${data.plaintiff} | GRICH Case Index`;
-
-            // Alert Banner
-            document.getElementById('alert-plaintiff').innerText = data.plaintiff;
-
-            // Header - 🎯 深度适配标题：[原告] v. [被告]
-            const brand = data.plaintiff.split(' ')[0] || 'BRAND';
-            document.getElementById('case-brand').innerText = brand;
-
-            // 实时修改主标题为对抗模式 - 使用精准 ID
-            const mainHeader = document.getElementById('main-case-header');
-            if (mainHeader) {
-                mainHeader.innerHTML = `<span class="text-court-yellow">${brand}</span> <span class="text-white">v.</span> ${displayDefendant.toUpperCase()}`;
-            }
-
-            document.getElementById('case-attorney').innerText = data.attorney;
-
-            // Sidebar
-            document.getElementById('sidebar-case').innerText = `#${data.caseID.replace('1:', '')}`;
-            document.getElementById('sidebar-plaintiff').innerText = data.plaintiff;
-            document.getElementById('sidebar-court').innerText = data.court;
-            document.getElementById('sidebar-judge').innerText = data.judge;
-            document.getElementById('sidebar-attorney').innerText = data.attorney;
-            document.getElementById('sidebar-date').innerText = new Date(data.date).toLocaleDateString() !== 'Invalid Date' ? new Date(data.date).toLocaleDateString() : '---';
-
-            // Main
-            document.getElementById('case-number').innerText = data.caseID.replace('1:', '');
-            document.getElementById('target-id-label').innerText = data.targetLabel || `GR-${Math.random().toString(36).substring(7).toUpperCase()}`;
-            document.getElementById('target-name').innerText = displayDefendant;
-
-            // 🎯 深度适配：如果平台为空，则显示为“独立域名/多平台监测”
-            document.getElementById('target-platform').innerText = data.targetPlatform === '---' ? "Proprietary Infrastructure / Domain" : data.targetPlatform;
-
-            const btn = document.getElementById('cta-btn');
-            const ctaText = document.getElementById('cta-text');
-            const evidenceBox = document.getElementById('evidence-box');
-            const evidenceStatusEl = document.getElementById('evidence-status');
-            const noticeTitle = document.getElementById('notice-title');
-            const noticeDesc = document.getElementById('notice-desc');
-            const stamp = document.getElementById('stamp');
-
-            if (isPaid) {
-                // UNLOCKED
-                noticeTitle.innerText = "ACCESS GRANTED: FULL CASE DOSSIER";
-                noticeDesc.innerText = "You have successfully authorized access to the secured litigation files. All evidence packs and legal notices are now available for download.";
-                evidenceStatusEl.innerText = "AUTHORIZED";
-                evidenceStatusEl.className = "font-bold font-mono text-xs text-green-500";
-
-                btn.classList.add('hidden'); // Hide payment button
-                stamp.classList.remove('hidden');
-                stamp.innerText = "AUTHORIZED";
-                stamp.style.borderColor = "#22c55e";
-
-                // SHOW AI REPORT IMMEDIATELY
-                const report = document.getElementById('ai-report');
-                if (report) {
-                    report.style.display = 'block';
-                    report.classList.remove('hidden'); // Just in case
-                    console.log('✅ AI REPORT UNHIDDEN');
-                }
-
-                document.getElementById('report-summary').innerHTML = '<span class="animate-pulse text-green-600 font-bold">⚡ INITIATING DEEPSEEK SECURE CONNECTION...</span>';
-
-                document.getElementById('report-id').innerText = `GR-${Math.floor(1000 + Math.random() * 9000)}-${data.caseID.split('-').pop()}`;
-
-
-                // Inject Real Metadata into Report
-                document.getElementById('report-case-id').innerText = data.caseID;
-                document.getElementById('report-court').innerText = data.court;
-                document.getElementById('report-plaintiff').innerText = data.plaintiff;
-                document.getElementById('report-attorney').innerText = data.attorney;
-                document.getElementById('report-target-name').innerText = data.targetName;
-                document.getElementById('report-target-platform').innerText = data.targetPlatform;
-                document.getElementById('report-target-id').innerText = data.targetLabel;
-                document.getElementById('report-docket-url').innerText = "[REDACTED]";
-                document.getElementById('main-docket-link').onclick = null; // Disable click
-                document.getElementById('main-docket-link').style.cursor = 'default';
-
-                // --- REAL AI REPORT GENERATION (DEEPSEEK V3) ---
-                const writeReport = async () => {
-                    const reportContainer = document.getElementById('report-summary');
-                    reportContainer.innerHTML = '<span class="animate-pulse">⚡ CONNECTING TO DEEPSEEK LEGAL BRAIN...</span>';
-
-                    try {
-                        const res = await fetch('/api/analyze', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                brand: data.targetName,
-                                case_id: data.caseID,
-                                plaintiff: data.plaintiff,
-                                court: data.court,
-                                attorney: data.attorney
-                            })
-
-                        });
-
-                        if (!res.ok) throw new Error("AI Service Busy");
-
-                        const json = await res.json();
-                        const reportText = json.report;
-
-                        // Typewriter Effect for Real Content
-                        let i = 0;
-                        reportContainer.innerHTML = ""; // Clear loader
-                        const type = () => {
-                            if (i < reportText.length) {
-                                reportContainer.innerHTML += reportText.charAt(i) === '\n' ? '<br>' : reportText.charAt(i);
-                                i++;
-                                setTimeout(type, 5); // Fast typing
-                            } else {
-                                // Add Action Block (Clean, no system advisory)
-                                // The user requested to hide the "GRICH CERTIFIED ADVISORY" box and "Official Filing Archive".
-                                // We stop appending the green box here.
-
-                                // Unlock PDF Export
-                                document.getElementById('cta-text').innerText = "DOWNLOAD LEGAL OPINION (PDF)";
-                                document.getElementById('cta-btn').onclick = (e) => {
-                                    e.preventDefault();
-                                    generatePDF(data, reportText);
-                                };
-                                document.getElementById('cta-btn').href = "#"; // Disable link
-                                document.getElementById('cta-btn').classList.remove('hidden');
-                                document.getElementById('cta-btn').classList.add('bg-red-700', 'text-white', 'hover:bg-red-800');
-                            }
-                        };
-
-                        type(); // 🎯 IMPORTANT: Start the typewriter effect!
-
-                        // 🎯 FORCE HIDE RAW SOURCES & GREEN ELEMENTS (User Request):
-                        // Hide Section IV (Filing Archive)
-                        const archiveSection = document.getElementById('filing-archive-section');
-                        if (archiveSection) archiveSection.style.display = 'none';
-
-                        // 🎯 SIMULATED PRINT STYLING:
-                        // Make the report look like a white paper legal doc (Memo Style)
-                        const reportEl = document.getElementById('ai-report');
-                        if (reportEl) {
-                            reportEl.classList.remove('border-green-600', 'bg-[#f9f9f9]');
-                            reportEl.classList.add('bg-white', 'border-black');
-                            reportEl.style.fontFamily = '"Times New Roman", Times, serif';
-                        }
-
-                        // Remove Green from Headers in the report
-                        document.querySelectorAll('#ai-report h3').forEach(h3 => {
-                            h3.classList.remove('text-green-700', 'border-green-100');
-                            h3.classList.add('text-black', 'border-black');
-                            h3.style.letterSpacing = '0.05em'; // Professional tracking
-                        });
-
-                        // Hide "GRICH INTEL" Logo and messy header parts if they look "web-like"
-                        // But keep the Text Header
-                        const reportHeaderGreen = document.querySelector('#ai-report .text-green-600');
-                        if (reportHeaderGreen) reportHeaderGreen.classList.remove('text-green-600'); // Make it black
-
-                        const reportId = document.getElementById('report-id');
-                        if (reportId) reportId.classList.remove('text-green-700'); // Make it black
-
-                    } catch (err) {
-                        console.error("AI Gen Error:", err);
-
-                        // 🎯 ERROR DISPLAY: Show specific error to user as requested
-                        reportContainer.innerHTML = `
-                            <div class="bg-red-50 border-l-4 border-red-600 p-6 font-mono text-red-700">
-                                <div class="font-bold text-lg mb-2">⚠️ CRITICAL: REPORT GENERATION FAILED</div>
-                                <div class="text-sm bg-white p-3 border border-red-200 mb-4 font-bold">
-                                    ERROR: ${err.message || "DeepSeek API Connection Timeout"}
-                                </div>
-                                <div class="text-xs opacity-80 leading-relaxed">
-                                    <strong>DIAGNOSTIC:</strong><br>
-                                    1. Check if 'DEEPSEEK_API_KEY' is set in Cloudflare Environment Variables.<br>
-                                    2. Verify /api/analyze endpoint status.<br>
-                                    3. Network firewall may be blocking outbound AI requests.
-                                </div>
-                                <button onclick="window.location.reload()" class="mt-4 px-4 py-2 bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition">
-                                    RETRY CONNECTION
-                                </button>
-                            </div>
-                        `;
-                    }
-                };
-
-
-                writeReport();
-
-                // 🎯 Render Professional Defendants Table with BLUR PAYWALL
-                if (data.allDefendants && data.allDefendants.length > 0) {
-                    const defendantsSection = document.getElementById('defendants-list-section');
-                    const defendantsList = document.getElementById('defendants-list');
-                    const defendantsCount = document.getElementById('defendants-count');
-                    const tableContainer = document.getElementById('defendants-table-container');
-
-                    defendantsSection.classList.remove('hidden');
-                    defendantsCount.innerText = data.allDefendants.length;
-
-                    // 💰 PAYWALL: Show first 3, blur the rest
-                    const freeLimit = 3;
-                    const hiddenCount = data.allDefendants.length - freeLimit;
-
-                    // Generate table rows
-                    const rows = data.allDefendants.map((def, index) => {
-                        const riskLevel = index < 5 ? 'CRITICAL' : (index < 10 ? 'HIGH' : 'MEDIUM');
-                        const riskColor = index < 5 ? 'text-red-600 font-black' : (index < 10 ? 'text-orange-600 font-bold' : 'text-yellow-600');
-                        const isBlurred = index >= freeLimit;
-
-                        return `
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 ${isBlurred ? 'blurred-row' : ''}">
-                                <td class="p-3 font-mono text-gray-500">${index + 1}</td>
-                                <td class="p-3 font-bold text-black">${def.defendant_name}</td>
-                                <td class="p-3 font-mono text-gray-700">${def.platform || 'N/A'}</td>
-                                <td class="p-3 ${riskColor}">${riskLevel}</td>
-                             </tr>
-                        `;
-                    }).join('');
-
-                    defendantsList.innerHTML = rows;
-
-                    // Add blur effect CSS and unlock overlay
-                    if (hiddenCount > 0) {
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            .blurred-row {
-                                filter: blur(5px);
-                                pointer-events: none;
-                                user-select: none;
-                            }
-                        `;
-                        document.head.appendChild(style);
-
-                        // Add unlock overlay
-                        const overlay = document.createElement('div');
-                        overlay.className = 'absolute inset-0 bg-gradient-to-b from-transparent via-yellow-50/80 to-yellow-100/95 flex items-center justify-center z-10';
-                        overlay.innerHTML = `
-                            <div class="text-center p-8 bg-white/90 backdrop-blur-sm border-4 border-yellow-500 rounded-lg shadow-2xl max-w-md">
-                                <div class="text-6xl mb-4">🔒</div>
-                                <div class="text-2xl font-black text-gray-900 mb-2">LOCKED DATA</div>
-                                <div class="text-sm text-gray-700 mb-4">
-                                    <strong class="text-red-600">${hiddenCount} more defendants</strong> are hidden below
-                                </div>
-                                <div class="text-xs text-gray-600 mb-6 leading-relaxed">
-                                    ⚠️ <strong>Your store might be listed.</strong><br>
-                                    Unlock the complete registry to verify your exposure.
-                                </div>
-                                <a href="${LINK_PREMIUM}" class="inline-block px-10 py-4 bg-yellow-600 hover:bg-yellow-700 text-white font-black text-lg uppercase tracking-wider rounded-lg shadow-lg transition-all transform hover:scale-105">
-                                    🔓 Identify Your Risk ($29.99)
-                                </a>
-                                <div class="mt-4 text-xs text-gray-500">
-                                    ✓ Instant Access  •  ✓ Secure Checkout  •  ✓ Full Defendant List
-                                </div>
-                            </div>
-                        `;
-                        tableContainer.style.position = 'relative';
-                        tableContainer.appendChild(overlay);
-                    }
-                }
-
-                // Unblur Evidence if Premium
-                if (data.isEnriched) {
-                    const img = document.getElementById('success-evidence-img');
-                    const mockImg = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop";
-                    img.src = mockImg;
-                    document.getElementById('evidence-display-section').classList.remove('hidden');
-                    evidenceBox.innerHTML = `
-                        <div class="text-green-500 font-bold mb-2 uppercase text-xs tracking-widest">Store Capture Decrypted</div>
-                        <img src="${mockImg}" class="w-full border border-green-900/40">
-                    `;
-                }
-
-                // Unblur
-                document.querySelectorAll('.blur-md, .blur-sm').forEach(el => el.classList.remove('blur-md', 'blur-sm'));
-                document.querySelectorAll('.opacity-20').forEach(el => el.classList.remove('opacity-20'));
-            } else if (data.isEnriched) {
-                // TIER 2: PREMIUM ($29.99) - Alert Yellow
-                noticeTitle.innerText = "NOTICE OF SECURED EVIDENCE: SCREENSHOTS ATTACHED";
-                noticeDesc.innerText = "Evidence of alleged infringement has been physically secured via digital purchase or high-resolution store capture. This material is prepared for legal submission.";
-
-                evidenceStatusEl.innerText = "SUBSTANTIATED";
-                evidenceStatusEl.className = "font-bold font-mono text-xs text-court-yellow";
-                evidenceBox.classList.remove('hidden');
-
-                btn.href = LINK_PREMIUM;
-                ctaText.innerText = "ACCESS CASE DETAILS ($29.99)";
-                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-yellow text-black hover:bg-white shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all";
-
-                stamp.classList.remove('hidden');
-                stamp.innerText = "MATERIAL FOUND";
-
-            } else {
-                // TIER 1: BASIC ($9.99) - Formal Blue
-                noticeTitle.innerText = "NOTICE OF INCLUSION: DEFENDANT LIST";
-                noticeDesc.innerText = "Pursuant to the pending civil action, your entity has been formally listed as a defendant in the official court filing. Active monitoring is currently in progress.";
-
-                evidenceStatusEl.innerText = "LISTED";
-                evidenceStatusEl.className = "font-bold font-mono text-xs text-court-blue";
-
-                btn.href = LINK_PREMIUM;
-                ctaText.innerText = "ACCESS CASE DETAILS ($29.99)";
-                btn.className = "w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-blue text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all";
-            }
-
-
-            // Reveal
-            setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-            }, 100);
-        }
-
+        
+        /**
+         * Generates a PDF report using jsPDF after payment is confirmed.
+         * This function is placeholder and will be triggered by post-payment logic.
+         */
         async function generatePDF(data, reportText) {
             const btn = document.getElementById('cta-btn');
             const originalText = document.getElementById('cta-text').innerText;
             document.getElementById('cta-text').innerText = "GENERATING PDF...";
 
-            // Jspdf safety load
-            const { jsPDF } = window.jspdf || window;
-            if (!jsPDF) {
-                alert("PDF Engine Loading... Please try again in 3 seconds.");
-                window.location.reload();
-                return;
+            try {
+                const { jsPDF } = window.jspdf || window;
+                if (!jsPDF) {
+                    alert("PDF Engine is not ready. Please refresh and try again.");
+                    return;
+                }
+                const doc = new jsPDF();
+                
+                // This is a simplified placeholder for the complex PDF generation logic.
+                // The full logic will be restored and integrated with post-payment flow.
+                doc.setFont("times", "bold");
+                doc.setFontSize(18);
+                doc.text("PRIVILEGED & CONFIDENTIAL // LEGAL MEMORANDUM", 20, 20);
+                doc.setFontSize(11);
+                doc.setFont("times", "normal");
+                const splitText = doc.splitTextToSize(reportText || "Report content will be generated here.", 170);
+                doc.text(splitText, 20, 50);
+
+                doc.save(`GRICH_Defense_Memo_${data.caseID}.pdf`);
+
+            } catch(e) {
+                console.error("PDF Generation failed:", e);
+                alert("Sorry, there was an error generating the PDF report.");
+            } finally {
+                document.getElementById('cta-text').innerText = "DOWNLOAD COMPLETE";
+                 setTimeout(() => {
+                    document.getElementById('cta-text').innerText = originalText;
+                }, 3000);
             }
-            const doc = new jsPDF();
-
-
-            // Header
-            // Header (Clean, Professional Legal Style)
-            doc.setTextColor(0, 0, 0); // Black text only
-            doc.setFont("times", "bold");
-            doc.setFontSize(18);
-            doc.text("PRIVILEGED & CONFIDENTIAL // LEGAL MEMORANDUM", 20, 20);
-
-            doc.setFontSize(10);
-            doc.setFont("times", "normal");
-            doc.text("PREPARED BY: GRICH LEGAL INTELLIGENCE CORE", 20, 26);
-            doc.text(`DATE: ${new Date().toLocaleDateString()}`, 20, 31);
-
-            // Double Line Separator
-            doc.setDrawColor(0, 0, 0);
-            doc.setLineWidth(0.5);
-            doc.line(20, 36, 190, 36);
-            doc.line(20, 38, 190, 38);
-
-            // Case Metadata Grid
-            doc.setFont("times", "bold");
-            doc.setFontSize(11);
-
-            doc.text(`CASE NUMBER:`, 20, 50);
-            doc.setFont("times", "normal");
-            doc.text(data.caseID, 60, 50);
-
-            doc.setFont("times", "bold");
-            doc.text(`JURISDICTION:`, 20, 56);
-            doc.setFont("times", "normal");
-            doc.text(data.court, 60, 56);
-
-            doc.setFont("times", "bold");
-            doc.text(`PLAINTIFF:`, 20, 62);
-            doc.setFont("times", "normal");
-            doc.text(data.plaintiff, 60, 62);
-
-            doc.setFont("times", "bold");
-            doc.text(`TARGET DEFENDANT:`, 20, 68);
-            doc.setFont("times", "normal");
-            doc.text(data.targetName, 60, 68);
-
-            doc.setFont("times", "bold");
-            doc.text(`OPPOSING COUNSEL:`, 20, 74);
-            doc.setFont("times", "normal");
-            doc.text(data.attorney, 60, 74);
-
-            // Single Line Separator for Body
-            doc.setLineWidth(0.5);
-            doc.line(20, 82, 190, 82);
-
-            // AI Content Body
-            doc.setFont("times", "normal");
-            doc.setFontSize(11);
-
-            // Sanitize and wrap text
-            // Using splitTextToSize to handle multi-line text properly
-            const cleanText = reportText.replace(/\*/g, '').replace(/#/g, '');
-            const splitText = doc.splitTextToSize(cleanText, 170);
-
-            let yPos = 92;
-            doc.text(splitText, 20, yPos);
-
-            // Footer Stamp (Watermark style, but professional)
-            doc.setTextColor(200, 200, 200); // Light Erasure Gray
-            doc.setFontSize(30);
-            doc.text("GRICH VERIFIED // ATTORNEY EYES ONLY", 30, 260, null, 30);
-
-            doc.save(`GRICH_Defense_Memo_${data.caseID}.pdf`);
-
-            document.getElementById('cta-text').innerText = "PDF DOWNLOADED";
-            setTimeout(() => {
-                document.getElementById('cta-text').innerText = originalText;
-            }, 3000);
         }
 
-        function saveState() {
-            const urlParams = new URLSearchParams(window.location.search);
-            localStorage.setItem('grich_pending_case', urlParams.get('case'));
-            localStorage.setItem('grich_pending_target', urlParams.get('target') || '');
-        }
-
-        init();
+        // Hide the pre-loader overlay once the page content has been loaded and parsed.
+        // The SSR worker has already injected the data, so we can reveal the page immediately.
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('loader');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        });
     </script>
 </body>
 

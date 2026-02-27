@@ -1,109 +1,101 @@
 export async function onRequest(context) {
-    const { request, env } = context;
+    const { request, env, next } = context;
     const url = new URL(request.url);
 
-    // 仅拦截详情页 (case_template.html)
-    // 支持带 .html 和不带后缀的情况
+    // 仅拦截案件详情页的请求
     if (url.pathname.includes('case_template')) {
-        const caseParam = url.searchParams.get('case') || '';
-        let defendantName = url.searchParams.get('defendant') || '';
-        let brandName = url.searchParams.get('brand') || 'BRAND';
+        const caseParam = url.searchParams.get('case');
 
-        // 🏆 核心升级：如果 URL 没有被告名，但有案号，物理穿透到 Supabase 查询
-        if (caseParam && !defendantName) {
-            try {
-                const sbUrl = env.PUBLIC_SUPABASE_URL || "https://rdlmumybuwveaaeceohj.supabase.co";
-                const sbKey = env.PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
-
-                // 案号归一化处理
-                const cleanCase = caseParam.trim();
-                const possibleCases = [
-                    cleanCase,
-                    cleanCase.toLowerCase(),
-                    cleanCase.toUpperCase(),
-                    `1:${cleanCase}`,
-                    `1:${cleanCase.toLowerCase()}`
-                ];
-
-                const orClause = possibleCases.map(c => `case_number.eq.${encodeURIComponent(c)}`).join(',');
-                const queryUrl = `${sbUrl}/rest/v1/defendants?or=(${orClause})&select=defendant_name,brand_name&limit=1`;
-
-                const sbResponse = await fetch(queryUrl, {
-                    headers: {
-                        "apikey": sbKey,
-                        "Authorization": `Bearer ${sbKey}`,
-                        "Content-Type": "application/json"
-                    }
-                });
-
-                if (sbResponse.ok) {
-                    const data = await sbResponse.json();
-                    if (data && data.length > 0) {
-                        defendantName = data[0].defendant_name;
-                        brandName = data[0].brand_name || brandName;
-                    }
-                }
-            } catch (err) {
-                console.error("Supabase SSR Exception:", err);
-            }
+        // 如果没有 'case' 参数, 则不进行任何处理，让前端页面显示错误
+        if (!caseParam) {
+            return next();
         }
 
-        const response = await context.next();
+        // --- 阶段一：安全、完整的数据抓取 ---
+        const sbUrl = env.PUBLIC_SUPABASE_URL;
+        const sbKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-        // 物理强力注入：在 HTML 离开 CF 节点前，硬编码所有 SEO 关键词
-        // 哪怕数据库挂了，如果有被告参数，也要注入
-        const finalDefendant = (defendantName || url.searchParams.get('defendant') || "").toUpperCase();
-        const finalBrand = (brandName || url.searchParams.get('brand') || "BRAND").toUpperCase();
-        const finalCase = (caseParam || "").replace('1:', '').toUpperCase();
+        // 如果 Cloudflare 环境变量中未设置密钥，则快速失败
+        if (!sbUrl || !sbKey) {
+            console.error("SSR 致命错误: Cloudflare 中未设置 Supabase 环境变量。");
+            return new Response("服务器配置错误。", { status: 500 });
+        }
+        
+        const headers = { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` };
 
-        if (finalDefendant || finalCase) {
+        try {
+            // 1. 获取主要的案件记录
+            const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?case_number=eq.${encodeURIComponent(caseParam)}&select=*&limit=1`;
+            const lawsuitResponse = await fetch(lawsuitQuery, { headers });
+            
+            if (!lawsuitResponse.ok) throw new Error(`Supabase 案件抓取失败: ${lawsuitResponse.status}`);
+            
+            const lawsuitResult = await lawsuitResponse.json();
+            if (lawsuitResult.length === 0) {
+                 // 案件未找到，让客户端处理“未找到”的消息
+                 return next();
+            }
+            const lawsuitData = lawsuitResult[0];
+
+            // 2. 获取该案件所有相关的被告
+            const defendantsQuery = `${sbUrl}/rest/v1/defendants?case_number=eq.${encodeURIComponent(caseParam)}&select=*`;
+            const defendantsResponse = await fetch(defendantsQuery, { headers });
+
+            if (!defendantsResponse.ok) throw new Error(`Supabase 被告抓取失败: ${defendantsResponse.status}`);
+
+            const defendantsData = await defendantsResponse.json();
+
+            // 3. 确定当前页面主要目标被告
+            let targetDefendant = null;
+            if (defendantsData.length > 0) {
+                const defendantParam = url.searchParams.get('defendant');
+                if (defendantParam) {
+                    targetDefendant = defendantsData.find(d => d.defendant_name === defendantParam) || defendantsData[0];
+                } else {
+                    targetDefendant = defendantsData[0];
+                }
+            }
+
+            // --- 阶段三：强化 SSR 注入 ---
+            const response = await next();
+            
+            const get = (obj, path, fallback = '---') => path.split('.').reduce((acc, part) => acc && acc[part], obj) || fallback;
+
             return new HTMLRewriter()
+                // 注入页面标题
                 .on('title', {
                     element(el) {
-                        el.setInnerContent(`LITIGATION ALERT: ${finalDefendant || 'PENDING'} v. ${finalBrand} | Case #${finalCase}`);
+                        const defendantName = get(targetDefendant, 'defendant_name', 'PENDING');
+                        const plaintiff = get(lawsuitData, 'plaintiff', 'BRAND');
+                        el.setInnerContent(`诉讼警报: ${defendantName} v. ${plaintiff} | 案件 #${get(lawsuitData, 'case_number')}`);
                     }
                 })
-                .on('#target-name', {
-                    element(el) {
-                        el.setInnerContent(finalDefendant || "PENDING VERIFICATION");
-                    }
-                })
-                .on('#case-number', {
-                    element(el) {
-                        el.setInnerContent(finalCase);
-                    }
-                })
-                .on('#sidebar-case', {
-                    element(el) {
-                        el.setInnerContent(`#${finalCase}`);
-                    }
-                })
-                .on('#alert-plaintiff', {
-                    element(el) {
-                        el.setInnerContent(finalBrand);
-                    }
-                })
-                .on('#sidebar-plaintiff', {
-                    element(el) {
-                        el.setInnerContent(finalBrand);
-                    }
-                })
-                .on('#case-brand', {
-                    element(el) {
-                        el.setInnerContent(finalBrand.split(' ')[0]);
-                    }
-                })
-                .on('#main-case-header', {
-                    element(el) {
-                        if (finalDefendant) {
-                            el.setInnerContent(`${finalBrand.split(' ')[0]} v. ${finalDefendant}`);
-                        }
-                    }
-                })
+                // 注入侧边栏数据
+                .on('#sidebar-case', { element(el) { el.setInnerContent(`#${get(lawsuitData, 'case_number').replace('1:', '')}`) } })
+                .on('#sidebar-court', { element(el) { el.setInnerContent(get(lawsuitData, 'court')) } })
+                .on('#sidebar-judge', { element(el) { el.setInnerContent(get(lawsuitData, 'judge', '待分配')) } })
+                .on('#sidebar-plaintiff', { element(el) { el.setInnerContent(get(lawsuitData, 'plaintiff')) } })
+                .on('#sidebar-attorney', { element(el) { el.setInnerContent(get(lawsuitData, 'law_firm', '记录在案的律师')) } })
+                .on('#sidebar-date', { element(el) { el.setInnerContent(get(lawsuitData, 'filed_date')) } })
+                // 注入主内容区数据
+                .on('#alert-plaintiff', { element(el) { el.setInnerContent(get(lawsuitData, 'plaintiff')) } })
+                .on('#case-brand', { element(el) { el.setInnerContent(get(lawsuitData, 'plaintiff').split(' ')[0]) } })
+                .on('#main-case-header', { element(el) { el.setInnerContent(`${get(lawsuitData, 'plaintiff')} v. ${get(targetDefendant, 'defendant_name', '假冒产品')}`) } })
+                .on('#case-number', { element(el) { el.setInnerContent(get(lawsuitData, 'case_number').replace('1:', '')) } })
+                .on('#case-attorney', { element(el) { el.setInnerContent(get(lawsuitData, 'law_firm', '记录在案的律师')) } })
+                 // 注入目标被告信息
+                .on('#target-id-label', { element(el) { el.setInnerContent(get(targetDefendant, 'id', 'N/A').substring(0,8)) } })
+                .on('#target-name', { element(el) { el.setInnerContent(get(targetDefendant, 'defendant_name', '待验证')) } })
+                .on('#target-platform', { element(el) { el.setInnerContent(get(targetDefendant, 'platform', 'N/A')) } })
                 .transform(response);
-        }
 
+        } catch (err) {
+            console.error("SSR 中间件异常:", err);
+            // 如果发生任何错误，则传递给原始页面处理
+            return next();
+        }
     }
 
-    return context.next();
+    // 对于任何其他页面，直接传递
+    return next();
 }
