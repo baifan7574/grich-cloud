@@ -24,9 +24,10 @@ export async function onRequest(context) {
         const headers = { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` };
 
         try {
-            // 1. 获取主要的案件记录 (使用更稳健的案号匹配)
-            const cleanCaseParam = caseParam.trim();
-            const orClause = `case_number.eq.${encodeURIComponent(cleanCaseParam)},case_number.eq.1:${encodeURIComponent(cleanCaseParam)}`;
+            // 1. 获取主要的案件记录 (最终版稳健匹配逻辑)
+            const cleanCaseParam = caseParam.trim().toUpperCase();
+            // 使用 ilike 进行大小写不敏感匹配，并兼容多种格式
+            const orClause = `case_number.ilike.%${cleanCaseParam}%,case_number.ilike.%1:${cleanCaseParam}%`;
             const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?or=(${orClause})&select=*&limit=1`;
             const lawsuitResponse = await fetch(lawsuitQuery, { headers });
             
