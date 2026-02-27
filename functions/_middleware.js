@@ -25,9 +25,13 @@ export async function onRequest(context) {
 
         try {
             // 1. 获取主要的案件记录 (最终版稳健匹配逻辑)
-            const cleanCaseParam = caseParam.trim().toUpperCase();
-            // 使用 ilike 进行大小写不敏感匹配，并兼容多种格式
-            const orClause = `case_number.ilike.%${cleanCaseParam}%,case_number.ilike.%1:${cleanCaseParam}%`;
+            const cleanCaseParam = caseParam.trim();
+            // 提取案号中的核心数字部分，以实现更模糊的匹配
+            const coreIdMatch = cleanCaseParam.match(/(\d+)$/);
+            const coreId = coreIdMatch ? coreIdMatch[1] : cleanCaseParam;
+            
+            // 使用 ilike 进行大小写不敏感的模糊匹配
+            const orClause = `case_number.ilike.%${coreId}%`;
             const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?or=(${orClause})&select=*&limit=1`;
             const lawsuitResponse = await fetch(lawsuitQuery, { headers });
             
