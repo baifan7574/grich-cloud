@@ -26,32 +26,26 @@ export async function onRequest(context) {
         }
 
         // --- 阶段一：安全、完整的数据抓取 ---
-        const sbUrl = env.PUBLIC_SUPABASE_URL?.replace(/\/$/, ""); // 去掉末尾斜杠
-        const sbKey = env.PUBLIC_SUPABASE_ANON_KEY;
+        const sbUrl = env.PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, ""); 
+        const sbKey = env.PUBLIC_SUPABASE_ANON_KEY?.trim();
 
         if (!sbUrl || !sbKey) {
-            console.error("SSR 致命错误: 环境变量未设置");
-            // 如果环境变量缺失，在响应头中提示，但仍继续以允许前端显示错误状态
-            const resp = await next();
-            const headers = new Headers(resp.headers);
-            headers.set("X-Config-Error", "Missing Supabase Env Vars");
-            return new Response(resp.body, { status: resp.status, headers });
+            return new Response(`服务器配置缺失: URL=${!!sbUrl}, KEY=${!!sbKey}`, { status: 500 });
         }
         
         const headers = { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` };
 
         try {
-            // 1. 获取案件记录 (使用稳健的模糊匹配)
+            // 1. 获取案件记录 (简化查询以防 500)
             const cleanCaseParam = caseParam.trim();
-            const coreIdMatch = cleanCaseParam.match(/(\d+)$/);
-            const coreId = coreIdMatch ? coreIdMatch[1] : cleanCaseParam;
             
-            // 构建查询: 优先匹配案号
-            const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?or=(case_number.ilike.%${coreId}%,case_number.eq.${encodeURIComponent(cleanCaseParam)})&select=*&limit=1`;
+            // 直接使用精准匹配，如果失败再报错
+            const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?case_number=eq.${encodeURIComponent(cleanCaseParam)}&select=*&limit=1`;
             const lawsuitResponse = await fetch(lawsuitQuery, { headers });
             
             if (!lawsuitResponse.ok) {
-                return new Response(`数据库连接失败: ${lawsuitResponse.status}. 请检查 Cloudflare 环境变量。`, { status: 500 });
+                const errorDetail = await lawsuitResponse.text();
+                return new Response(`数据库拒绝访问: ${lawsuitResponse.status}. 详情: ${errorDetail}`, { status: 500 });
             }
             
             const lawsuitResult = await lawsuitResponse.json();
