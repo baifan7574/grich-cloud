@@ -13,7 +13,7 @@ export async function onRequest(context) {
 
         // --- 阶段一：安全、完整的数据抓取 ---
         const sbUrl = env.PUBLIC_SUPABASE_URL;
-        const sbKey = env.SUPABASE_SERVICE_ROLE_KEY;
+        const sbKey = env.PUBLIC_SUPABASE_ANON_KEY;
 
         // 如果 Cloudflare 环境变量中未设置密钥，则快速失败
         if (!sbUrl || !sbKey) {
