@@ -24,6 +24,13 @@ async function build() {
       console.log('✅ Copying: sitemap.xml');
     }
 
+    // 新增: 确保 functions 文件夹也被同步到 dist (针对某些手动上传部署的情况)
+    const functionsDir = path.join(__dirname, 'functions');
+    if (fs.existsSync(functionsDir)) {
+      await fs.copy(functionsDir, path.join(distDir, 'functions'));
+      console.log('✅ Copying: functions/ (SSR Workers)');
+    }
+
     console.log('🚀 Build Success - Files copied to dist');
   } catch (error) {
     console.error('❌ Build Failed:', error);

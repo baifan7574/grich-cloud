@@ -69,54 +69,91 @@
     </div>
 
     <script>
-        // --- RECOVERY LOGIC ---
-        const urlParams = new URLSearchParams(window.location.search);
-        let caseId = urlParams.get('case');
-        let targetId = urlParams.get('target');
+            // --- 终极全链路参数锁定协议 (Chapter 25.1: Anti-Encoding Fix) ---
+            (function () {
+                let rawSearch = window.location.search;
 
-        if (!caseId) {
-            caseId = localStorage.getItem('grich_pending_case') || "UNKNOWN";
-            targetId = localStorage.getItem('grich_pending_target');
-        }
+                // 物理诊断：检测 URL 是否被错误编码
+                if (rawSearch.includes('%3D') || rawSearch.includes('%26')) {
+                    console.warn("Malformed URL detected. Re-parsing...");
+                    // 尝试多次解码以防多重编码
+                    try {
+                        // 如果开头是 ?，先去掉再处理，处理完再加回去
+                        let clean = rawSearch.replace(/^\?/, '');
+                        let decoded = decodeURIComponent(clean);
+                        // 如果仍然包含 %3D，说明可能被双重编码了，再解一次
+                        if (decoded.includes('%3D')) {
+                            decoded = decodeURIComponent(decoded);
+                        }
+                        rawSearch = "?" + decoded;
+                    } catch (e) {
+                        console.error("Decoding failed", e);
+                    }
+                }
 
-        const logs = [
-            `INITIATING HANDSHAKE FOR CASE ${caseId}...`,
-            "AUTHORIZING TRANSACTION ID...",
-            "ACCESSING EVIDENCE VAULT [LAYER 1]...",
-            "DECRYPTING DEFENDANT LIST...",
-            "RETRIEVING HIGH-RES SCREENSHOTS...",
-            "COMPILING PDF REPORT...",
-            "FINALIZING SECURE DOWNLOAD LINK...",
-            "ACCESS GRANTED."
-        ];
+                const urlParams = new URLSearchParams(rawSearch);
+                // 兼容可能的大小写或变体
+                const caseId = urlParams.get('case') || urlParams.get('case_id') || urlParams.get('CASE');
+                const targetId = urlParams.get('target') || urlParams.get('TARGET');
 
-        const logDiv = document.getElementById('log');
-        let i = 0;
+                const logDiv = document.getElementById('log');
 
-        function addLog() {
-            if (i >= logs.length) {
-                setTimeout(() => {
-                    let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
-                    if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
-                    window.location.href = dest;
-                }, 800);
-                return;
-            }
+                // 熔断逻辑：宁可报错，也绝不显示 ZARA 或 UNKNOWN
+                if (!caseId || caseId === 'UNKNOWN') {
+                    document.querySelector('h1').innerText = "SESSION ERROR";
+                    document.querySelector('h1').className = "text-red-600 font-mono text-4xl mb-8";
+                    logDiv.innerHTML = `
+                    <div class="text-red-500 font-mono text-xs p-4 border border-red-900 bg-red-900/10">
+                        <h3 class="font-bold text-lg mb-2">FATAL_ERROR: DATA_LINK_BROKEN</h3>
+                        <p class="mb-4">We successfully processed the transaction, but lost the Case ID link.</p>
+                        <p>RAW URL: <span class="text-gray-500 break-all">${window.location.search}</span></p>
+                        <p>DECODED: <span class="text-green-500 break-all">${rawSearch}</span></p>
+                    </div>`;
+                    return;
+                }
 
-            const p = document.createElement('div');
-            p.innerText = `> ${logs[i]}`;
-            if (i === logs.length - 1) {
-                p.className = "text-ops-red text-xl font-black animate-blink";
-            }
-            logDiv.appendChild(p);
-            logDiv.scrollTop = logDiv.scrollHeight;
+                // 成功路径：显示动画并跳转
+                console.log("SUCCESS: Case ID Verified:", caseId);
 
-            i++;
-            setTimeout(addLog, 500);
-        }
+                const logs = [
+                    `VERIFYING CASE ID: ${caseId}...`,
+                    "DECODING URL PARAMETERS...",
+                    "AUTHORIZING TRANSACTION...",
+                    "ACCESS GRANTED."
+                ];
 
-        setTimeout(addLog, 500);
+                let i = 0;
+                function addLog() {
+                    if (i >= logs.length) {
+                        setTimeout(() => {
+                            // 构建跳转链接
+                            let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
+                            if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
+                            // 强制把 target 作为 defendant 传过去，保险起见
+                            if (targetId) dest += `&defendant=${encodeURIComponent(targetId)}`;
+
+                            console.log(`[JUMP] Redirecting to: ${dest}`);
+                            window.location.href = dest;
+                        }, 1000);
+                        return;
+                    }
+
+                    const p = document.createElement('div');
+                    p.innerText = `> ${logs[i]}`;
+                    if (i === logs.length - 1) {
+                        p.className = "text-ops-red text-xl font-black animate-blink";
+                    }
+                    logDiv.appendChild(p);
+                    logDiv.scrollTop = logDiv.scrollHeight;
+                    i++;
+                    setTimeout(addLog, 400);
+                }
+
+                setTimeout(addLog, 500);
+
+            })();
     </script>
+
 </body>
 
 </html>
