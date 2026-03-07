@@ -75,24 +75,24 @@ export async function onRequest(context) {
                 .on('title', {
                     element(el) {
                         const name = get(targetDefendant, 'defendant_name', 'PENDING');
-                        el.setInnerContent(`法律警报: ${name} v. ${get(lawsuitData, 'plaintiff')} | 案件 #${get(lawsuitData, 'case_number')}`);
+                        el.setInnerContent(`LEGAL NOTICE: ${name} v. ${get(lawsuitData, 'plaintiff')} | CASE #${get(lawsuitData, 'case_number')}`);
                     }
                 })
                 .on('#sidebar-case', { element(el) { el.setInnerContent(`#${get(lawsuitData, 'case_number').replace(/^1:/, '')}`) } })
                 .on('#sidebar-court', { element(el) { el.setInnerContent(get(lawsuitData, 'court')) } })
-                .on('#sidebar-judge', { element(el) { el.setInnerContent(get(lawsuitData, 'judge', '待分配')) } })
+                .on('#sidebar-judge', { element(el) { el.setInnerContent(get(lawsuitData, 'judge', '[PENDING ASSIGNMENT]')) } })
                 .on('#sidebar-plaintiff', { element(el) { el.setInnerContent(get(lawsuitData, 'plaintiff')) } })
-                .on('#sidebar-attorney', { element(el) { el.setInnerContent(get(lawsuitData, 'law_firm', '记录在案的律师')) } })
+                .on('#sidebar-attorney', { element(el) { el.setInnerContent(get(lawsuitData, 'law_firm', 'GREER, BURNS & CRAIN, LTD.')) } })
                 .on('#sidebar-date', { element(el) { el.setInnerContent(get(lawsuitData, 'filed_date')) } })
                 .on('#alert-plaintiff', { element(el) { el.setInnerContent(get(lawsuitData, 'plaintiff')) } })
                 .on('#case-brand', { element(el) { el.setInnerContent(get(lawsuitData, 'plaintiff').split(' ')[0]) } })
-                .on('#main-case-header', { element(el) { el.setInnerContent(`${get(lawsuitData, 'plaintiff')} v. ${get(targetDefendant, 'defendant_name', '待定被告')}`) } })
+                .on('#main-case-header', { element(el) { el.setInnerContent(`${get(lawsuitData, 'plaintiff')} v. ${get(targetDefendant, 'defendant_name', 'COUNTERFEITS')}`) } })
                 .on('#case-number', { element(el) { el.setInnerContent(get(lawsuitData, 'case_number').replace(/^1:/, '')) } })
-                .on('#case-attorney', { element(el) { el.setInnerContent(get(lawsuitData, 'law_firm', '记录在案的律师')) } })
+                .on('#case-attorney', { element(el) { el.setInnerContent(get(lawsuitData, 'law_firm', 'GREER, BURNS & CRAIN, LTD.')) } })
                 .on('#target-id-label', { element(el) { el.setInnerContent(get(targetDefendant, 'id', 'N/A').substring(0,8)) } })
-                .on('#target-name', { element(el) { el.setInnerContent(get(targetDefendant, 'defendant_name', '加载中...')) } })
+                .on('#target-name', { element(el) { el.setInnerContent(get(targetDefendant, 'defendant_name', 'SEARCHING...')) } })
                 .on('#target-platform', { element(el) { el.setInnerContent(get(targetDefendant, 'platform', 'N/A')) } })
-                .on('#evidence-status', { element(el) { el.setInnerContent(targetDefendant ? '已取证' : '核验中...') } })
+                .on('#evidence-status', { element(el) { el.setInnerContent(targetDefendant ? 'EVIDENCE SECURED' : 'CONFIRMING...') } })
                 .transform(response);
 
         } catch (err) {
