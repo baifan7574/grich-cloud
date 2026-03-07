@@ -15,9 +15,9 @@ export async function onRequest(context) {
                 status: "Middleware Active",
                 pathname: url.pathname,
                 caseParam: caseParam,
-                env_keys: Object.keys(env).filter(k => !k.includes('KEY') && !k.includes('SECRET')),
-                supabase_url_set: !!env.PUBLIC_SUPABASE_URL,
-                supabase_key_set: !!env.PUBLIC_SUPABASE_ANON_KEY
+                supabase_url: env.PUBLIC_SUPABASE_URL ? `${env.PUBLIC_SUPABASE_URL.substring(0, 15)}...` : "MISSING",
+                supabase_key_prefix: env.PUBLIC_SUPABASE_ANON_KEY ? `${env.PUBLIC_SUPABASE_ANON_KEY.substring(0, 5)}...` : "MISSING",
+                env_keys: Object.keys(env)
             }), { headers: { "Content-Type": "application/json" } });
         }
 
