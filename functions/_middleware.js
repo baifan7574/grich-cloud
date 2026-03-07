@@ -50,11 +50,14 @@ export async function onRequest(context) {
             const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?or=(case_number.ilike.%${coreId}%,case_number.eq.${encodeURIComponent(cleanCaseParam)})&select=*&limit=1`;
             const lawsuitResponse = await fetch(lawsuitQuery, { headers });
             
-            if (!lawsuitResponse.ok) throw new Error(`Supabase 案件查询失败: ${lawsuitResponse.status}`);
+            if (!lawsuitResponse.ok) {
+                return new Response(`数据库连接失败: ${lawsuitResponse.status}. 请检查 Cloudflare 环境变量。`, { status: 500 });
+            }
             
             const lawsuitResult = await lawsuitResponse.json();
             if (lawsuitResult.length === 0) {
-                 return next(); // 未找到数据，保持原始页面
+                 // 强制报错，不要显示 CASE_PENDING 误导用户
+                 return new Response(`未找到案号: ${cleanCaseParam}. 请核对数据库。`, { status: 404 });
             }
             const lawsuitData = lawsuitResult[0];
 
