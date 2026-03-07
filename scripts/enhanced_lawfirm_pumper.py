@@ -27,11 +27,12 @@ import io as aio
 
 
 # ==========================================
-# 1. 环境配置与验证
+# 1. 环境配置与验证 (改进版：支持相对路径与 GitHub Actions)
 # ==========================================
 
-# 加载环境变量
-load_dotenv()
+# 优先加载当前目录或上级目录的 .env
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 SUPABASE_URL = os.getenv("PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("PUBLIC_SUPABASE_ANON_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
