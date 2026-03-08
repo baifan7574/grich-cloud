@@ -8,8 +8,8 @@ const supabaseKey = process.env.SUPABASE_KEY || process.env.PUBLIC_SUPABASE_ANON
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const DOMAIN = "https://jaxfamlaw.com";
-const OUTPUT_FILE = path.join(__dirname, '../public/sitemap.xml');
-const OUTPUT_FILE_DIST = path.join(__dirname, '../dist/sitemap.xml');
+const OUTPUT_FILE = path.join(__dirname, '../public/sitemap_index.xml');
+const OUTPUT_FILE_DIST = path.join(__dirname, '../dist/sitemap_index.xml');
 
 // 获取当前日期 (YYYY-MM-DD)
 const today = new Date().toISOString().split('T')[0];
