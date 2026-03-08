@@ -18,12 +18,16 @@ import json
 import time
 import random
 import requests
+import urllib3
 from datetime import datetime
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import pdfplumber
 import io as aio
+
+# 屏蔽 urllib3 的 InsecureRequestWarning 警告 (让控制台输出更干净)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # ==========================================
