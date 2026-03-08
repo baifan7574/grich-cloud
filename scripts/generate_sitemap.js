@@ -51,7 +51,7 @@ async function generateSitemap() {
                 const uniqueKey = `${def.case_number}-${def.defendant_name}`;
                 if (!addedDefs.has(uniqueKey)) {
                     urls.push({
-                        loc: `${DOMAIN}/case_template?case=${encodeURIComponent(def.case_number)}&defendant=${encodeURIComponent(def.defendant_name)}`,
+                        loc: `${DOMAIN}/case_template?case=${encodeURIComponent(def.case_number)}&amp;defendant=${encodeURIComponent(def.defendant_name)}`,
                         lastmod: today,
                         changefreq: 'weekly',
                         priority: '0.9'
