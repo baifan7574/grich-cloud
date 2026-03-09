@@ -24,11 +24,12 @@ async function generateSitemap() {
 
     // 1. 基础页面 (最高优先级)
     urls.push({ loc: `${DOMAIN}/`, lastmod: today, changefreq: 'daily', priority: '1.0' });
+    urls.push({ loc: `${DOMAIN}/guide_tro_frozen.html`, lastmod: today, changefreq: 'weekly', priority: '0.9' });
     urls.push({ loc: `${DOMAIN}/privacy.html`, lastmod: today, changefreq: 'monthly', priority: '0.5' });
     urls.push({ loc: `${DOMAIN}/terms.html`, lastmod: today, changefreq: 'monthly', priority: '0.5' });
     urls.push({ loc: `${DOMAIN}/refund.html`, lastmod: today, changefreq: 'monthly', priority: '0.5' });
 
-    // 2. 案件页面
+    // 2. 案件页面 (仅生成 Canonical URL，避免 GSC 报重复收录错误)
     if (lawsuits) {
         lawsuits.forEach(suit => {
             if (suit.case_number && suit.case_number !== 'Unknown') {
@@ -39,25 +40,6 @@ async function generateSitemap() {
                     changefreq: 'weekly',
                     priority: '0.8'
                 });
-            }
-        });
-    }
-
-    // 3. 被告页面 (使用 Set 去重)
-    let addedDefs = new Set();
-    if (defendants) {
-        defendants.forEach(def => {
-            if (def.defendant_name && def.case_number && def.case_number !== 'Unknown') {
-                const uniqueKey = `${def.case_number}-${def.defendant_name}`;
-                if (!addedDefs.has(uniqueKey)) {
-                    urls.push({
-                        loc: `${DOMAIN}/case_template?case=${encodeURIComponent(def.case_number)}&amp;defendant=${encodeURIComponent(def.defendant_name)}`,
-                        lastmod: today,
-                        changefreq: 'weekly',
-                        priority: '0.9'
-                    });
-                    addedDefs.add(uniqueKey);
-                }
             }
         });
     }

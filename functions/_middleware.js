@@ -2,8 +2,14 @@ export async function onRequest(context) {
     const { request, env, next } = context;
     const url = new URL(request.url);
 
+    // 0. 全局统一重定向: 移除末尾斜杠 (解决重复收录和重定向链问题)
+    if (url.pathname.endsWith('/') && url.pathname !== '/') {
+        url.pathname = url.pathname.slice(0, -1);
+        return Response.redirect(url.toString(), 301);
+    }
+
     // 1. 路径匹配优化: 兼容 /case_template, /case_template.html 以及带斜杠的情况
-    const isCaseTemplate = url.pathname.match(/^\/case_template(\.html)?\/?$/);
+    const isCaseTemplate = url.pathname.match(/^\/case_template(\.html)?$/);
     
     if (isCaseTemplate) {
         // DEBUG 模式: 通过 ?debug_middleware=1 激活
@@ -71,13 +77,19 @@ export async function onRequest(context) {
             const response = await next();
             const get = (obj, path, fallback = '---') => path.split('.').reduce((acc, part) => acc && acc[part], obj) || fallback;
 
+            // 构造霸屏标题 (Dynamic SEO Title - English)
+            const dynamicTitle = `[URGENT] Lawsuit Alert: ${get(lawsuitData, 'plaintiff')} Intellectual Property Litigation (Case: ${get(lawsuitData, 'case_number')}) | Jaxfamlaw`;
+
+            // 构造富文本案件概述 (200 words SEO content - English)
+            const seoSummary = `Case number ${get(lawsuitData, 'case_number')} is a federal intellectual property infringement lawsuit initiated by ${get(lawsuitData, 'plaintiff')}. This litigation was officially filed on ${get(lawsuitData, 'filed_date') || 'recently'} in the ${get(lawsuitData, 'court')}. The plaintiff is represented by ${get(lawsuitData, 'law_firm', 'specialized IP litigation counsel')}. If you are operating a cross-border e-commerce storefront on platforms such as Amazon, AliExpress, Temu, or Shein, and have discovered that your store funds are frozen or have received a platform infringement notice regarding this brand, you may be listed as a defendant in the court's sealed Schedule A. We strongly advise you to obtain the complete case dossier immediately to verify the evidence against your store and formulate a strategic response. Failure to respond may result in a default judgment, leading to the permanent forfeiture of all frozen assets.`;
+
+            // 构造纯净的 Canonical URL (去掉 defendant 等多余参数)
+            const canonicalUrl = `https://jaxfamlaw.com/case_template?case=${encodeURIComponent(get(lawsuitData, 'case_number'))}`;
+
             return new HTMLRewriter()
-                .on('title', {
-                    element(el) {
-                        const name = get(targetDefendant, 'defendant_name', 'PENDING');
-                        el.setInnerContent(`LEGAL NOTICE: ${name} v. ${get(lawsuitData, 'plaintiff')} | CASE #${get(lawsuitData, 'case_number')}`);
-                    }
-                })
+                .on('title', { element(el) { el.setInnerContent(dynamicTitle); } })
+                .on('#canonical-url', { element(el) { el.setAttribute('href', canonicalUrl); } })
+                .on('#seo-case-summary', { element(el) { el.setInnerContent(seoSummary); } })
                 .on('#sidebar-case', { element(el) { el.setInnerContent(`#${get(lawsuitData, 'case_number').replace(/^1:/, '')}`) } })
                 .on('#sidebar-court', { element(el) { el.setInnerContent(get(lawsuitData, 'court')) } })
                 .on('#sidebar-judge', { element(el) { el.setInnerContent(get(lawsuitData, 'judge', '[PENDING ASSIGNMENT]')) } })
