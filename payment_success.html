@@ -93,8 +93,10 @@
 
                 const urlParams = new URLSearchParams(rawSearch);
                 // 兼容可能的大小写或变体
-                const caseId = urlParams.get('case') || urlParams.get('case_id') || urlParams.get('CASE');
-                const targetId = urlParams.get('target') || urlParams.get('TARGET');
+                const storedCase = localStorage.getItem('grich_pending_case') || '';
+                const storedTarget = localStorage.getItem('grich_pending_target') || '';
+                const caseId = urlParams.get('case') || urlParams.get('case_id') || urlParams.get('CASE') || storedCase;
+                const targetId = urlParams.get('target') || urlParams.get('TARGET') || storedTarget;
 
                 const logDiv = document.getElementById('log');
 
@@ -105,7 +107,7 @@
                     logDiv.innerHTML = `
                     <div class="text-red-500 font-mono text-xs p-4 border border-red-900 bg-red-900/10">
                         <h3 class="font-bold text-lg mb-2">FATAL_ERROR: DATA_LINK_BROKEN</h3>
-                        <p class="mb-4">We successfully processed the transaction, but lost the Case ID link.</p>
+                        <p class="mb-4">The transaction page loaded, but the case link was missing. Please return to the case page and contact support with your receipt if this repeats.</p>
                         <p>RAW URL: <span class="text-gray-500 break-all">${window.location.search}</span></p>
                         <p>DECODED: <span class="text-green-500 break-all">${rawSearch}</span></p>
                     </div>`;
@@ -127,7 +129,14 @@
                     if (i >= logs.length) {
                         setTimeout(() => {
                             // 构建跳转链接
-                            let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
+                            const caseSlug = String(caseId || '')
+                                .trim()
+                                .toLowerCase()
+                                .replace(/:/g, '-')
+                                .replace(/[^a-z0-9-]+/g, '-')
+                                .replace(/-+/g, '-')
+                                .replace(/^-|-$/g, '');
+                            let dest = `/cases/${caseSlug}?paid=true`;
                             if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
                             // 强制把 target 作为 defendant 传过去，保险起见
                             if (targetId) dest += `&defendant=${encodeURIComponent(targetId)}`;

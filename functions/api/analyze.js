@@ -9,8 +9,8 @@ export async function onRequestPost(context) {
 
         if (!brand) return new Response(JSON.stringify({ error: 'Brand is required' }), { status: 400 });
 
-        // --- INTELLIGENCE ROUTING ---
-        // Priority 1: DeepSeek (Top Tier Legal Logic)
+        // --- REPORT ROUTING ---
+        // Priority 1: DeepSeek
         // Priority 2: Gemini (Google Infrastructure Fallback)
         // Support both standard naming and user's 'DSAPI' shorthand
         const dsKey = env.DEEPSEEK_API_KEY || env.DSAPI;
@@ -25,45 +25,41 @@ export async function onRequestPost(context) {
         // --- 19.1 Context Injection ---
         let enrichedContext = "";
         if (attorney && (attorney.includes("Greer") || attorney.includes("GBC"))) {
-            enrichedContext += "This is likely a Greer, Burns & Crain (GBC) style Schedule A case. They are known for aggressive TROs and mass-filings. ";
+            enrichedContext += "The available data references Greer, Burns & Crain (GBC). Avoid conclusions not supported by the provided record fields. ";
         } else if (attorney && attorney.includes("HSP")) {
             enrichedContext += "This appears to be a HSP (Hughes Socol Piers Resnick & Dym) filing. ";
         }
         const targetDesc = brand.includes("STORE") || brand.includes("OUTLET") ? "an e-commerce storefront" : "a cross-border trading entity";
 
-        // --- 19.2 The "Top Lawyer" System Prompt (Shared) ---
-        const systemPrompt = `You are a top-tier North American Intellectual Property (IP) Defense Attorney with 15+ years of experience in "Schedule A" litigation defense (TROs/Asset Freezes).
+        // --- Public-record report prompt ---
+        const systemPrompt = `You are preparing an independent public-record organization report for an e-commerce seller.
         
-        Your Client: "${brand}" (${targetDesc}), who has just been sued.
-        Opposing Counsel: "${attorney || 'Unknown Firm'}" representing Plaintiff "${plaintiff}".
-        Case: ${case_id} in ${court}.
+        Subject: "${brand}" (${targetDesc}).
+        Listed counsel in available data: "${attorney || 'Unknown Firm'}" representing Plaintiff "${plaintiff}".
+        Case reference: ${case_id} in ${court}.
 
-        CRITICAL INSTRUCTIONS:
-        1. NO "UNKNOWN"s: If specific details are missing, use your expert knowledge of ${plaintiff || 'anti-counterfeiting'} cases to INFER likely scenarios.
-        2. TONE: Urgent, authoritative, objective, professional. Do not be polite. Be strategic.
-        3. FORMAT: Strict Legal Memorandum style.
+        STRICT COMPLIANCE RULES:
+        1. Do not claim to be a lawyer, law firm, court, official filing service, or legal representative.
+        2. Do not provide legal advice, legal strategy, settlement instructions, or outcome predictions.
+        3. Do not infer missing facts. If a field is missing or uncertain, say it is not confirmed in the available data.
+        4. Do not say the seller has been sued unless the provided record clearly supports it.
+        5. Use calm, factual language. No panic language, no threats, no guarantees.
 
-        YOU MUST OUTPUT THE REPORT IN THESE EXACT 4 SECTIONS:
+        OUTPUT THESE 4 SECTIONS:
 
-        ## [RISK DEPTH RATING]
-        Give a score 1-10/10. Is this a "Fishing Expedition" or a "Targeted Kill"? Explain why based on the Law Firm's reputation (${attorney}).
+        ## [PUBLIC RECORD SUMMARY]
+        Summarize the case number, plaintiff, court, listed counsel, and what is not confirmed.
 
-        ## [LEGAL LOOPHOLE ANALYSIS]
-        Analyze potential procedural weaknesses. Mention terms like "Service of Process", "Personal Jurisdiction", or "Bond Sufficiency" that might apply to mass-filings in ${court}.
+        ## [BUSINESS REFERENCE SIGNALS]
+        List practical non-legal signals a seller may review, such as platform notice, store name match, product links, account balance screenshots, and communication records.
 
-        ## [SETTLEMENT FORECAST]
-        Provide a 3-tier settlement estimation based on frozen funds (e.g., if $10k frozen):
-        *   Low-ball (Early Settlement): [Estimate %]
-        *   Standard (Mid-case): [Estimate %]
-        *   Maximum Pain (Full Trial): [Estimate %]
-        *   *Infer numbers based on typical ${plaintiff} behavior.*
+        ## [KNOWN LIMITATIONS]
+        Explain that public data can be incomplete, delayed, sealed, mismatched, or outdated.
 
-        ## [24-HOUR STOP-LOSS DIRECTIVE]
-        Bullet points. Direct orders.
-        *   Example: "IMMEDIATE ACTION: Pull all listing data for cross-reference."
-        *   Tell them exactly what to do with their funds or logs.
+        ## [NEXT DOCUMENT CHECKLIST]
+        Provide a neutral checklist of documents to gather before speaking with a qualified attorney or making a business decision.
 
-        Keep the total length under 400 words. Make it sound expensive ($500/hr lawyer).`;
+        Keep the total length under 400 words and include this sentence at the end: "This report is a business reference based on available public information and is not legal advice."`;
 
         let reportContent = "";
 
@@ -79,7 +75,7 @@ export async function onRequestPost(context) {
                     model: "deepseek-chat",
                     messages: [
                         { role: "system", content: systemPrompt },
-                        { role: "user", content: `CONTEXT: ${enrichedContext}.\nTASK: Generate the ${brand} Defense Memorandum immediately.` }
+                        { role: "user", content: `CONTEXT: ${enrichedContext}.\nTASK: Generate a public-record business reference report for ${brand}.` }
                     ],
                     stream: false,
                     temperature: 0.7
@@ -106,7 +102,7 @@ export async function onRequestPost(context) {
                 body: JSON.stringify({
                     contents: [{
                         parts: [{
-                            text: `${systemPrompt}\n\nCONTEXT: ${enrichedContext}.\nTASK: Generate the ${brand} Defense Memorandum immediately.`
+                            text: `${systemPrompt}\n\nCONTEXT: ${enrichedContext}.\nTASK: Generate a public-record business reference report for ${brand}.`
                         }]
                     }]
                 })

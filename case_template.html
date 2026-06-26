@@ -5,7 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link id="canonical-url" rel="canonical" href="https://jaxfamlaw.com/case_template" />
-    <title>LEGAL NOTICE // CASE FILE ACCESS</title>
+    <title>Public Court Record Summary | JaxFamLaw</title>
+    <meta id="meta-description" name="description" content="Public court record summary with plaintiff, court, listed counsel and seller-facing business reference notes. Not legal advice." />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BY22TVGOJ6"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-BY22TVGOJ6');
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -151,7 +160,7 @@
     <!-- Loading Overlay -->
     <div id="loader" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-md">
-            <div class="text-xl font-mono mb-4 text-court-yellow tracking-tighter animate-pulse">SEARCHING GLOBAL LEGAL
+            <div class="text-xl font-mono mb-4 text-court-yellow tracking-tighter animate-pulse">SEARCHING PUBLIC RECORD
                 DATABASE...</div>
             <div class="h-1 bg-court-sidebar w-full overflow-hidden mb-6">
                 <div class="h-full bg-court-yellow animate-[shimmer_2s_infinite] w-1/3"></div>
@@ -167,7 +176,7 @@
     <aside id="sidebar"
         class="w-full md:w-80 bg-court-sidebar border-r border-court-border flex-shrink-0 p-6 overflow-y-auto hidden md:block">
         <div class="mb-8 p-3 border border-court-border border-dashed">
-            <div class="text-[10px] text-court-muted uppercase tracking-[0.2em] mb-1">Dossier Index</div>
+            <div class="text-[10px] text-court-muted uppercase tracking-[0.2em] mb-1">Record Index</div>
             <div class="text-2xl font-bold font-mono text-white tracking-tighter" id="sidebar-case">CASE_PENDING</div>
         </div>
 
@@ -198,11 +207,11 @@
             </div>
 
             <div class="pt-6 border-t border-court-border">
-                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-2">Security Level</div>
+                <div class="text-[10px] text-court-muted uppercase tracking-widest mb-2">Record Status</div>
                 <div class="flex items-center gap-2">
                     <div class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></div>
-                    <span class="text-[10px] font-mono font-bold text-red-500 uppercase" id="doc-status">ENCRYPTED //
-                        RESTRICTED</span>
+                    <span class="text-[10px] font-mono font-bold text-yellow-500 uppercase" id="doc-status">PUBLIC RECORD //
+                        LIMITED SCOPE</span>
                 </div>
             </div>
         </div>
@@ -219,15 +228,15 @@
         <!-- Court Seal Watermark -->
         <div class="court-seal"></div>
 
-        <!-- 🚨 LAWSUIT ALERT BANNER -->
+        <!-- Public record banner -->
         <div
             class="w-full bg-gradient-to-r from-red-600 to-red-800 text-white py-4 px-6 border-b-4 border-red-900 shadow-2xl z-20 relative">
             <div class="max-w-6xl mx-auto flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="text-4xl animate-pulse">⚠️</div>
+                    <div class="text-4xl animate-pulse">!</div>
                     <div>
-                        <div class="text-2xl font-black tracking-tight">LAWSUIT ALERT</div>
-                        <div class="text-xs font-mono opacity-90">Official Federal Court Filing Detected</div>
+                        <div class="text-2xl font-black tracking-tight">PUBLIC RECORD NOTICE</div>
+                        <div class="text-xs font-mono opacity-90">Independent business reference, not legal advice</div>
                     </div>
                 </div>
                 <div class="text-right hidden md:block">
@@ -238,7 +247,7 @@
         </div>
 
         <!-- Stamp -->
-        <div id="stamp" class="stamp hidden">IN EVIDENCE</div>
+        <div id="stamp" class="stamp hidden">PUBLIC RECORD</div>
 
         <!-- Header -->
         <header class="border-b border-court-border p-6 md:p-10 bg-black/60 backdrop-blur-md z-10">
@@ -250,13 +259,13 @@
                 <div class="flex gap-6 text-[11px] font-mono font-bold tracking-widest uppercase text-gray-400">
                     <a href="/dashboard.html" class="hover:text-white transition-colors">CASES</a>
                     <a href="/guide_tro_frozen.html" class="text-court-yellow hover:text-white transition-colors">GUIDES</a>
-                    <a href="#cta-btn" class="hover:text-white transition-colors">CONSULT</a>
+                    <a href="#cta-btn" class="hover:text-white transition-colors">REPORT</a>
                 </div>
             </nav>
             <div class="flex flex-col md:flex-row justify-between items-start gap-4">
                 <div>
                     <div class="text-[10px] text-court-muted font-mono uppercase tracking-[0.3em] mb-2">
-                        FEDERAL CIVIL LITIGATION RECORD // GRICH LEGAL INTELLIGENCE
+                        FEDERAL CIVIL LITIGATION RECORD // PUBLIC RECORD ORGANIZATION
                     </div>
                     <h1 id="main-case-header" class="text-4xl md:text-5xl font-black tracking-tighter text-white mb-2">
                         <span id="case-brand" class="text-court-yellow">LITIGATION</span> v. COUNTERFEITS
@@ -286,31 +295,31 @@
                 <!-- Notice Header -->
                 <div class="mb-10">
                     <h2 class="text-2xl md:text-3xl font-bold mb-4 tracking-tight" id="notice-title">
-                        NOTICE OF INCLUSION: DEFENDANT LIST
+                        PUBLIC RECORD MATCH REVIEW
                     </h2>
                     <p class="text-court-muted text-sm leading-relaxed border-l-2 border-court-border pl-6"
                         id="notice-desc">
-                        Pursuant to the pending civil action, your entity has been formally listed as a defendant in the
-                        official court filing. Active monitoring is currently in progress.
+                        This page organizes public court record fields and related seller-facing business signals. It does
+                        not confirm liability, guarantee accuracy, or provide legal advice.
                     </p>
                 </div>
 
                 <!-- SEO & Monetization Hook Section -->
                 <div class="mb-10 p-6 bg-[#111] border border-court-border shadow-2xl relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-court-yellow"></div>
-                    <h3 class="text-xl font-bold text-white mb-3 tracking-tight">Case Summary // Official Record</h3>
+                    <h3 class="text-xl font-bold text-white mb-3 tracking-tight">Case Summary // Public Record</h3>
                     <div id="seo-case-summary" class="text-gray-300 text-sm leading-relaxed mb-6 font-sans">
                         <!-- AI Generated Content -->
-                        GENERATING STRATEGIC OVERVIEW...
+                        LOADING PUBLIC RECORD SUMMARY...
                     </div>
 
                     <!-- Monetization Hook -->
                     <div class="p-5 bg-yellow-900/20 border-l-4 border-yellow-500">
                         <h4 class="text-yellow-500 font-bold mb-2 flex items-center gap-2 tracking-tight">
-                            <span class="animate-pulse">⚠️</span> CRITICAL ALERT: HIDDEN DEFENDANT LIST EXTRACTED
+                            <span>!</span> PUBLIC RECORD LIMITATION NOTICE
                         </h4>
                         <p class="text-yellow-100/90 text-sm leading-relaxed">
-                            Our AI intelligence system has successfully intercepted and analyzed the <span class="font-bold text-white mx-1">complete sealed Schedule A list (Hidden Defendants)</span> for this case. If your e-commerce store funds have been suddenly frozen or if you received an infringement notice from your platform, you are highly likely listed on this court-ordered block list. Please obtain the complete case dossier immediately to mount a strategic defense.
+                            JaxFamLaw organizes available public records and database signals for business reference. Some case data may be incomplete, delayed, sealed, or mismatched. Use this report to prepare documents and questions for a qualified attorney when legal action is needed.
                         </p>
                     </div>
                 </div>
@@ -355,9 +364,9 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="font-bold text-yellow-600 uppercase tracking-tighter">Verified Evidence Cache
+                            <div class="font-bold text-yellow-600 uppercase tracking-tighter">Public Record Materials
                             </div>
-                            <div class="text-[10px] text-yellow-700/60 font-mono">STATUS: HIGH_RESOLUTION_FILES_SECURED
+                            <div class="text-[10px] text-yellow-700/60 font-mono">STATUS: REFERENCE MATERIALS AVAILABLE
                             </div>
                         </div>
                     </div>
@@ -370,10 +379,9 @@
                         <div class="relative z-10 text-center">
                             <div
                                 class="inline-block px-4 py-2 border-2 border-yellow-600/50 text-yellow-600 font-bold text-lg tracking-tighter mb-2 bg-black/80">
-                                EVIDENCE LOCKED
+                                REPORT PREVIEW
                             </div>
-                            <div class="text-[10px] text-court-muted font-mono uppercase">Full screenshots & store
-                                capture files (3.2MB)</div>
+                            <div class="text-[10px] text-court-muted font-mono uppercase">Source notes and public record fields</div>
                         </div>
                     </div>
                 </div>
@@ -404,13 +412,13 @@
                             <div class="text-3xl font-black tracking-tighter italic font-sans">GRICH <span
                                     class="text-green-600 font-mono">INTEL</span></div>
                             <div class="text-[9px] uppercase font-sans tracking-[0.4em] text-gray-500 font-bold">Global
-                                Risk Intelligence // Official Dossier</div>
+                                Public Record Organization // Business Reference</div>
                         </div>
                         <div class="text-right font-mono">
                             <div class="text-[10px] font-bold">REPORT: <span id="report-id"
                                     class="text-green-700">GR-2026-X8832</span></div>
                             <div class="text-[10px]">ISSUED: <span id="report-date">2026-01-09</span></div>
-                            <div class="text-[10px] text-gray-400">STATUS: AUTHORIZED_VIEW</div>
+                            <div class="text-[10px] text-gray-400">STATUS: CUSTOMER_VIEW</div>
                         </div>
                     </div>
 
@@ -420,7 +428,7 @@
                         <section>
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Section I: Official Record Verification</h3>
+                                Section I: Public Record Summary</h3>
                             <div class="grid grid-cols-2 gap-4 text-[11px] font-mono">
                                 <div><span class="text-gray-400">CASE NUMBER:</span> <span id="report-case-id"
                                         class="font-bold"></span></div>
@@ -437,7 +445,7 @@
                         <section>
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Section II: Targeted Entity Identity</h3>
+                                Section II: Matched Entity Reference</h3>
                             <div class="bg-gray-100 p-4 border-l-4 border-black">
                                 <div class="text-lg font-black tracking-tighter" id="report-target-name"></div>
                                 <div class="text-[10px] text-gray-500 font-mono uppercase">Platform: <span
@@ -450,21 +458,21 @@
                         <section>
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Section III: Strategic Intelligence Summary</h3>
+                                Section III: Business Risk Reference</h3>
                             <div id="report-summary"
                                 class="text-sm leading-relaxed text-gray-800 font-serif whitespace-pre-wrap">AI AGENT:
-                                SYNTHESIZING ARCHIVES...</div>
+                                ORGANIZING PUBLIC RECORDS...</div>
                         </section>
 
                         <!-- Section 3.5: Defendants Registry - PROFESSIONAL TABLE -->
                         <section id="defendants-list-section" class="hidden">
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Section III-A: Identified Defendants Registry</h3>
+                                Section III-A: Related Entity Registry</h3>
                             <div class="text-[10px] text-gray-500 mb-4 font-mono flex justify-between items-center">
                                 <span>TOTAL ENTITIES: <span id="defendants-count"
                                         class="font-bold text-black">0</span></span>
-                                <span class="text-red-600 font-bold">🔒 RESTRICTED ACCESS DATA</span>
+                                <span class="text-red-600 font-bold">REFERENCE DATA</span>
                             </div>
 
                             <!-- Professional Table -->
@@ -476,7 +484,7 @@
                                             <th class="text-left p-3 font-black uppercase">#</th>
                                             <th class="text-left p-3 font-black uppercase">Store Name</th>
                                             <th class="text-left p-3 font-black uppercase">Platform</th>
-                                            <th class="text-left p-3 font-black uppercase">Risk Level</th>
+                                            <th class="text-left p-3 font-black uppercase">Reference Status</th>
                                         </tr>
                                     </thead>
                                     <tbody id="defendants-list">
@@ -490,7 +498,7 @@
                         <section id="filing-archive-section">
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Section IV: Official Filing Archive</h3>
+                                Section IV: Public Filing Reference</h3>
                             <div class="space-y-2">
                                 <div class="flex items-center gap-3 p-3 bg-white border border-gray-200 hover:border-green-500 transition-colors group cursor-pointer"
                                     id="main-docket-link">
@@ -503,15 +511,13 @@
                                         </svg>
                                     </div>
                                     <div class="flex-1">
-                                        <div class="text-[10px] font-bold uppercase tracking-tight">Main Case Docket &
-                                            Filing Schedule</div>
+                                        <div class="text-[10px] font-bold uppercase tracking-tight">Case Docket & Filing Reference</div>
                                         <div class="text-[9px] text-gray-400 font-mono truncate" id="report-docket-url">
-                                            [REDACTED // PROPRIETARY SOURCE]
+                                            [PUBLIC SOURCE LINK OR REFERENCE]
                                         </div>
                                     </div>
                                     <div
-                                        class="text-green-600 font-bold text-[10px] uppercase opacity-0 group-hover:opacity-100">
-                                        Verified</div>
+                                        class="text-green-600 font-bold text-[10px] uppercase opacity-0 group-hover:opacity-100">Reference</div>
                                 </div>
                             </div>
                         </section>
@@ -520,15 +526,13 @@
                         <section id="evidence-display-section" class="hidden">
                             <h3
                                 class="text-xs font-black uppercase tracking-widest text-green-700 mb-3 border-b border-green-100 pb-1">
-                                Section V: Exhibit A - Verification Material</h3>
+                                Section V: Supporting Reference Material</h3>
                             <div class="bg-white border-2 border-dashed border-gray-200 p-2">
                                 <img id="success-evidence-img" src=""
                                     class="w-full grayscale hover:grayscale-0 transition-all duration-700 mb-2">
                                 <div class="p-3 bg-gray-50 border-t border-gray-100">
-                                    <div class="text-[10px] font-bold text-gray-700 uppercase mb-1">Authenticated Store
-                                        Capture</div>
-                                    <div class="text-[9px] text-gray-500 font-mono italic">Timestamp: 2026-01-09 //
-                                        Hash: 0xFD88...AC21 // Source: GRICH GBC-Engine V2.4</div>
+                                    <div class="text-[10px] font-bold text-gray-700 uppercase mb-1">Reference Screenshot or Source Note</div>
+                                    <div class="text-[9px] text-gray-500 font-mono italic">Source data may be incomplete or outdated. Verify before relying on it.</div>
                                 </div>
                             </div>
                         </section>
@@ -537,8 +541,8 @@
                     <!-- Footer -->
                     <div
                         class="mt-12 pt-6 border-t border-black/5 text-[9px] text-gray-400 font-mono flex justify-between uppercase">
-                        <div>© 2026 GRICH Legal Technologies</div>
-                        <div>End of Official Record</div>
+                        <div>2026 JaxFamLaw Public Record Organization</div>
+                        <div>End of Business Reference Report</div>
                     </div>
                 </div>
 
@@ -574,25 +578,24 @@
                                 d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                 clip-rule="evenodd"></path>
                         </svg>
-                        <span class="text-xs font-bold">VERIFIED DATA</span>
+                        <span class="text-xs font-bold">PUBLIC DATA</span>
                     </div>
                 </div>
 
                 <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
-                        <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1 font-bold">Access
-                            Authority
+                        <div class="text-[10px] text-court-muted uppercase tracking-widest mb-1 font-bold">Report Details
                         </div>
                         <div class="text-[10px] font-mono text-gray-500">SESSION_ID: <span id="final-session">---</span>
                         </div>
-                        <div class="text-[10px] font-mono text-gray-500">SOURCE: GRICH LEGAL INTELLIGENCE
+                        <div class="text-[10px] font-mono text-gray-500">SOURCE: PUBLIC RECORD ORGANIZATION
                         </div>
                     </div>
 
-                    <a id="cta-btn" href="https://payhip.com/b/BHtvq" onclick="saveState()"
+                    <a id="cta-btn" href="https://payhip.com/b/BHtvq" onclick="saveState()" rel="noopener sponsored"
                         class="w-full md:w-auto px-10 py-5 font-black text-xl uppercase tracking-tighter bg-court-blue text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all duration-300 transform hover:scale-[1.02] shadow-2xl active:scale-95 flex items-center justify-center gap-3">
 
-                        <span id="cta-text">ACCESS CASE DETAILS ($29.99)</span>
+                        <span id="cta-text">ACCESS PUBLIC RECORD REPORT ($29.99)</span>
 
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
@@ -617,7 +620,11 @@
         function saveState() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const caseParam = urlParams.get('case');
+                let caseParam = urlParams.get('case');
+                if (!caseParam && window.location.pathname.startsWith('/cases/')) {
+                    const slug = decodeURIComponent(window.location.pathname.split('/cases/')[1] || '').replace(/\/+$/g, '');
+                    caseParam = slug.replace(/^([0-9]+)-/, '$1:');
+                }
                 if (caseParam) {
                     localStorage.setItem('grich_pending_case', caseParam);
                     localStorage.setItem('grich_pending_target', urlParams.get('defendant') || '');
@@ -649,13 +656,13 @@
                 // The full logic will be restored and integrated with post-payment flow.
                 doc.setFont("times", "bold");
                 doc.setFontSize(18);
-                doc.text("PRIVILEGED & CONFIDENTIAL // LEGAL MEMORANDUM", 20, 20);
+                doc.text("JAXFAMLAW PUBLIC RECORD REPORT", 20, 20);
                 doc.setFontSize(11);
                 doc.setFont("times", "normal");
                 const splitText = doc.splitTextToSize(reportText || "Report content will be generated here.", 170);
                 doc.text(splitText, 20, 50);
 
-                doc.save(`GRICH_Defense_Memo_${data.caseID}.pdf`);
+                doc.save(`JaxFamLaw_Public_Record_Report_${data.caseID}.pdf`);
 
             } catch(e) {
                 console.error("PDF Generation failed:", e);
@@ -680,3 +687,4 @@
 </body>
 
 </html>
+

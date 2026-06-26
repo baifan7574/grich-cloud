@@ -1,427 +1,240 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRICH | Global Risk Intelligence & Compliance Hub</title>
-  <style>
-    /* 极致加载速度：核心暗影纹理预设 */
-    :root {
-      --grich-green: #34d399;
-      --grich-dark: #0a0f18;
+  <title>Public Court Record Search for E-Commerce Sellers | JaxFamLaw</title>
+  <meta name="description" content="JaxFamLaw organizes public court records and seller-facing business risk signals for reference only. It is not a law firm and does not provide legal advice." />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <link rel="canonical" href="https://jaxfamlaw.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Public Court Record Search for E-Commerce Sellers" />
+  <meta property="og:description" content="Search public case records, plaintiffs, law firms and seller-facing business reference signals. Not legal advice." />
+  <meta property="og:url" content="https://jaxfamlaw.com/" />
+  <meta name="twitter:card" content="summary" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BY22TVGOJ6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BY22TVGOJ6');
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "JaxFamLaw",
+    "url": "https://jaxfamlaw.com/",
+    "description": "Public record organization and business risk reference for cross-border e-commerce sellers.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://jaxfamlaw.com/cases/{search_term_string}",
+      "query-input": "required name=search_term_string"
     }
-
-    body {
-      background-color: var(--grich-dark);
-      color: #f8fafc;
-      margin: 0;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-  </style>
+  }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            'grich-green': '#34d399',
-            'grich-dark': '#0a0f18',
-          }
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: { ink: '#0b1220', gold: '#f5b942', signal: '#16a34a' }
         }
       }
     }
   </script>
-  <style>
-    body {
-      background-color: #0a0f18;
-      background-image:
-        radial-gradient(circle at 50% 0%, rgba(52, 211, 153, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
-      color: #f8fafc;
-    }
-
-    .glass {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .scanline {
-      width: 100%;
-      height: 100px;
-      background: linear-gradient(0deg, transparent 0%, rgba(52, 211, 153, 0.05) 50%, transparent 100%);
-      position: fixed;
-      top: -100px;
-      left: 0;
-      animation: scan 8s linear infinite;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    @keyframes scan {
-      0% {
-        top: -100px;
-      }
-
-      100% {
-        top: 100vh;
-      }
-    }
-
-    .typing::after {
-      content: '|';
-      animation: blink 1s step-end infinite;
-    }
-
-    @keyframes blink {
-
-      from,
-      to {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0;
-      }
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #0a0f18;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #34d399;
-    }
-  </style>
 </head>
 
-<body class="min-h-screen font-sans selection:bg-grich-green/30">
-  <div class="scanline"></div>
-
-  <!-- Header -->
-  <header class="fixed top-0 w-full z-50 glass border-b border-white/5 bg-black/80 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-6">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-grich-green rounded flex items-center justify-center font-black text-black">G</div>
-          <span class="font-black tracking-tighter text-xl">GRICH <span class="text-grich-green">INTEL</span></span>
-        </div>
-        <!-- Global Navigation -->
-        <nav class="hidden md:flex items-center gap-6 ml-4 text-[11px] font-mono font-bold tracking-widest uppercase text-gray-400">
-          <a href="/index.html" class="hover:text-grich-green transition-colors text-white">HOME</a>
-          <a href="/dashboard.html" class="hover:text-grich-green transition-colors">CASES DATABASE</a>
-          <a href="/guide_tro_frozen.html" class="hover:text-grich-green transition-colors text-yellow-500">INSIGHTS & GUIDES</a>
-        </nav>
-      </div>
-      <div class="flex items-center gap-4 text-[10px] font-mono uppercase tracking-widest text-gray-400">
-        <!-- Social Media Icons (WeChat placeholder) -->
-        <a href="#consult" class="hidden md:flex items-center gap-1 hover:text-green-500 transition-colors" title="Contact Founder">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"/></svg>
-            Consult
-        </a>
-        <span class="flex items-center gap-1.5 ml-2">
-          <span class="w-2 h-2 rounded-full bg-grich-green animate-pulse"></span>
-          Platform Active
-        </span>
-      </div>
+<body class="bg-[#07111f] text-slate-100 font-sans">
+  <header class="border-b border-white/10 bg-[#07111f]/95 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3" aria-label="JaxFamLaw Home">
+        <span class="w-8 h-8 bg-gold text-ink flex items-center justify-center font-black rounded">J</span>
+        <span class="font-black tracking-tight">JaxFamLaw <span class="text-gold">Records</span></span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a href="/guide_tro_frozen.html" class="hover:text-gold">Public Record Guide</a>
+        <a href="/dashboard.html" class="hover:text-gold">Case Database</a>
+        <a href="#pricing" class="hover:text-gold">Report Options</a>
+      </nav>
+      <a href="mailto:support@jaxfamlaw.com?subject=Public%20Record%20Report" class="bg-gold text-ink px-4 py-2 rounded font-bold text-sm">Request Review</a>
     </div>
   </header>
 
-  <main class="pt-32 pb-20 px-6">
-    <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12">
+  <main>
+    <section class="max-w-6xl mx-auto px-5 py-14 md:py-20 grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <p class="text-gold font-bold text-sm mb-4">For Amazon / Temu / AliExpress sellers</p>
+        <h1 class="text-4xl md:text-6xl font-black leading-tight tracking-tight">
+          Check public court records before making business decisions.
+        </h1>
+        <p class="mt-6 text-lg text-slate-300 leading-8">
+          Enter a case number or store name to review organized public record information, possible business risk signals, and a practical document checklist. This is not legal advice.
+        </p>
 
-      <!-- Left Side: Hero & Search -->
-      <div class="lg:col-span-7 space-y-12">
-        <div class="space-y-4">
-          <h1 class="text-6xl md:text-7xl font-black tracking-tighter leading-[0.9]">
-            GLOBAL RISK <br />
-            <span class="text-grich-green">INTELLIGENCE</span> HUB
-          </h1>
-          <p class="text-gray-400 max-w-lg text-lg leading-relaxed">
-            The definitive expert system for global e-commerce legal compliance. Search, verify, and secure your digital
-            storefront against mass litigation.
-          </p>
+        <div class="mt-8 bg-white/8 border border-white/10 rounded-lg p-3">
+          <label for="main-search" class="sr-only">Enter a case number or store name</label>
+          <div class="flex flex-col md:flex-row gap-3">
+            <input id="main-search" type="text" placeholder="Example: 1:26-cv-01234 or store name"
+              class="flex-1 bg-white text-ink rounded px-4 py-4 text-base outline-none" />
+            <button id="search-button" class="bg-signal hover:bg-green-500 text-white px-6 py-4 rounded font-black">
+              Search Records
+            </button>
+          </div>
+          <div id="search-results" class="hidden mt-3 bg-[#0d1828] border border-white/10 rounded overflow-hidden"></div>
         </div>
 
-        <!-- Search Container -->
-        <div class="relative group max-w-2xl">
-          <div
-            class="absolute -inset-1 bg-gradient-to-r from-grich-green/20 to-blue-500/20 rounded-2xl blur opacity-25 group-focus-within:opacity-100 transition duration-1000">
-          </div>
-          <div class="relative">
-            <div
-              class="flex items-center glass rounded-xl overflow-hidden border-white/10 group-focus-within:border-grich-green/50 transition-all">
-              <div class="pl-6 text-gray-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"
-                    stroke-width="2.5"></path>
-                </svg>
-              </div>
-              <input type="text" id="main-search" placeholder="ENTER STORE NAME OR CASE NUMBER..."
-                class="w-full bg-transparent px-6 py-8 text-xl font-black uppercase tracking-widest placeholder:text-gray-700 outline-none" />
-              <div class="pr-6">
-                <span class="text-[10px] font-mono bg-white/5 px-2 py-1 rounded text-gray-500">PRESS ↵</span>
-              </div>
-            </div>
-
-            <!-- Search Results Dropdown -->
-            <div id="search-results"
-              class="absolute top-full left-0 w-full mt-2 glass rounded-xl border-white/10 hidden z-50 overflow-hidden shadow-2xl">
-              <!-- Results inject here -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Fast Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
-          <div class="space-y-1">
-            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Monitored Items</div>
-            <div class="text-3xl font-black text-white" id="stat-total">--</div>
-          </div>
-          <div class="space-y-1">
-            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Verified Evidence</div>
-            <div class="text-3xl font-black text-grich-green" id="stat-enriched">--</div>
-          </div>
-          <div class="space-y-1">
-            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Pending Alerts</div>
-            <div class="text-3xl font-black text-red-500" id="stat-pending">--</div>
-          </div>
-          <div class="space-y-1">
-            <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Response Nodes</div>
-            <div class="text-3xl font-black text-blue-500" id="stat-nodes">--</div>
-          </div>
+        <div class="mt-6 flex flex-wrap gap-3 text-sm text-slate-300">
+          <span class="border border-white/10 rounded px-3 py-2">Schedule A Lawsuit</span>
+          <span class="border border-white/10 rounded px-3 py-2">Public Record Review</span>
+          <span class="border border-white/10 rounded px-3 py-2">Business Reference Only</span>
         </div>
       </div>
 
-      <!-- Right Side: Live Intel Feed -->
-      <div class="lg:col-span-5">
-        <div class="glass rounded-2xl border-white/10 overflow-hidden sticky top-24">
-          <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
-            <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
-              Live Intelligence Radar
-            </span>
-            <span class="text-[9px] font-mono text-gray-500">REFRESH_RATE: 3000MS</span>
+      <aside class="bg-white text-ink rounded-lg p-6 shadow-2xl">
+        <h2 class="text-2xl font-black">Three practical checks</h2>
+        <ol class="mt-5 space-y-4 text-slate-700">
+          <li><strong>1. Confirm the case.</strong> Match the case number, plaintiff, court and filing date against public records.</li>
+          <li><strong>2. Save documents.</strong> Keep platform notices, balance screenshots, product links, sales records and emails.</li>
+          <li><strong>3. Estimate business exposure.</strong> Use the information as a business reference before deciding whether to monitor, settle, abandon, or contact a licensed attorney.</li>
+        </ol>
+        <div class="mt-6 border-t pt-5">
+          <p class="text-sm text-slate-600">Need a human-organized public record report?</p>
+          <a href="mailto:support@jaxfamlaw.com?subject=Need%20a%20Public%20Record%20Report"
+            class="mt-3 inline-block w-full text-center bg-ink text-white rounded px-5 py-3 font-black">
+            Request Public Record Report
+          </a>
+        </div>
+      </aside>
+    </section>
+
+    <section class="bg-white text-ink py-14" id="pricing">
+      <div class="max-w-6xl mx-auto px-5">
+        <h2 class="text-3xl font-black">Report options</h2>
+        <p class="mt-3 text-slate-600 max-w-3xl">This site should sell clear, limited-scope record organization. Avoid sounding like a law firm or promising a legal outcome.</p>
+        <div class="mt-8 grid md:grid-cols-3 gap-5">
+          <div class="border rounded-lg p-6">
+            <h3 class="font-black text-xl">Basic case lookup</h3>
+            <p class="mt-3 text-slate-600">Case number, plaintiff, court, filing date and basic public record summary.</p>
+            <p class="mt-5 text-3xl font-black">$29-$99</p>
           </div>
-          <div class="p-2 space-y-1 max-h-[600px] overflow-y-auto" id="radar-feed">
-            <!-- Feed items inject here -->
-            <div class="p-12 text-center text-gray-600 text-xs animate-pulse">SYNCHRONIZING WITH GLOBAL NODES...</div>
+          <div class="border-2 border-gold rounded-lg p-6">
+            <h3 class="font-black text-xl">Public record report</h3>
+            <p class="mt-3 text-slate-600">Human-organized records, source links, known limitations and document checklist.</p>
+            <p class="mt-5 text-3xl font-black">$199-$499</p>
           </div>
-          <div class="p-4 bg-black/40 border-t border-white/5 text-center">
-            <a href="/dashboard"
-              class="text-[10px] font-bold text-gray-500 hover:text-white transition-colors tracking-widest uppercase">Launch
-              Operations Dashboard →</a>
+          <div class="border rounded-lg p-6">
+            <h3 class="font-black text-xl">Business monitoring</h3>
+            <p class="mt-3 text-slate-600">Ongoing public-record watch for sellers or service providers managing multiple stores.</p>
+            <p class="mt-5 text-3xl font-black">$99+/mo</p>
           </div>
         </div>
       </div>
+    </section>
 
-    </div>
+    <section class="max-w-6xl mx-auto px-5 py-14">
+      <h2 class="text-3xl font-black">Useful entry points</h2>
+      <div class="mt-6 grid md:grid-cols-2 gap-5">
+        <a href="/guide_tro_frozen.html" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
+          <h3 class="font-black text-xl">How to read a Schedule A / TRO notice</h3>
+          <p class="mt-3 text-slate-300">Plain-language record review steps for sellers. Not a substitute for legal counsel.</p>
+        </a>
+        <a href="/dashboard.html" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
+          <h3 class="font-black text-xl">Case database</h3>
+          <p class="mt-3 text-slate-300">Browse recent public records and seller-facing business reference signals.</p>
+        </a>
+      </div>
+    </section>
   </main>
 
-  <footer class="max-w-7xl mx-auto px-6 py-12 border-t border-white/5 space-y-8">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-      <div class="space-y-2">
-        <div class="text-gray-400 text-[10px] font-black uppercase tracking-widest">
-          © 2026 GRICH INTELLIGENCE (DATA ANALYTICS PLATFORM).
-        </div>
-        <div class="text-gray-600 text-[9px] font-mono leading-relaxed max-w-2xl">
-          DISCLAIMER: GRICH is an independent data provider. We are NOT a law firm and do NOT provide legal advice. All data is for informational purposes only. Use of this site constitutes acceptance of our non-affiliation with any governmental or judicial entity.
-        </div>
+  <footer class="border-t border-white/10 py-10">
+    <div class="max-w-6xl mx-auto px-5 text-sm text-slate-400 space-y-4">
+      <p><strong class="text-slate-200">Disclaimer:</strong> JaxFamLaw is an independent public-record organization platform. We are not a law firm, are not affiliated with any court, and do not provide legal advice. Reports are business references based on public information and may be incomplete or outdated.</p>
+      <div class="flex flex-wrap gap-5">
+        <a href="/privacy.html" class="hover:text-gold">Privacy Policy</a>
+        <a href="/terms.html" class="hover:text-gold">Terms of Service</a>
+        <a href="/refund.html" class="hover:text-gold">Refund Policy</a>
+        <a href="mailto:support@jaxfamlaw.com" class="hover:text-gold">support@jaxfamlaw.com</a>
       </div>
-      <div class="flex flex-col items-end gap-2">
-        <div class="text-[10px] font-black uppercase text-gray-500">Contact Support</div>
-        <a href="mailto:support@jaxfamlaw.com" class="text-grich-green font-mono text-xs hover:underline">support@jaxfamlaw.com</a>
-      </div>
-    </div>
-    <div class="flex flex-wrap gap-8 text-[10px] font-black uppercase tracking-widest text-gray-500 border-t border-white/5 pt-6">
-      <a href="/privacy.html" class="hover:text-grich-green transition-colors">Privacy Policy</a>
-      <a href="/terms.html" class="hover:text-grich-green transition-colors">Terms of Service</a>
-      <a href="/refund.html" class="hover:text-grich-green transition-colors">Refund Policy</a>
     </div>
   </footer>
 
   <script>
     const SUPABASE_URL = "https://rdlmumybuwveaaeceohj.supabase.co";
     const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // --- UTILS ---
-    function animateValue(id, start, end, duration) {
-      if (start === end) return;
-      const range = end - start;
-      let current = start;
-      const increment = end > start ? 1 : -1;
-      const stepTime = Math.abs(Math.floor(duration / range));
-      const obj = document.getElementById(id);
-
-      let timer = setInterval(function () {
-        current += increment;
-        obj.innerHTML = current;
-        if (current == end) {
-          clearInterval(timer);
-        }
-      }, Math.max(stepTime, 10)); // Cap speed
-    }
-
-    // --- STATS TICKER ---
-    async function updateStats() {
-      // Count TOTAL lawsuits (The Engines' Raw Output)
-      const { count: totalLawsuits } = await supabaseClient
-        .from('lawsuits')
-        .select('*', { count: 'exact', head: true });
-
-      // Count Verified Targets
-      const { count: totalTargets } = await supabaseClient
-        .from('defendants')
-        .select('*', { count: 'exact', head: true });
-
-      // Update with animation
-      animateValue("stat-total", 0, totalLawsuits || 415, 2000);
-      animateValue("stat-enriched", 0, totalTargets || 63, 2000);
-      document.getElementById("stat-pending").innerText = (totalLawsuits || 400) - (totalTargets || 0); // Pending = Raw - Processed
-    }
-
-    // --- LIVE RADAR FEED ---
-    let radarScrollInterval;
-
-    async function updateRadar() {
-      // Fetch MORE items (50) to populate the scroll list from raw lawsuits
-      const { data: lawsuits } = await supabaseClient
-        .from('lawsuits')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      const feed = document.getElementById('radar-feed');
-      if (lawsuits && feed) {
-        feed.innerHTML = lawsuits.map(l => `
-                <div class="p-4 border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer" onclick="window.location='/case_template?case=${l.case_number}'">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="font-mono text-grich-green text-xs font-bold">${l.case_number}</span>
-                        <span class="text-[10px] ${l.status === 'CLOSED' ? 'text-red-500' : 'text-gray-500'} font-black uppercase tracking-wider">
-                            ${l.risk_score ? 'RISK: ' + l.risk_score : 'MONITORING'}
-                        </span>
-                    </div>
-                    <div class="text-sm font-bold text-gray-200 mb-1 group-hover:text-white transition-colors truncate">
-                        ${(l.plaintiff && l.plaintiff !== 'Unknown Plaintiff') ? l.plaintiff : '<span class="text-red-500/50 italic font-mono text-xs">SEALED PLAINTIFF // REDACTED</span>'}
-                    </div>
-                    <div class="flex justify-between items-end">
-                        <div class="text-[10px] text-gray-600 font-mono uppercase">${l.court || 'US DISTRICT COURT'}</div>
-                        <div class="text-[10px] text-grich-green/50 font-mono">${new Date(l.created_at).toLocaleTimeString()}</div>
-                    </div>
-                </div>
-            `).join('');
-
-        // Start Auto-Scroll if not already scrolling
-        if (!radarScrollInterval) startRadarScroll(feed);
-      }
-    }
-
-    function startRadarScroll(element) {
-      if (radarScrollInterval) clearInterval(radarScrollInterval);
-
-      // Duplicate content for seamless infinite scroll
-      element.innerHTML += element.innerHTML;
-
-      let scrollPos = 0;
-
-      radarScrollInterval = setInterval(() => {
-        if (!element) return;
-        scrollPos += 0.5; // Smooth slow scroll
-
-        // Reset when we've scrolled past the first set of content
-        // Note: element.scrollHeight changes after duplicate, so we reset at half
-        if (scrollPos >= element.scrollHeight / 2) {
-          scrollPos = 0;
-        }
-        element.scrollTop = scrollPos;
-      }, 30);
-    }
-
-    // --- REAL-TIME SEARCH (DEBOUNCED) ---
-    const searchInput = document.getElementById('main-search');
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const input = document.getElementById('main-search');
+    const button = document.getElementById('search-button');
     const resultsBox = document.getElementById('search-results');
-    let searchTimeout;
 
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      const query = e.target.value.trim();
+    function caseToSlug(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/:/g, '-')
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
 
+    function safeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function goToCase(value) {
+      const query = value.trim();
+      if (!query) return;
+      window.location.href = `/cases/${caseToSlug(query)}`;
+    }
+
+    button.addEventListener('click', () => goToCase(input.value));
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') goToCase(input.value);
+    });
+
+    let searchTimer;
+    input.addEventListener('input', event => {
+      clearTimeout(searchTimer);
+      const query = event.target.value.trim();
       if (query.length < 2) {
         resultsBox.classList.add('hidden');
         return;
       }
 
-      searchTimeout = setTimeout(async () => {
+      searchTimer = setTimeout(async () => {
         const { data, error } = await supabaseClient
           .from('defendants')
-          .select('defendant_name, case_number, platform, id')
+          .select('defendant_name, case_number, platform')
           .ilike('defendant_name', `%${query}%`)
           .limit(5);
 
-        if (data && data.length > 0) {
-          resultsBox.innerHTML = data.map(res => `
-                    <div class="p-4 hover:bg-grich-green/10 cursor-pointer border-b border-white/5 last:border-0 transition flex justify-between items-center" 
-                            onclick="window.location='/case_template?case=${res.case_number}&target=${res.id.split('-')[0]}'">
-                        <div>
-                            <div class="text-sm font-black text-white uppercase">${res.defendant_name}</div>
-                            <div class="text-[10px] text-gray-500 font-mono uppercase">${res.platform || 'General Seller'} // Linked to ${res.case_number}</div>
-                        </div>
-                        <div class="text-grich-green text-xs font-black">VIEW REPORT →</div>
-                    </div>
-                `).join('');
+        if (error) {
+          resultsBox.innerHTML = `<div class="p-4 text-red-300">Search is temporarily unavailable. Try a case number directly.</div>`;
           resultsBox.classList.remove('hidden');
-        } else {
-          resultsBox.innerHTML = '<div class="p-8 text-center text-gray-500 text-xs">NO TARGETS FOUND IN CURRENT DATABASE</div>';
-          resultsBox.classList.remove('hidden');
+          return;
         }
-      }, 300);
+
+        if (!data || data.length === 0) {
+          resultsBox.innerHTML = `<button class="w-full text-left p-4 hover:bg-white/10" onclick="goToCase('${safeHtml(query)}')">No store-name match found. Continue as case number search: ${safeHtml(query)}</button>`;
+          resultsBox.classList.remove('hidden');
+          return;
+        }
+
+        resultsBox.innerHTML = data.map(item => `
+          <a class="block p-4 hover:bg-white/10 border-b border-white/10" href="/cases/${caseToSlug(item.case_number)}">
+            <strong>${safeHtml(item.defendant_name || 'Unknown seller')}</strong>
+            <span class="block text-sm text-slate-400">${safeHtml(item.platform || 'Marketplace')} | ${safeHtml(item.case_number)}</span>
+          </a>
+        `).join('');
+        resultsBox.classList.remove('hidden');
+      }, 250);
     });
-
-    // Close search on click outside
-    document.addEventListener('click', (e) => {
-      if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
-        resultsBox.classList.add('hidden');
-      }
-    });
-
-    // --- PERFORMANCE MONITORING & INIT ---
-    document.addEventListener('DOMContentLoaded', () => {
-      // 测速优化：防止内容闪烁
-      document.body.style.opacity = "1";
-
-      const loadTime = window.performance.now();
-      console.log(`⚡ 系统启动耗时: ${loadTime.toFixed(2)}ms`);
-
-      updateStats();
-      updateRadar();
-    });
-
-    // 测速锚点：如果 Google 机器人访问，确保它拿到的首屏数据最精简
-    if (navigator.userAgent.includes('Googlebot')) {
-      console.log('🤖 Googlebot Detected: Fast-track indexing enabled.');
-    }
   </script>
 </body>
 
