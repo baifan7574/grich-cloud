@@ -1,86 +1,99 @@
-const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
-// Google Submission Script
 
-// 注意：此脚本需要 googleapis 库
-// npm install googleapis
+const SITE_URL = 'https://jaxfamlaw.com/';
+const SITEMAP_URL = 'https://jaxfamlaw.com/sitemap.xml';
 
-async function submitSitemap() {
-    console.log('🚀 准备向 Google 提交最新 Sitemap...');
-
-    const SITEMAP_URL = 'https://jaxfamlaw.com/sitemap.xml';
-    const AUTH_FILE = path.join(__dirname, 'google-service-account.json');
-    const ENV_CREDENTIALS = process.env.GOOGLE_JSON_KEY;
-
-    let authConfig = null;
-
-    if (ENV_CREDENTIALS) {
-        console.log('🔑 检测到 GOOGLE_JSON_KEY 环境变量，使用内存凭证...');
-        try {
-            authConfig = {
-                credentials: JSON.parse(ENV_CREDENTIALS),
-                scopes: ['https://www.googleapis.com/auth/webmasters.readonly', 'https://www.googleapis.com/auth/webmasters']
-            };
-        } catch (e) {
-            console.error('❌ 环境变量 JSON 解析失败');
-        }
-    }
-
-    if (!authConfig && fs.existsSync(AUTH_FILE)) {
-        console.log('📂 检测到本地 Key 文件，使用文件凭证...');
-        authConfig = {
-            keyFile: AUTH_FILE,
-            scopes: ['https://www.googleapis.com/auth/webmasters.readonly', 'https://www.googleapis.com/auth/webmasters']
-        };
-    }
-
-    if (!authConfig) {
-        console.warn('⚠️ 未检测到有效凭证 (Env/File)，尝试降级为 Ping...');
-        try {
-            const fetch = (await import('node-fetch')).default;
-            const res = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`);
-            if (res.ok) {
-                console.log('✅ Google Ping 提交成功 (Level 1: Passive)');
-            } else {
-                console.error('❌ Google Ping 失败');
-            }
-        } catch (err) {
-            console.error('❌ 兜底提交失败:', err.message);
-        }
-        return;
-    }
-
-    try {
-        const auth = new google.auth.GoogleAuth(authConfig);
-        const searchconsole = google.searchconsole({ version: 'v1', auth });
-
-        // 提交 Sitemap 前的安全检查 (Quality Gate)
-        // 读取 Sitemap 文件来计算 URL 数量
-        const fs = require('fs');
-        const sitemapContent = fs.readFileSync(path.join(__dirname, '../public/sitemap.xml'), 'utf-8');
-        const urlCount = (sitemapContent.match(/<loc>/g) || []).length;
-
-        console.log(`📊 Sitemap URL Count: ${urlCount}`);
-
-        if (urlCount < 10) {
-            console.warn("⚠️ Sitemap URL count is too low (< 10). Aborting submission to protect SEO reputation.");
-            console.warn("🚫 [ABORTED] 防止空数据提交给 Google。");
-            return;
-        }
-
-        // 提交 Sitemap
-        await searchconsole.sitemaps.submit({
-            siteUrl: 'https://jaxfamlaw.com/',
-            feedpath: SITEMAP_URL,
-        });
-
-        console.log(`✅ [SUCCESS] 成功向 Search Console 提交: ${SITEMAP_URL}`);
-        console.log(`📡 Google 索引爬虫已被激活。请密切关注 "Discovered pages" 数据。`);
-    } catch (error) {
-        console.error('❌ Google API 提交错误:', error.message);
-        console.log('💡 常见原因：Service Account 未在 Search Console 中添加为 "Owner"。');
-    }
+async function loadGoogleApis() {
+  try {
+    return require('googleapis').google;
+  } catch {
+    return null;
+  }
 }
 
-submitSitemap();
+function readAuthConfig() {
+  const envCredentials = process.env.GOOGLE_JSON_KEY;
+  const envKeyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  const localFiles = [
+    path.join(__dirname, 'google-service-account.json'),
+    path.join(__dirname, '../google_key.json')
+  ];
+
+  if (envCredentials) {
+    return {
+      credentials: JSON.parse(envCredentials),
+      scopes: [
+        'https://www.googleapis.com/auth/webmasters',
+        'https://www.googleapis.com/auth/webmasters.readonly'
+      ]
+    };
+  }
+
+  if (envKeyFile && fs.existsSync(envKeyFile)) {
+    return {
+      keyFile: envKeyFile,
+      scopes: [
+        'https://www.googleapis.com/auth/webmasters',
+        'https://www.googleapis.com/auth/webmasters.readonly'
+      ]
+    };
+  }
+
+  for (const keyFile of localFiles) {
+    if (fs.existsSync(keyFile)) {
+      return {
+        keyFile,
+        scopes: [
+          'https://www.googleapis.com/auth/webmasters',
+          'https://www.googleapis.com/auth/webmasters.readonly'
+        ]
+      };
+    }
+  }
+
+  return null;
+}
+
+async function submitSitemap() {
+  const sitemapFile = path.join(__dirname, '../public/sitemap.xml');
+  if (!fs.existsSync(sitemapFile)) {
+    throw new Error('Missing public/sitemap.xml. Run npm run sitemap first.');
+  }
+
+  const sitemapContent = fs.readFileSync(sitemapFile, 'utf8');
+  const urlCount = (sitemapContent.match(/<loc>/g) || []).length;
+  if (urlCount < 10) {
+    throw new Error(`Sitemap has only ${urlCount} URLs. Aborting to avoid submitting a broken sitemap.`);
+  }
+
+  const google = await loadGoogleApis();
+  const authConfig = readAuthConfig();
+
+  if (!google) {
+    console.log('googleapis is not installed. Install it only if you want automatic Search Console submission.');
+    console.log(`Manual action: open Google Search Console and submit ${SITEMAP_URL}`);
+    return;
+  }
+
+  if (!authConfig) {
+    console.log('No Google service account key found.');
+    console.log('Set GOOGLE_JSON_KEY or place google_key.json locally, then add that service account as an owner in Search Console.');
+    console.log(`Manual action: submit ${SITEMAP_URL} in Google Search Console.`);
+    return;
+  }
+
+  const auth = new google.auth.GoogleAuth(authConfig);
+  const searchconsole = google.searchconsole({ version: 'v1', auth });
+  await searchconsole.sitemaps.submit({
+    siteUrl: SITE_URL,
+    feedpath: SITEMAP_URL
+  });
+
+  console.log(`Submitted sitemap to Google Search Console: ${SITEMAP_URL}`);
+}
+
+submitSitemap().catch(error => {
+  console.error(error.message);
+  process.exit(1);
+});

@@ -1,159 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROCESSING...</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Black+Ops+One&display=swap"
-        rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { mono: ['"Share Tech Mono"', 'monospace'], impact: ['"Black Ops One"', 'cursive'] },
-                    colors: { ops: { red: '#ff2200', orange: '#ffaa00' } },
-                    animation: { 'blink': 'blink 0.2s steps(2) infinite' },
-                    keyframes: { blink: { '0%': { opacity: '1' }, '100%': { opacity: '0' } } }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: #000;
-            color: #ff2200;
-            font-family: 'Share Tech Mono', monospace;
-        }
-
-        .scanline {
-            width: 100%;
-            height: 100px;
-            z-index: 10;
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 34, 0, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
-            opacity: 0.1;
-            position: absolute;
-            bottom: 100%;
-            animation: scanline 5s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes scanline {
-            0% {
-                bottom: 100%;
-            }
-
-            100% {
-                bottom: -100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Received | JaxFamLaw Records</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
-<body class="h-screen w-screen flex flex-col items-center justify-center p-4 overflow-hidden relative">
-
-    <div class="scanline"></div>
-
-    <h1 class="font-impact text-5xl md:text-7xl text-white tracking-widest mb-8 animate-pulse">
-        PAYMENT VERIFIED
-    </h1>
-
-    <div class="w-full max-w-2xl bg-black border-2 border-ops-red p-6 shadow-[0_0_30px_rgba(255,34,0,0.3)]">
-        <div
-            class="flex justify-between border-b border-ops-red/50 pb-2 mb-4 text-xs text-ops-orange uppercase tracking-widest">
-            <span>SECURE CHANNEL: #ENC-9982</span>
-            <span>STATUS: DECRYPTING</span>
-        </div>
-        <div id="log" class="space-y-2 text-sm md:text-lg font-bold text-gray-300 h-64 overflow-y-auto font-mono"></div>
-    </div>
-
-    <script>
-            // --- 终极全链路参数锁定协议 (Chapter 25.1: Anti-Encoding Fix) ---
-            (function () {
-                let rawSearch = window.location.search;
-
-                // 物理诊断：检测 URL 是否被错误编码
-                if (rawSearch.includes('%3D') || rawSearch.includes('%26')) {
-                    console.warn("Malformed URL detected. Re-parsing...");
-                    // 尝试多次解码以防多重编码
-                    try {
-                        // 如果开头是 ?，先去掉再处理，处理完再加回去
-                        let clean = rawSearch.replace(/^\?/, '');
-                        let decoded = decodeURIComponent(clean);
-                        // 如果仍然包含 %3D，说明可能被双重编码了，再解一次
-                        if (decoded.includes('%3D')) {
-                            decoded = decodeURIComponent(decoded);
-                        }
-                        rawSearch = "?" + decoded;
-                    } catch (e) {
-                        console.error("Decoding failed", e);
-                    }
-                }
-
-                const urlParams = new URLSearchParams(rawSearch);
-                // 兼容可能的大小写或变体
-                const caseId = urlParams.get('case') || urlParams.get('case_id') || urlParams.get('CASE');
-                const targetId = urlParams.get('target') || urlParams.get('TARGET');
-
-                const logDiv = document.getElementById('log');
-
-                // 熔断逻辑：宁可报错，也绝不显示 ZARA 或 UNKNOWN
-                if (!caseId || caseId === 'UNKNOWN') {
-                    document.querySelector('h1').innerText = "SESSION ERROR";
-                    document.querySelector('h1').className = "text-red-600 font-mono text-4xl mb-8";
-                    logDiv.innerHTML = `
-                    <div class="text-red-500 font-mono text-xs p-4 border border-red-900 bg-red-900/10">
-                        <h3 class="font-bold text-lg mb-2">FATAL_ERROR: DATA_LINK_BROKEN</h3>
-                        <p class="mb-4">We successfully processed the transaction, but lost the Case ID link.</p>
-                        <p>RAW URL: <span class="text-gray-500 break-all">${window.location.search}</span></p>
-                        <p>DECODED: <span class="text-green-500 break-all">${rawSearch}</span></p>
-                    </div>`;
-                    return;
-                }
-
-                // 成功路径：显示动画并跳转
-                console.log("SUCCESS: Case ID Verified:", caseId);
-
-                const logs = [
-                    `VERIFYING CASE ID: ${caseId}...`,
-                    "DECODING URL PARAMETERS...",
-                    "AUTHORIZING TRANSACTION...",
-                    "ACCESS GRANTED."
-                ];
-
-                let i = 0;
-                function addLog() {
-                    if (i >= logs.length) {
-                        setTimeout(() => {
-                            // 构建跳转链接
-                            let dest = `case_template.html?case=${encodeURIComponent(caseId)}&paid=true`;
-                            if (targetId) dest += `&target=${encodeURIComponent(targetId)}`;
-                            // 强制把 target 作为 defendant 传过去，保险起见
-                            if (targetId) dest += `&defendant=${encodeURIComponent(targetId)}`;
-
-                            console.log(`[JUMP] Redirecting to: ${dest}`);
-                            window.location.href = dest;
-                        }, 1000);
-                        return;
-                    }
-
-                    const p = document.createElement('div');
-                    p.innerText = `> ${logs[i]}`;
-                    if (i === logs.length - 1) {
-                        p.className = "text-ops-red text-xl font-black animate-blink";
-                    }
-                    logDiv.appendChild(p);
-                    logDiv.scrollTop = logDiv.scrollHeight;
-                    i++;
-                    setTimeout(addLog, 400);
-                }
-
-                setTimeout(addLog, 500);
-
-            })();
-    </script>
-
+<body class="bg-slate-950 text-slate-100">
+  <main class="min-h-screen flex items-center justify-center px-5 py-12">
+    <section class="max-w-2xl bg-white text-slate-950 rounded-lg p-8 shadow-2xl">
+      <p class="text-green-700 font-bold text-sm">Payment step completed</p>
+      <h1 class="mt-3 text-3xl md:text-4xl font-black">Your review request is ready for manual processing.</h1>
+      <p class="mt-5 text-slate-700 leading-7">
+        If you already submitted the intake form, keep your payment receipt and wait for our email. If you paid before submitting details, submit the intake now so we can match the payment to your store and notice.
+      </p>
+      <div class="mt-6 bg-slate-100 rounded-lg p-5 text-sm text-slate-700">
+        <strong class="text-slate-950">What happens next</strong>
+        <ol class="mt-3 space-y-2 list-decimal list-inside">
+          <li>We match your payment receipt with your intake request.</li>
+          <li>We review public records and seller-provided notice materials.</li>
+          <li>We send the selected report or brief by email.</li>
+        </ol>
+      </div>
+      <div class="mt-6 flex flex-col sm:flex-row gap-3">
+        <a href="/intake" class="text-center bg-green-700 text-white rounded px-5 py-3 font-black">Submit Intake Details</a>
+        <a href="/sample-report" class="text-center border border-slate-300 rounded px-5 py-3 font-black">View Sample Report</a>
+      </div>
+      <p class="mt-6 text-xs text-slate-500">
+        JaxFamLaw Records organizes public records and customer-provided notices. We are not a law firm and do not provide legal advice.
+      </p>
+    </section>
+  </main>
 </body>
-
 </html>

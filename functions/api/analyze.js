@@ -5,7 +5,7 @@ export async function onRequestPost(context) {
     const { request, env } = context;
 
     try {
-        const { brand, case_id, plaintiff, court, attorney } = await request.json();
+        const { brand, case_id, plaintiff, court, attorney, confirmed_facts, user_provided_notice, not_confirmed } = await request.json();
 
         if (!brand) return new Response(JSON.stringify({ error: 'Brand is required' }), { status: 400 });
 
@@ -32,32 +32,39 @@ export async function onRequestPost(context) {
         const targetDesc = brand.includes("STORE") || brand.includes("OUTLET") ? "an e-commerce storefront" : "a cross-border trading entity";
 
         // --- Public-record report prompt ---
-        const systemPrompt = `You are preparing an independent public-record organization report for an e-commerce seller.
+        const systemPrompt = `You are preparing an independent public-record intelligence report for an e-commerce marketplace seller.
         
         Subject: "${brand}" (${targetDesc}).
         Listed counsel in available data: "${attorney || 'Unknown Firm'}" representing Plaintiff "${plaintiff}".
         Case reference: ${case_id} in ${court}.
+        Confirmed facts supplied by reviewer: ${JSON.stringify(confirmed_facts || {})}.
+        User-provided notice details, not independently confirmed: ${JSON.stringify(user_provided_notice || {})}.
+        Not-confirmed fields: ${JSON.stringify(not_confirmed || {})}.
 
         STRICT COMPLIANCE RULES:
         1. Do not claim to be a lawyer, law firm, court, official filing service, or legal representative.
-        2. Do not provide legal advice, legal strategy, settlement instructions, or outcome predictions.
+        2. Do not provide legal advice, settlement instructions, representation, or outcome predictions.
         3. Do not infer missing facts. If a field is missing or uncertain, say it is not confirmed in the available data.
         4. Do not say the seller has been sued unless the provided record clearly supports it.
-        5. Use calm, factual language. No panic language, no threats, no guarantees.
+        5. Use calm, factual language. No panic language, no threats, no outcome promises.
+        6. Clearly separate "Confirmed from public source", "User-provided notice", and "Not confirmed / requires further review".
 
-        OUTPUT THESE 4 SECTIONS:
+        OUTPUT THESE 5 SECTIONS:
 
         ## [PUBLIC RECORD SUMMARY]
         Summarize the case number, plaintiff, court, listed counsel, and what is not confirmed.
 
-        ## [BUSINESS REFERENCE SIGNALS]
-        List practical non-legal signals a seller may review, such as platform notice, store name match, product links, account balance screenshots, and communication records.
+        ## [CONFIRMED / USER-PROVIDED / NOT CONFIRMED]
+        Use three labeled bullet groups and do not mix them.
 
         ## [KNOWN LIMITATIONS]
         Explain that public data can be incomplete, delayed, sealed, mismatched, or outdated.
 
         ## [NEXT DOCUMENT CHECKLIST]
-        Provide a neutral checklist of documents to gather before speaking with a qualified attorney or making a business decision.
+        Provide a neutral checklist of documents to gather before speaking with qualified counsel or making a business decision.
+
+        ## [ATTORNEY-READY QUESTIONS]
+        Provide neutral questions the seller may ask independent licensed counsel.
 
         Keep the total length under 400 words and include this sentence at the end: "This report is a business reference based on available public information and is not legal advice."`;
 

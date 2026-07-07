@@ -4,7 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRICH // LIVE INTELLIGENCE DASHBOARD</title>
+    <title>JaxFamLaw // Public Record Dashboard</title>
+    <meta name="description" content="Public court record dashboard for Schedule A case references, plaintiffs, listed entities and seller-facing business reference signals. Not legal advice." />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://jaxfamlaw.com/dashboard.html" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BY22TVGOJ6"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-BY22TVGOJ6');
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -31,9 +41,9 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-12 border-b border-green-900/50 pb-6 flex justify-between items-end">
             <div>
-                <h1 class="text-3xl font-bold tracking-tighter uppercase mb-2">Internal Intelligence Monitor</h1>
-                <p class="text-green-900 text-sm">SYSTEM STATUS: <span class="text-green-500 animate-pulse">ACTIVE //
-                        SCANNING</span></p>
+                <h1 class="text-3xl font-bold tracking-tighter uppercase mb-2">Public Record Dashboard</h1>
+                <p class="text-green-900 text-sm">SYSTEM STATUS: <span class="text-green-500">PUBLIC DATA //
+                        REFERENCE ONLY</span></p>
             </div>
             <div class="text-right text-[10px] text-green-900">
                 LAST_REFRESH: <span id="refresh-time">---</span>
@@ -43,35 +53,35 @@
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div class="glitch-border bg-black/40 p-8">
-                <div class="text-[10px] uppercase mb-1 opacity-50">Total Litigation Files</div>
+                <div class="text-[10px] uppercase mb-1 opacity-50">Total Case Records</div>
                 <div class="text-4xl font-bold" id="lawsuit-count">...</div>
             </div>
             <div class="glitch-border bg-black/40 p-8 border-yellow-900/30">
-                <div class="text-[10px] uppercase mb-1 opacity-50">Enriched Defendants (Evidence Found)</div>
+                <div class="text-[10px] uppercase mb-1 opacity-50">Records With Source Links</div>
                 <div class="text-4xl font-bold text-yellow-500" id="enriched-count">...</div>
             </div>
             <div class="glitch-border bg-black/40 p-8 border-blue-900/30">
-                <div class="text-[10px] uppercase mb-1 opacity-50">Total Target Entities</div>
+                <div class="text-[10px] uppercase mb-1 opacity-50">Total Listed Entities</div>
                 <div class="text-4xl font-bold text-blue-500" id="target-count">...</div>
             </div>
         </div>
 
         <!-- Latest Activity -->
         <div class="glitch-border bg-black/60 p-6 overflow-x-auto">
-            <h2 class="text-sm font-bold uppercase mb-6 border-l-4 border-green-500 pl-3">Live Feed: Recently Extracted
+            <h2 class="text-sm font-bold uppercase mb-6 border-l-4 border-green-500 pl-3">Recent Public Record Entries
             </h2>
             <table class="w-full text-xs text-left">
                 <thead class="border-b border-green-900/30 text-green-700">
                     <tr>
                         <th class="py-3 px-4">TIMESTAMP</th>
                         <th class="py-3 px-4">CASE_NUMBER</th>
-                        <th class="py-3 px-4">DEFENDANT / ENTITY</th>
-                        <th class="py-3 px-4">STATUS</th>
+                        <th class="py-3 px-4">LISTED ENTITY</th>
+                        <th class="py-3 px-4">REFERENCE STATUS</th>
                     </tr>
                 </thead>
                 <tbody id="feed-body">
                     <tr>
-                        <td colspan="4" class="py-8 text-center animate-pulse">ESTABLISHING SECURE HANDSHAKE...</td>
+                        <td colspan="4" class="py-8 text-center animate-pulse">LOADING PUBLIC RECORDS...</td>
                     </tr>
                 </tbody>
             </table>
@@ -107,7 +117,7 @@
                     const row = document.createElement('tr');
                     row.className = 'border-b border-green-900/10 hover:bg-green-500/5 transition-colors';
                     const time = new Date(rec.found_at).toLocaleTimeString();
-                    const status = rec.store_url ? '<span class="text-yellow-500">ENRICHED</span>' : '<span class="text-blue-500">IDENTIFIED</span>';
+                    const status = rec.store_url ? '<span class="text-yellow-500">SOURCE LINK</span>' : '<span class="text-blue-500">PUBLIC RECORD</span>';
 
                     row.innerHTML = `
                         <td class="py-3 px-4 opacity-70">${time}</td>

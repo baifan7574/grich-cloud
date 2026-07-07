@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "grich-cloud",
+  "compatibility_date": "2026-07-04",
+  "pages_build_output_dir": "./dist",
+  "d1_databases": [
+    {
+      "binding": "INTAKE_DB",
+      "database_name": "jaxfamlaw-intake",
+      "database_id": "f8518e42-6741-417f-8e90-dc92301b6d8a"
+    }
+  ]
+}

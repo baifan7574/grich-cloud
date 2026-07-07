@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit a Notice for Review | JaxFamLaw Records</title>
+  <meta name="description" content="Submit a marketplace TRO, Schedule A or frozen-funds notice for public-record review. Not a law firm. Not legal advice." />
+  <link rel="canonical" href="https://jaxfamlaw.com/intake" />
+  <meta name="robots" content="index,follow" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#07111f] text-slate-100">
+  <header class="border-b border-white/10">
+    <div class="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="/" class="font-black">JaxFamLaw <span class="text-amber-400">Records</span></a>
+      <a href="/pricing" class="text-sm text-slate-300 hover:text-amber-400">Pricing</a>
+    </div>
+  </header>
+  <main class="max-w-5xl mx-auto px-5 py-10 grid lg:grid-cols-[0.9fr_1.1fr] gap-8">
+    <aside>
+      <p class="text-amber-400 font-bold text-sm">Secure intake</p>
+      <h1 class="mt-3 text-4xl font-black leading-tight">Submit your notice for public-record review.</h1>
+      <p class="mt-5 text-slate-300 leading-8">We review public records and customer-provided notices. We do not provide legal advice. If legal action is needed, speak with a licensed attorney.</p>
+      <div class="mt-6 bg-slate-900 border border-white/10 rounded-lg p-5 text-sm text-slate-300">
+        <strong class="text-white">Before you submit</strong>
+        <p class="mt-2">Upload sensitive documents through a secure link only when requested. This MVP form accepts a file URL or description, not direct file upload.</p>
+      </div>
+      <div class="mt-4 bg-amber-400/10 border border-amber-400/30 rounded-lg p-5 text-sm text-amber-100">
+        <strong class="text-amber-300">How payment works</strong>
+        <p class="mt-2">Submit the intake first. After it is received, continue to the payment link for the selected tier. Manual review starts after payment is confirmed.</p>
+      </div>
+    </aside>
+
+    <section class="bg-white text-slate-950 rounded-lg p-6 shadow-2xl">
+      <form id="intake-form" class="space-y-4">
+        <div>
+          <label class="text-sm font-bold" for="product_tier">Product tier</label>
+          <select id="product_tier" name="product_tier" class="mt-1 w-full border rounded px-3 py-3">
+            <option value="rapid">$49 Rapid Case Check</option>
+            <option value="action">$299 Public Record Action Report</option>
+            <option value="urgent">$499 Urgent Attorney-Ready Brief</option>
+          </select>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-bold" for="email">Email</label>
+            <input id="email" name="email" required type="email" class="mt-1 w-full border rounded px-3 py-3" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label class="text-sm font-bold" for="country">Seller country</label>
+            <input id="country" name="country" class="mt-1 w-full border rounded px-3 py-3" placeholder="China, Vietnam, Mexico..." />
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-bold" for="seller_name">Seller / company name</label>
+            <input id="seller_name" name="seller_name" class="mt-1 w-full border rounded px-3 py-3" />
+          </div>
+          <div>
+            <label class="text-sm font-bold" for="store_name">Store name / seller ID</label>
+            <input id="store_name" name="store_name" required class="mt-1 w-full border rounded px-3 py-3" />
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-bold" for="platform">Platform</label>
+            <select id="platform" name="platform" class="mt-1 w-full border rounded px-3 py-3">
+              <option>Amazon</option>
+              <option>Temu</option>
+              <option>AliExpress</option>
+              <option>eBay</option>
+              <option>Walmart</option>
+              <option>Other marketplace</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold" for="case_number">Case number</label>
+            <input id="case_number" name="case_number" class="mt-1 w-full border rounded px-3 py-3" placeholder="Example: 1:26-cv-01234" />
+            <div id="case-check-result" class="mt-2 text-xs text-slate-500"></div>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm font-bold" for="uploaded_file_url">Notice file URL or screenshot link</label>
+          <input id="uploaded_file_url" name="uploaded_file_url" class="mt-1 w-full border rounded px-3 py-3" placeholder="Google Drive / Dropbox / OneDrive link, optional" />
+        </div>
+        <div>
+          <label class="text-sm font-bold" for="notice_summary">What happened?</label>
+          <textarea id="notice_summary" name="notice_summary" rows="5" class="mt-1 w-full border rounded px-3 py-3" placeholder="Paste the key part of the notice or describe the frozen-funds / TRO / Schedule A issue."></textarea>
+        </div>
+        <label class="flex gap-3 text-sm text-slate-700">
+          <input id="attorney_referral_requested" name="attorney_referral_requested" type="checkbox" class="mt-1" />
+          <span>I want attorney referral support if this looks urgent. I understand JaxFamLaw Records is not a law firm.</span>
+        </label>
+        <button id="submit-button" type="submit" class="w-full bg-green-700 hover:bg-green-600 text-white rounded px-5 py-4 font-black">Submit and Continue to Payment</button>
+        <p id="form-message" class="hidden text-sm rounded p-3"></p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const fallbackPaymentUrls = {
+      rapid: 'https://payhip.com/order?link=2GJ5i&pricing_plan=APzDP3KkzE',
+      action: 'https://payhip.com/order?link=mbni6&pricing_plan=ZoWV5N89GA',
+      urgent: 'https://payhip.com/order?link=5yhtf&pricing_plan=q3BoKqAqBE'
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const tier = params.get('tier');
+    if (tier && ['rapid', 'action', 'urgent'].includes(tier)) {
+      document.getElementById('product_tier').value = tier;
+    }
+    const caseParam = params.get('case');
+    if (caseParam) {
+      document.getElementById('case_number').value = caseParam;
+    }
+
+    const caseInput = document.getElementById('case_number');
+    const caseResult = document.getElementById('case-check-result');
+    let caseTimer;
+    caseInput.addEventListener('input', () => {
+      clearTimeout(caseTimer);
+      const value = caseInput.value.trim();
+      if (value.length < 5) {
+        caseResult.textContent = '';
+        return;
+      }
+      caseTimer = setTimeout(async () => {
+        caseResult.textContent = 'Checking available public records...';
+        try {
+          const response = await fetch(`/api/case-check?case=${encodeURIComponent(value)}`);
+          const data = await response.json();
+          caseResult.textContent = data.status === 'confirmed'
+            ? `Confirmed public record: ${data.case_number} / ${data.plaintiff || 'plaintiff not listed'}`
+            : 'Not confirmed from available public records. This does not mean the notice is false.';
+        } catch (error) {
+          caseResult.textContent = 'Search temporarily unavailable. You can still submit the notice.';
+        }
+      }, 350);
+    });
+
+    document.getElementById('intake-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = document.getElementById('form-message');
+      const submitButton = document.getElementById('submit-button');
+      message.className = 'text-sm rounded p-3 bg-slate-100 text-slate-700';
+      message.textContent = 'Submitting request...';
+      message.classList.remove('hidden');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+      const formData = new FormData(event.target);
+      const payload = Object.fromEntries(formData.entries());
+      payload.attorney_referral_requested = document.getElementById('attorney_referral_requested').checked;
+      try {
+        const response = await fetch('/api/intake', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Submission failed');
+        message.className = 'text-sm rounded p-3 bg-green-50 text-green-800';
+        const paymentHtml = data.payment_url
+          ? `<a id="payment-link" class="mt-3 inline-block bg-green-700 text-white rounded px-4 py-2 font-black" href="${data.payment_url}" rel="nofollow">Continue to payment ${data.product_price || ''}</a><p class="mt-2 text-xs">You will be sent to checkout automatically in a moment.</p>`
+          : `<p class="mt-3 font-bold">Payment link is not connected yet. We will send payment instructions by email.</p>`;
+        const backupNotice = data.storage_warning
+          ? `<p class="mt-2 text-xs text-amber-700">Your request was captured by email backup because database storage is temporarily unavailable.</p>`
+          : '';
+        message.innerHTML = `
+          <p><strong>Request received.</strong></p>
+          <p>Reference ID: <strong>${data.request_id}</strong></p>
+          <p>Selected product: <strong>${data.product_name || 'Review service'} ${data.product_price || ''}</strong></p>
+          <p class="mt-2">${data.next_step || 'We will review the notice manually and reply by email.'}</p>
+          ${paymentHtml}
+          ${backupNotice}
+        `;
+        if (data.payment_url) {
+          window.setTimeout(() => {
+            window.location.href = data.payment_url;
+          }, 2500);
+        }
+        event.target.reset();
+      } catch (error) {
+        message.className = 'text-sm rounded p-3 bg-red-50 text-red-800';
+        const fallbackLines = [
+          'JaxFamLaw intake fallback',
+          '',
+          `Product tier: ${payload.product_tier || ''}`,
+          `Email: ${payload.email || ''}`,
+          `Country: ${payload.country || ''}`,
+          `Seller / company: ${payload.seller_name || ''}`,
+          `Store name / seller ID: ${payload.store_name || ''}`,
+          `Platform: ${payload.platform || ''}`,
+          `Case number: ${payload.case_number || ''}`,
+          `Notice file URL: ${payload.uploaded_file_url || ''}`,
+          `Attorney referral requested: ${payload.attorney_referral_requested ? 'yes' : 'no'}`,
+          '',
+          'What happened:',
+          payload.notice_summary || ''
+        ].join('\n');
+        const mailto = `mailto:support@jaxfamlaw.com?subject=${encodeURIComponent('JaxFamLaw intake request - ' + (payload.store_name || 'seller notice'))}&body=${encodeURIComponent(fallbackLines)}`;
+        const fallbackPaymentUrl = fallbackPaymentUrls[payload.product_tier] || fallbackPaymentUrls.rapid;
+        message.innerHTML = `
+          <p><strong>Submission failed:</strong> ${error.message}</p>
+          <p class="mt-2">The online intake service is temporarily unavailable. Send the same details by email, then continue to payment for the selected tier.</p>
+          <a class="mt-3 inline-block bg-red-700 text-white rounded px-4 py-2 font-black" href="${mailto}">Open email fallback</a>
+          <a class="mt-3 ml-2 inline-block bg-green-700 text-white rounded px-4 py-2 font-black" href="${fallbackPaymentUrl}" rel="nofollow">Continue to payment</a>
+        `;
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit and Continue to Payment';
+      }
+    });
+  </script>
+</body>
+</html>

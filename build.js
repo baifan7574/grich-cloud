@@ -1,54 +1,61 @@
 const fs = require('fs-extra');
 const path = require('path');
 
+const htmlAllowlist = [
+  'index.html',
+  'cn.html',
+  'intake.html',
+  'pricing.html',
+  'sample-report.html',
+  'lawyer-partner.html',
+  'case_template.html',
+  'dashboard.html',
+  'guide_tro_frozen.html',
+  'payment_success.html',
+  'privacy.html',
+  'refund.html',
+  'terms.html'
+];
+
 async function build() {
   try {
     const distDir = path.join(__dirname, 'dist');
-    await fs.ensureDir(distDir);
+    await fs.emptyDir(distDir);
 
-    // 仅复制 HTML 文件到 dist
-    const htmlFiles = await fs.readdir(__dirname);
-    for (const file of htmlFiles) {
-      if (path.extname(file) === '.html') {
-        await fs.copy(
-          path.join(__dirname, file),
-          path.join(distDir, file)
-        );
-        console.log(`✅ Copying: ${file}`);
+    for (const file of htmlAllowlist) {
+      const source = path.join(__dirname, file);
+      if (await fs.pathExists(source)) {
+        await fs.copy(source, path.join(distDir, file));
+        console.log(`Copied: ${file}`);
       }
     }
 
-    // 复制 robots.txt
-    const robotsPath = path.join(__dirname, 'public', 'robots.txt');
-    if (fs.existsSync(robotsPath)) {
-      await fs.copy(robotsPath, path.join(distDir, 'robots.txt'));
-      console.log('✅ Copying: robots.txt');
+    const publicFiles = ['robots.txt', 'sitemap.xml', 'sitemap_index.xml'];
+    for (const file of publicFiles) {
+      const source = path.join(__dirname, 'public', file);
+      if (await fs.pathExists(source)) {
+        await fs.copy(source, path.join(distDir, file));
+        console.log(`Copied: ${file}`);
+      }
     }
 
-    // 复制 sitemap 如果在 public 目录存在
-    const sitemapPath = path.join(__dirname, 'public', 'sitemap_index.xml');
-    if (fs.existsSync(sitemapPath)) {
-      await fs.copy(sitemapPath, path.join(distDir, 'sitemap_index.xml'));
-      console.log('✅ Copying: sitemap_index.xml');
-    }
-    
-    // 向后兼容旧的 sitemap.xml
-    const oldSitemapPath = path.join(__dirname, 'public', 'sitemap.xml');
-    if (fs.existsSync(oldSitemapPath)) {
-      await fs.copy(oldSitemapPath, path.join(distDir, 'sitemap.xml'));
-      console.log('✅ Copying: sitemap.xml');
-    }
-
-    // 新增: 确保 functions 文件夹也被同步到 dist (针对某些手动上传部署的情况)
     const functionsDir = path.join(__dirname, 'functions');
-    if (fs.existsSync(functionsDir)) {
+    if (await fs.pathExists(functionsDir)) {
       await fs.copy(functionsDir, path.join(distDir, 'functions'));
-      console.log('✅ Copying: functions/ (SSR Workers)');
+      console.log('Copied: functions/');
     }
 
-    console.log('🚀 Build Success - Files copied to dist');
+    for (const dir of ['guides', 'law-firms', 'cases']) {
+      const source = path.join(__dirname, dir);
+      if (await fs.pathExists(source)) {
+        await fs.copy(source, path.join(distDir, dir));
+        console.log(`Copied: ${dir}/`);
+      }
+    }
+
+    console.log('Build complete: clean files copied to dist');
   } catch (error) {
-    console.error('❌ Build Failed:', error);
+    console.error('Build failed:', error);
     process.exit(1);
   }
 }

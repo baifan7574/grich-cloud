@@ -1,3 +1,5 @@
+import { VERIFIED_CASE_PAGE_HTML } from "./verified_case_pages.js";
+
 const DOMAIN = "https://jaxfamlaw.com";
 
 function caseToSlug(caseNumber) {
@@ -25,6 +27,31 @@ function escapeHeader(value) {
     return String(value || "").replace(/[\r\n"]/g, " ").slice(0, 300);
 }
 
+function notConfirmedPage(caseParam, reason = "not_confirmed") {
+    const safeCase = escapeHeader(caseParam || "requested case");
+    const message = reason === "search_temporarily_unavailable"
+        ? "Search is temporarily unavailable. You can still submit the notice for manual public-record review."
+        : "This case was not confirmed in the currently available public-record database. This does not mean the notice is false.";
+    return new Response(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Case Not Confirmed | JaxFamLaw Records</title><meta name="robots" content="noindex,follow">
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-950 text-white"><main class="max-w-3xl mx-auto px-5 py-16">
+<a href="/" class="text-amber-400 font-black">JaxFamLaw Records</a>
+<h1 class="mt-8 text-4xl font-black">Public record not confirmed</h1>
+<p class="mt-4 text-slate-300">Case searched: <strong>${safeCase}</strong></p>
+<p class="mt-4 text-slate-300">${message}</p>
+<div class="mt-8 flex flex-col sm:flex-row gap-3">
+<a href="/intake?case=${encodeURIComponent(caseParam || "")}" class="bg-green-600 px-5 py-3 rounded font-black text-center">Submit Notice for Manual Review</a>
+<a href="/sample-report" class="border border-white/20 px-5 py-3 rounded font-black text-center">View Sample Report</a>
+</div>
+<p class="mt-8 text-xs text-slate-500">Not a law firm. Not legal advice. Public data may be sealed, delayed, incomplete, mismatched, or outdated.</p>
+</main></body></html>`, {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" }
+    });
+}
+
 async function fetchAsset(context, pathname) {
     const assetUrl = new URL(context.request.url);
     assetUrl.pathname = pathname;
@@ -41,12 +68,13 @@ export async function onRequest(context) {
     const { request, env, next } = context;
     const url = new URL(request.url);
 
-    if (url.pathname.endsWith("/") && url.pathname !== "/") {
+    const isCasePathWithSlash = /^\/cases\/[^/]+\/$/.test(url.pathname);
+    if (url.pathname.endsWith("/") && url.pathname !== "/" && !isCasePathWithSlash) {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.toString(), 301);
     }
 
-    const casePathMatch = url.pathname.match(/^\/cases\/([^/]+)$/);
+    const casePathMatch = url.pathname.match(/^\/cases\/([^/]+)\/?$/);
     const isLegacyCaseTemplate = /^\/case_template(\.html)?$/.test(url.pathname);
     const caseParam = casePathMatch ? slugToCase(casePathMatch[1]) : url.searchParams.get("case");
 
@@ -65,31 +93,56 @@ export async function onRequest(context) {
     }
 
     if (!caseParam) {
+        if (isLegacyCaseTemplate) {
+            return Response.redirect(`${DOMAIN}/sample-report`, 301);
+        }
         return next();
     }
 
+    const cleanCaseParam = caseParam.trim();
+    if (isLegacyCaseTemplate) {
+        const redirectUrl = new URL(`${DOMAIN}/cases/${caseToSlug(cleanCaseParam)}/`);
+        const defendant = url.searchParams.get("defendant");
+        if (defendant) {
+            redirectUrl.searchParams.set("defendant", defendant);
+        }
+        return Response.redirect(redirectUrl.toString(), 301);
+    }
+
+    if (casePathMatch) {
+        const verifiedCaseHtml = VERIFIED_CASE_PAGE_HTML[casePathMatch[1]];
+        if (verifiedCaseHtml) {
+            return new Response(verifiedCaseHtml, {
+                status: 200,
+                headers: {
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=300"
+                }
+            });
+        }
+    }
+
     const sbUrl = env.PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
-    const sbKey = env.PUBLIC_SUPABASE_ANON_KEY?.trim();
+    const sbKey = (env.SUPABASE_SERVICE_ROLE_KEY || env.PUBLIC_SUPABASE_ANON_KEY)?.trim();
 
     if (!sbUrl || !sbKey) {
-        return new Response("Server configuration is missing Supabase public URL or anon key.", { status: 500 });
+        return notConfirmedPage(cleanCaseParam, "search_temporarily_unavailable");
     }
 
     const headers = { apikey: sbKey, Authorization: `Bearer ${sbKey}` };
-    const cleanCaseParam = caseParam.trim();
 
     try {
         const lawsuitQuery = `${sbUrl}/rest/v1/lawsuits?case_number=eq.${encodeURIComponent(cleanCaseParam)}&select=*&limit=1`;
         const lawsuitResponse = await fetch(lawsuitQuery, { headers });
 
         if (!lawsuitResponse.ok) {
-            const errorDetail = await lawsuitResponse.text();
-            return new Response(`Database access failed: ${lawsuitResponse.status}. ${errorDetail}`, { status: 500 });
+            console.error("Database access failed:", lawsuitResponse.status, await lawsuitResponse.text());
+            return notConfirmedPage(cleanCaseParam, "search_temporarily_unavailable");
         }
 
         const lawsuitResult = await lawsuitResponse.json();
         if (!lawsuitResult.length) {
-            return new Response(`Case not found: ${cleanCaseParam}`, { status: 404 });
+            return notConfirmedPage(cleanCaseParam);
         }
 
         const lawsuitData = lawsuitResult[0];
@@ -115,7 +168,7 @@ export async function onRequest(context) {
         const canonicalUrl = `${DOMAIN}/cases/${caseToSlug(caseNumber)}`;
         const dynamicTitle = `${plaintiff} Public Court Record Summary | Case ${caseNumber}`;
         const dynamicDescription = `Public record summary for case ${caseNumber}: plaintiff, court, filing reference, law firm and seller-facing business reference notes. Not legal advice.`;
-        const seoSummary = `Case number ${caseNumber} appears in public court record data connected to ${plaintiff}. The record was filed on ${filedDate} in the ${court}, with ${lawFirm} listed in the available data. JaxFamLaw organizes this information as a business reference for cross-border sellers. It does not confirm liability, does not guarantee completeness or accuracy, and is not a substitute for advice from a licensed attorney.`;
+        const seoSummary = `Case number ${caseNumber} appears in public court record data connected to ${plaintiff}. The record was filed on ${filedDate} in the ${court}, with ${lawFirm} listed in the available data. JaxFamLaw organizes this information as a business reference for cross-border sellers. It does not confirm liability, does not promise completeness or accuracy, and is not a substitute for advice from a licensed attorney.`;
 
         return new HTMLRewriter()
             .on("title", { element(el) { el.setInnerContent(dynamicTitle); } })

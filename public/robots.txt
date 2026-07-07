@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://jaxfamlaw.com/sitemap_index.xml
+Sitemap: https://jaxfamlaw.com/sitemap.xml

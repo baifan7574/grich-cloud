@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Public Court Record Search for E-Commerce Sellers | JaxFamLaw</title>
-  <meta name="description" content="JaxFamLaw organizes public court records and seller-facing business risk signals for reference only. It is not a law firm and does not provide legal advice." />
+  <title>Public Record Intelligence for Marketplace Sellers | JaxFamLaw Records</title>
+  <meta name="description" content="Independent public-record intelligence service for Amazon, Temu, AliExpress and marketplace sellers reviewing TRO, Schedule A and frozen-funds notices. Not a law firm. Not legal advice." />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <link rel="canonical" href="https://jaxfamlaw.com/" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Public Court Record Search for E-Commerce Sellers" />
-  <meta property="og:description" content="Search public case records, plaintiffs, law firms and seller-facing business reference signals. Not legal advice." />
+  <meta property="og:title" content="Public Record Intelligence for Marketplace Sellers" />
+  <meta property="og:description" content="Case checks, public-record reports and attorney-ready briefs for marketplace sellers. Chinese-language support available." />
   <meta property="og:url" content="https://jaxfamlaw.com/" />
   <meta name="twitter:card" content="summary" />
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-BY22TVGOJ6"></script>
@@ -23,26 +23,26 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "JaxFamLaw",
+    "@type": "ProfessionalService",
+    "name": "JaxFamLaw Records",
     "url": "https://jaxfamlaw.com/",
-    "description": "Public record organization and business risk reference for cross-border e-commerce sellers.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://jaxfamlaw.com/cases/{search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+    "description": "Independent public-record intelligence and document organization for marketplace sellers.",
+    "areaServed": "Global",
+    "serviceType": "Public record intelligence"
   }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          colors: { ink: '#0b1220', gold: '#f5b942', signal: '#16a34a' }
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          colors: {
+            ink: '#0b1220',
+            gold: '#f5b942',
+            signal: '#16a34a',
+            steel: '#d6dee8'
+          }
         }
       }
     }
@@ -52,100 +52,120 @@
 <body class="bg-[#07111f] text-slate-100 font-sans">
   <header class="border-b border-white/10 bg-[#07111f]/95 sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-3" aria-label="JaxFamLaw Home">
+      <a href="/" class="flex items-center gap-3" aria-label="JaxFamLaw Records Home">
         <span class="w-8 h-8 bg-gold text-ink flex items-center justify-center font-black rounded">J</span>
         <span class="font-black tracking-tight">JaxFamLaw <span class="text-gold">Records</span></span>
       </a>
       <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
-        <a href="/guide_tro_frozen.html" class="hover:text-gold">Public Record Guide</a>
-        <a href="/dashboard.html" class="hover:text-gold">Case Database</a>
-        <a href="#pricing" class="hover:text-gold">Report Options</a>
+        <a href="/sample-report" class="hover:text-gold">Sample Report</a>
+        <a href="/pricing" class="hover:text-gold">Pricing</a>
+        <a href="/cn" class="hover:text-gold">Chinese Support</a>
+        <a href="/guide_tro_frozen" class="hover:text-gold">Guide</a>
       </nav>
-      <a href="mailto:support@jaxfamlaw.com?subject=Public%20Record%20Report" class="bg-gold text-ink px-4 py-2 rounded font-bold text-sm">Request Review</a>
+      <a href="/intake" class="bg-gold text-ink px-4 py-2 rounded font-bold text-sm">Request Review</a>
     </div>
   </header>
 
   <main>
-    <section class="max-w-6xl mx-auto px-5 py-14 md:py-20 grid lg:grid-cols-2 gap-12 items-center">
+    <section class="max-w-6xl mx-auto px-5 py-14 md:py-20 grid lg:grid-cols-[1.08fr_0.92fr] gap-12 items-center">
       <div>
-        <p class="text-gold font-bold text-sm mb-4">For Amazon / Temu / AliExpress sellers</p>
+        <p class="text-gold font-bold text-sm mb-4">Independent public-record intelligence service</p>
         <h1 class="text-4xl md:text-6xl font-black leading-tight tracking-tight">
-          Check public court records before making business decisions.
+          Understand a TRO, Schedule A, or frozen-funds notice before you spend blindly.
         </h1>
         <p class="mt-6 text-lg text-slate-300 leading-8">
-          Enter a case number or store name to review organized public record information, possible business risk signals, and a practical document checklist. This is not legal advice.
+          We help marketplace sellers organize public case records, platform notices, seller-name matches and attorney-ready materials. We are not a law firm and do not provide legal advice.
         </p>
 
-        <div class="mt-8 bg-white/8 border border-white/10 rounded-lg p-3">
-          <label for="main-search" class="sr-only">Enter a case number or store name</label>
-          <div class="flex flex-col md:flex-row gap-3">
-            <input id="main-search" type="text" placeholder="Example: 1:26-cv-01234 or store name"
-              class="flex-1 bg-white text-ink rounded px-4 py-4 text-base outline-none" />
-            <button id="search-button" class="bg-signal hover:bg-green-500 text-white px-6 py-4 rounded font-black">
-              Search Records
-            </button>
-          </div>
-          <div id="search-results" class="hidden mt-3 bg-[#0d1828] border border-white/10 rounded overflow-hidden"></div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-3">
+          <a href="/intake?tier=rapid" class="bg-signal hover:bg-green-500 text-white px-6 py-4 rounded font-black text-center">
+            Start $49 Rapid Case Check
+          </a>
+          <a href="/sample-report" class="border border-white/20 hover:border-gold px-6 py-4 rounded font-black text-center">
+            View Sample Report
+          </a>
+        </div>
+
+        <div class="mt-5 border border-green-400/30 bg-green-400/10 rounded p-4 text-sm text-green-100">
+          <strong class="text-white">Ready to pay after intake:</strong>
+          submit your notice, get a reference ID, then continue to the Payhip checkout link for the selected tier.
         </div>
 
         <div class="mt-6 flex flex-wrap gap-3 text-sm text-slate-300">
-          <span class="border border-white/10 rounded px-3 py-2">Schedule A Lawsuit</span>
-          <span class="border border-white/10 rounded px-3 py-2">Public Record Review</span>
-          <span class="border border-white/10 rounded px-3 py-2">Business Reference Only</span>
+          <span class="border border-white/10 rounded px-3 py-2">Amazon / Temu / AliExpress</span>
+          <span class="border border-white/10 rounded px-3 py-2">TRO / Schedule A</span>
+          <span class="border border-white/10 rounded px-3 py-2">Chinese-language support</span>
         </div>
       </div>
 
       <aside class="bg-white text-ink rounded-lg p-6 shadow-2xl">
-        <h2 class="text-2xl font-black">Three practical checks</h2>
-        <ol class="mt-5 space-y-4 text-slate-700">
-          <li><strong>1. Confirm the case.</strong> Match the case number, plaintiff, court and filing date against public records.</li>
-          <li><strong>2. Save documents.</strong> Keep platform notices, balance screenshots, product links, sales records and emails.</li>
-          <li><strong>3. Estimate business exposure.</strong> Use the information as a business reference before deciding whether to monitor, settle, abandon, or contact a licensed attorney.</li>
-        </ol>
+        <h2 class="text-2xl font-black">What we actually deliver</h2>
+        <div class="mt-5 space-y-4 text-slate-700">
+          <div class="border-l-4 border-green-600 pl-4">
+            <strong>Confirmed from public source</strong>
+            <p class="mt-1 text-sm">Case number, plaintiff, court, listed counsel and source links when available.</p>
+          </div>
+          <div class="border-l-4 border-yellow-500 pl-4">
+            <strong>User-provided notice</strong>
+            <p class="mt-1 text-sm">Platform emails, screenshots and seller details are labeled as customer-provided until independently reviewed.</p>
+          </div>
+          <div class="border-l-4 border-slate-400 pl-4">
+            <strong>Not confirmed / requires further review</strong>
+            <p class="mt-1 text-sm">We plainly state what cannot be verified from available public records.</p>
+          </div>
+        </div>
         <div class="mt-6 border-t pt-5">
-          <p class="text-sm text-slate-600">Need a human-organized public record report?</p>
-          <a href="mailto:support@jaxfamlaw.com?subject=Need%20a%20Public%20Record%20Report"
+          <p class="text-sm text-slate-600">Need a Chinese explanation and attorney-ready packet?</p>
+          <a href="/intake?tier=action"
             class="mt-3 inline-block w-full text-center bg-ink text-white rounded px-5 py-3 font-black">
-            Request Public Record Report
+            Submit Notice for Review
           </a>
         </div>
       </aside>
     </section>
 
-    <section class="bg-white text-ink py-14" id="pricing">
+    <section class="bg-white text-ink py-14" id="pricing-preview">
       <div class="max-w-6xl mx-auto px-5">
-        <h2 class="text-3xl font-black">Report options</h2>
-        <p class="mt-3 text-slate-600 max-w-3xl">This site should sell clear, limited-scope record organization. Avoid sounding like a law firm or promising a legal outcome.</p>
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h2 class="text-3xl font-black">Three product tiers</h2>
+            <p class="mt-3 text-slate-600 max-w-3xl">Start with a quick public-record check, then upgrade only when the matter is worth deeper review.</p>
+          </div>
+          <a href="/pricing" class="text-sm font-black text-green-700 hover:text-green-900">Compare all tiers -></a>
+        </div>
         <div class="mt-8 grid md:grid-cols-3 gap-5">
-          <div class="border rounded-lg p-6">
-            <h3 class="font-black text-xl">Basic case lookup</h3>
-            <p class="mt-3 text-slate-600">Case number, plaintiff, court, filing date and basic public record summary.</p>
-            <p class="mt-5 text-3xl font-black">$29-$99</p>
-          </div>
-          <div class="border-2 border-gold rounded-lg p-6">
-            <h3 class="font-black text-xl">Public record report</h3>
-            <p class="mt-3 text-slate-600">Human-organized records, source links, known limitations and document checklist.</p>
-            <p class="mt-5 text-3xl font-black">$199-$499</p>
-          </div>
-          <div class="border rounded-lg p-6">
-            <h3 class="font-black text-xl">Business monitoring</h3>
-            <p class="mt-3 text-slate-600">Ongoing public-record watch for sellers or service providers managing multiple stores.</p>
-            <p class="mt-5 text-3xl font-black">$99+/mo</p>
-          </div>
+          <a href="/intake?tier=rapid" class="border rounded-lg p-6 hover:border-green-600">
+            <h3 class="font-black text-xl">Rapid Case Check</h3>
+            <p class="mt-3 text-slate-600">One-page Chinese triage for case number, notice and urgency.</p>
+            <p class="mt-5 text-3xl font-black">$49</p>
+          </a>
+          <a href="/intake?tier=action" class="border-2 border-gold rounded-lg p-6 hover:border-green-600">
+            <h3 class="font-black text-xl">Public Record Action Report</h3>
+            <p class="mt-3 text-slate-600">5-8 page public-record report and attorney question list.</p>
+            <p class="mt-5 text-3xl font-black">$299</p>
+          </a>
+          <a href="/intake?tier=urgent" class="border rounded-lg p-6 hover:border-green-600">
+            <h3 class="font-black text-xl">Urgent Attorney-Ready Brief</h3>
+            <p class="mt-3 text-slate-600">24-hour bilingual packet for urgent seller matters.</p>
+            <p class="mt-5 text-3xl font-black">$499</p>
+          </a>
         </div>
       </div>
     </section>
 
     <section class="max-w-6xl mx-auto px-5 py-14">
-      <h2 class="text-3xl font-black">Useful entry points</h2>
-      <div class="mt-6 grid md:grid-cols-2 gap-5">
-        <a href="/guide_tro_frozen.html" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
-          <h3 class="font-black text-xl">How to read a Schedule A / TRO notice</h3>
-          <p class="mt-3 text-slate-300">Plain-language record review steps for sellers. Not a substitute for legal counsel.</p>
+      <div class="grid md:grid-cols-3 gap-5">
+        <a href="/cn" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
+          <h3 class="font-black text-xl">Chinese seller support</h3>
+          <p class="mt-3 text-slate-300">Chinese-language explanation for U.S. public case records, TRO, Schedule A and marketplace frozen-funds notices.</p>
         </a>
-        <a href="/dashboard.html" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
-          <h3 class="font-black text-xl">Case database</h3>
-          <p class="mt-3 text-slate-300">Browse recent public records and seller-facing business reference signals.</p>
+        <a href="/guide_tro_frozen" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
+          <h3 class="font-black text-xl">TRO / Schedule A guide</h3>
+          <p class="mt-3 text-slate-300">Plain-language guide for marketplace sellers reviewing platform notices.</p>
+        </a>
+        <a href="/lawyer-partner" class="block bg-white/8 border border-white/10 rounded-lg p-6 hover:border-gold">
+          <h3 class="font-black text-xl">Attorney referral support</h3>
+          <p class="mt-3 text-slate-300">Optional material organization before the seller speaks with independent counsel.</p>
         </a>
       </div>
     </section>
@@ -153,89 +173,15 @@
 
   <footer class="border-t border-white/10 py-10">
     <div class="max-w-6xl mx-auto px-5 text-sm text-slate-400 space-y-4">
-      <p><strong class="text-slate-200">Disclaimer:</strong> JaxFamLaw is an independent public-record organization platform. We are not a law firm, are not affiliated with any court, and do not provide legal advice. Reports are business references based on public information and may be incomplete or outdated.</p>
+      <p><strong class="text-slate-200">Disclaimer:</strong> JaxFamLaw Records is an independent public-record organization and business-reference service. We are not a law firm, are not affiliated with any court, and do not provide legal advice. Public data may be incomplete, delayed, sealed, mismatched, or outdated.</p>
       <div class="flex flex-wrap gap-5">
-        <a href="/privacy.html" class="hover:text-gold">Privacy Policy</a>
-        <a href="/terms.html" class="hover:text-gold">Terms of Service</a>
-        <a href="/refund.html" class="hover:text-gold">Refund Policy</a>
+        <a href="/privacy" class="hover:text-gold">Privacy Policy</a>
+        <a href="/terms" class="hover:text-gold">Terms of Service</a>
+        <a href="/refund" class="hover:text-gold">Refund Policy</a>
         <a href="mailto:support@jaxfamlaw.com" class="hover:text-gold">support@jaxfamlaw.com</a>
       </div>
     </div>
   </footer>
-
-  <script>
-    const SUPABASE_URL = "https://rdlmumybuwveaaeceohj.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_aPXWTauRxJ88A88mwLDoPQ_puVi7PZj";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const input = document.getElementById('main-search');
-    const button = document.getElementById('search-button');
-    const resultsBox = document.getElementById('search-results');
-
-    function caseToSlug(value) {
-      return String(value || '')
-        .trim()
-        .toLowerCase()
-        .replace(/:/g, '-')
-        .replace(/[^a-z0-9-]+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-    }
-
-    function safeHtml(value) {
-      return String(value || '').replace(/[&<>"']/g, ch => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[ch]));
-    }
-
-    function goToCase(value) {
-      const query = value.trim();
-      if (!query) return;
-      window.location.href = `/cases/${caseToSlug(query)}`;
-    }
-
-    button.addEventListener('click', () => goToCase(input.value));
-    input.addEventListener('keydown', event => {
-      if (event.key === 'Enter') goToCase(input.value);
-    });
-
-    let searchTimer;
-    input.addEventListener('input', event => {
-      clearTimeout(searchTimer);
-      const query = event.target.value.trim();
-      if (query.length < 2) {
-        resultsBox.classList.add('hidden');
-        return;
-      }
-
-      searchTimer = setTimeout(async () => {
-        const { data, error } = await supabaseClient
-          .from('defendants')
-          .select('defendant_name, case_number, platform')
-          .ilike('defendant_name', `%${query}%`)
-          .limit(5);
-
-        if (error) {
-          resultsBox.innerHTML = `<div class="p-4 text-red-300">Search is temporarily unavailable. Try a case number directly.</div>`;
-          resultsBox.classList.remove('hidden');
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          resultsBox.innerHTML = `<button class="w-full text-left p-4 hover:bg-white/10" onclick="goToCase('${safeHtml(query)}')">No store-name match found. Continue as case number search: ${safeHtml(query)}</button>`;
-          resultsBox.classList.remove('hidden');
-          return;
-        }
-
-        resultsBox.innerHTML = data.map(item => `
-          <a class="block p-4 hover:bg-white/10 border-b border-white/10" href="/cases/${caseToSlug(item.case_number)}">
-            <strong>${safeHtml(item.defendant_name || 'Unknown seller')}</strong>
-            <span class="block text-sm text-slate-400">${safeHtml(item.platform || 'Marketplace')} | ${safeHtml(item.case_number)}</span>
-          </a>
-        `).join('');
-        resultsBox.classList.remove('hidden');
-      }, 250);
-    });
-  </script>
 </body>
 
 </html>
