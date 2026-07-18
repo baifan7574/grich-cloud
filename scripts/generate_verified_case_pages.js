@@ -49,6 +49,7 @@ function renderCasePage(row) {
   <meta name="description" content="${escapeHtml(description)}" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <link rel="canonical" href="${DOMAIN}/cases/${escapeHtml(slug)}/" />
+  <script defer src="/analytics.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100">

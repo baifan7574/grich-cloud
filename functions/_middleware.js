@@ -165,7 +165,7 @@ export async function onRequest(context) {
         const court = getValue(lawsuitData, "court", "US District Court");
         const lawFirm = getValue(lawsuitData, "law_firm", "specialized IP litigation counsel");
         const filedDate = getValue(lawsuitData, "filed_date", "recently");
-        const canonicalUrl = `${DOMAIN}/cases/${caseToSlug(caseNumber)}`;
+        const canonicalUrl = `${DOMAIN}/cases/${caseToSlug(caseNumber)}/`;
         const dynamicTitle = `${plaintiff} Public Court Record Summary | Case ${caseNumber}`;
         const dynamicDescription = `Public record summary for case ${caseNumber}: plaintiff, court, filing reference, law firm and seller-facing business reference notes. Not legal advice.`;
         const seoSummary = `Case number ${caseNumber} appears in public court record data connected to ${plaintiff}. The record was filed on ${filedDate} in the ${court}, with ${lawFirm} listed in the available data. JaxFamLaw organizes this information as a business reference for cross-border sellers. It does not confirm liability, does not promise completeness or accuracy, and is not a substitute for advice from a licensed attorney.`;

@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submit a Notice for Review | JaxFamLaw Records</title>
   <meta name="description" content="Submit a marketplace TRO, Schedule A or frozen-funds notice for public-record review. Not a law firm. Not legal advice." />
-  <link rel="canonical" href="https://jaxfamlaw.com/intake" />
-  <meta name="robots" content="index,follow" />
-  <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="canonical" href="https://jaxfamlaw.com/intake" />
+    <meta name="robots" content="index,follow" />
+    <script defer src="/analytics.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#07111f] text-slate-100">
   <header class="border-b border-white/10">
@@ -157,7 +158,15 @@
           body: JSON.stringify(payload)
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Submission failed');
+        if (!response.ok || data.status === 'payment_available_email_required') {
+          throw new Error(data.next_step || data.error || 'Submission failed');
+        }
+        if (window.jflTrack) {
+          window.jflTrack('generate_lead', {
+            product_tier: payload.product_tier || 'rapid',
+            storage_backend: data.storage_backend || 'unknown'
+          });
+        }
         message.className = 'text-sm rounded p-3 bg-green-50 text-green-800';
         const paymentHtml = data.payment_url
           ? `<a id="payment-link" class="mt-3 inline-block bg-green-700 text-white rounded px-4 py-2 font-black" href="${data.payment_url}" rel="nofollow">Continue to payment ${data.product_price || ''}</a><p class="mt-2 text-xs">You will be sent to checkout automatically in a moment.</p>`
@@ -174,6 +183,12 @@
           ${backupNotice}
         `;
         if (data.payment_url) {
+          if (window.jflTrack) {
+            window.jflTrack('begin_checkout', {
+              link_location: 'intake_success',
+              product_tier: payload.product_tier || 'rapid'
+            });
+          }
           window.setTimeout(() => {
             window.location.href = data.payment_url;
           }, 2500);

@@ -45,6 +45,9 @@ async function build() {
       console.log('Copied: functions/');
     }
 
+    await fs.copy(path.join(__dirname, 'analytics.js'), path.join(distDir, 'analytics.js'));
+    console.log('Copied: analytics.js');
+
     for (const dir of ['guides', 'law-firms', 'cases']) {
       const source = path.join(__dirname, dir);
       if (await fs.pathExists(source)) {
